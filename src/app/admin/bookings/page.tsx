@@ -5,6 +5,7 @@ export const revalidate = 0;
 
 export default async function BookingsPage() {
   const bookings = await prisma.booking.findMany({
+    take: 200,
     include: {
       customer: true,
       package: true,

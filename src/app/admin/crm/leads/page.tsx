@@ -5,6 +5,7 @@ export const revalidate = 0;
 
 export default async function LeadsPage() {
   const leads = await prisma.lead.findMany({
+    take: 250,
     include: {
       assignedTo: { select: { id: true, name: true } },
       _count: { select: { activities: true, followUps: true } },

@@ -291,6 +291,7 @@ model Package {
 
   @@index([slug])
   @@index([status])
+  @@index([createdAt])
 }
 
 model PackageImage {
@@ -438,6 +439,7 @@ model Booking {
   @@index([customerId])
   @@index([bookingStatus])
   @@index([paymentStatus])
+  @@index([createdAt])
 }
 
 model BookingTraveller {
