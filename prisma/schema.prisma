@@ -213,6 +213,70 @@ model Package {
   overview           String?
   travelRequirements String?
   termsAndConditions String?
+  
+  // Enhanced Pricing
+  mrpPrice           Float?
+  childPrice         Float?
+  infantPrice        Float?
+  couplePrice        Float?
+  currency           String?            @default("INR")
+  taxGst             String?
+  additionalCharges  String?
+  discountType       String?            // PERCENTAGE, FIXED
+  discountValue      Float?
+
+  // Enhanced Media
+  heroImage          String?
+  thumbnailImage     String?
+  gallery            String?            // JSON array of URLs
+
+  // Enhanced Makkah Hotel
+  makkahHotelRating  Int?               @default(4)
+  makkahRoomType     String?
+  makkahMealPlan     String?
+  makkahDescription  String?
+  makkahAmenities    String?
+  makkahImage        String?
+  makkahMap          String?
+
+  // Enhanced Madinah Hotel
+  madinahHotelRating Int?               @default(4)
+  madinahRoomType    String?
+  madinahMealPlan    String?
+  madinahDescription String?
+  madinahAmenities   String?
+  madinahImage       String?
+  madinahMap         String?
+
+  // Flight Information
+  airline            String?
+  flightNumber       String?
+  pnr                String?
+  departureAirport   String?
+  arrivalAirport     String?
+  flightType         String?            @default("DIRECT") // DIRECT, CONNECTING
+  baggage            String?
+  flightDetails      String?
+
+  // Features / Amenities
+  features           String?            // JSON array of strings
+
+  // Additional Departure & Seats
+  registrationDeadline String?
+  sortOrder          Int?               @default(0)
+
+  // Additional Policies
+  cancellationPolicy String?
+  refundPolicy       String?
+  importantNotes     String?
+
+  // SEO
+  seoTitle           String?
+  seoDescription     String?
+  seoKeywords        String?
+  ogImage            String?
+  canonicalUrl       String?
+
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
@@ -633,6 +697,7 @@ model Media {
   name       String
   category   String   @default("MARKETING") // LOGO, MAKKAH, MADINAH, HOTELS, PACKAGES, CUSTOMERS, MARKETING, AI_GENERATED, DOCUMENTS
   url        String
+  data       String?  // Optional base64 or stored payload for zero-dependency portability
   fileType   String   @default("image/jpeg")
   fileSize   Int      @default(0)
   dimensions String?

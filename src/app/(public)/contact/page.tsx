@@ -1,13 +1,26 @@
 import React from "react";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
-import { MapPin, Phone, MessageCircle, Mail, Clock, ShieldCheck } from "lucide-react";
+import { MapPin, Phone, MessageCircle, Mail, Clock } from "lucide-react";
+import { getSiteSettings } from "@/lib/settings";
 
 export const metadata = {
   title: "Contact Us & Booking Offices | Al-Gafur International Tours And Travels",
   description: "Get in touch with Al-Gafur offices in Pune, Mumbai, Aurangabad, and Ahmednagar.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+
+  const phone1 = settings.company_phone_1 || "+91 8793939393";
+  const phone2 = settings.company_phone_2 || "+91 9890708013";
+  const phone3 = settings.company_phone_3 || "+91 9764444044";
+  const whatsapp = settings.whatsapp_number || "919890708013";
+  const email = settings.company_email || "contact@algafurtours.com";
+  const address =
+    settings.company_address ||
+    "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.";
+  const workingHours = settings.working_hours || "10:00 AM – 8:30 PM";
+
   return (
     <div className="bg-ivory-100/50 min-h-screen py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
@@ -32,7 +45,7 @@ export default function ContactPage() {
             </div>
             <h3 className="text-lg font-serif font-bold text-forest-950">Pune Booking Office</h3>
             <p className="text-xs text-neutral-600 leading-relaxed">
-              183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.
+              {address}
             </p>
             <div className="pt-2 text-xs space-y-1">
               <p className="text-neutral-500">
@@ -55,14 +68,16 @@ export default function ContactPage() {
             </p>
             <div className="pt-2 text-xs space-y-1.5">
               <p className="text-neutral-800">
-                <strong>Dr. Mudassir Sayyad:</strong> +91 8793939393
+                <strong>Dr. Mudassir Sayyad:</strong> {phone1}
               </p>
               <p className="text-neutral-800">
-                <strong>Hafiz Asrar Sahab:</strong> +91 9890708013
+                <strong>Hafiz Asrar Sahab:</strong> {phone2}
               </p>
-              <p className="text-neutral-800">
-                <strong>Zahir Ali Pathan:</strong> +91 9764444044
-              </p>
+              {phone3 && (
+                <p className="text-neutral-800">
+                  <strong>Zahir Ali Pathan:</strong> {phone3}
+                </p>
+              )}
             </div>
           </div>
 
@@ -77,15 +92,15 @@ export default function ContactPage() {
             </p>
             <div className="pt-2 text-xs space-y-1.5">
               <a
-                href="https://wa.me/919890708013?text=Assalamualaikum"
+                href={`https://wa.me/${whatsapp}?text=Assalamualaikum`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-emerald-700 font-bold hover:underline block"
               >
-                WhatsApp: +91 9890708013
+                WhatsApp: +{whatsapp}
               </a>
-              <p className="text-neutral-500">Email: contact@algafurtours.com</p>
-              <p className="text-neutral-500">Working Hours: 10:00 AM – 8:30 PM</p>
+              {email && <p className="text-neutral-500">Email: {email}</p>}
+              <p className="text-neutral-500">Working Hours: {workingHours}</p>
             </div>
           </div>
         </div>
@@ -96,4 +111,3 @@ export default function ContactPage() {
     </div>
   );
 }
-

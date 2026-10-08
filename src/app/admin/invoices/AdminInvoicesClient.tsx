@@ -354,7 +354,7 @@ export default function AdminInvoicesClient({
                   onChange={(e) =>
                     setGenerateForm({ ...generateForm, bookingId: e.target.value })
                   }
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   required
                 >
                   {bookings.map((b) => (

@@ -199,6 +199,48 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
               </div>
             </div>
 
+            {/* Flight Information */}
+            <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-4">
+              <h2 className="text-xl font-serif font-bold text-forest-950 flex items-center gap-2">
+                <Plane className="w-5 h-5 text-gold-600" />
+                Flight Specifications &amp; Airlines
+              </h2>
+
+              <div className="p-5 bg-ivory-50/70 border border-neutral-200 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div>
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase">Airline &amp; Flight</span>
+                  <p className="font-bold text-forest-950 text-sm mt-0.5">
+                    {pkg.airline || "Saudi Airlines (SV)"} {pkg.flightNumber && `(${pkg.flightNumber})`}
+                  </p>
+                  {pkg.pnr && <p className="text-[11px] text-neutral-500 font-mono mt-0.5">PNR: {pkg.pnr}</p>}
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase">Route &amp; Airport</span>
+                  <p className="font-semibold text-neutral-800 text-xs mt-0.5">
+                    {pkg.departureAirport || "BOM (Mumbai)"} &rarr; {pkg.arrivalAirport || "MED (Madinah)"}
+                  </p>
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 font-semibold rounded text-[10px]">
+                    {pkg.flightType === "CONNECTING" ? "Connecting Flight" : "Direct Flight"}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase">Baggage Allowance</span>
+                  <p className="font-semibold text-neutral-800 text-xs mt-0.5">
+                    {pkg.baggage || "2x23kg check-in + 7kg cabin"}
+                  </p>
+                  <p className="text-[11px] text-neutral-500 mt-0.5">Included for each pilgrim</p>
+                </div>
+              </div>
+
+              {pkg.flightDetails && (
+                <p className="text-xs text-neutral-600 leading-relaxed bg-neutral-50 p-3 rounded-xl border border-neutral-200">
+                  {pkg.flightDetails}
+                </p>
+              )}
+            </div>
+
             {/* Accommodations Details */}
             <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
               <h2 className="text-xl font-serif font-bold text-forest-950 flex items-center gap-2">
@@ -223,8 +265,13 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
                   <p className="text-xs text-neutral-600">
                     Distance: <strong>{pkg.makkahDistance || "500m"}</strong> walking route to King Abdulaziz Gate.
                   </p>
+                  {pkg.makkahMealPlan && (
+                    <p className="text-xs text-emerald-800 font-semibold">
+                      Meals: {pkg.makkahMealPlan}
+                    </p>
+                  )}
                   <p className="text-[11px] text-neutral-500">
-                    Amenities: Elevators, Indian buffet dining hall, air-conditioned rooms, daily housekeeping.
+                    Amenities: {pkg.makkahAmenities || "Elevators, Indian buffet dining hall, air-conditioned rooms, daily housekeeping."}
                   </p>
                 </div>
 
@@ -244,8 +291,13 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
                   <p className="text-xs text-neutral-600">
                     Distance: <strong>{pkg.madinahDistance || "400m"}</strong> walking route to Prophet&apos;s Mosque.
                   </p>
+                  {pkg.madinahMealPlan && (
+                    <p className="text-xs text-emerald-800 font-semibold">
+                      Meals: {pkg.madinahMealPlan}
+                    </p>
+                  )}
                   <p className="text-[11px] text-neutral-500">
-                    Amenities: Close to ladies entrance, high speed Wi-Fi, prayer view rooms, 24-hr front desk.
+                    Amenities: {pkg.madinahAmenities || "Close to ladies entrance, high speed Wi-Fi, prayer view rooms, 24-hr front desk."}
                   </p>
                 </div>
               </div>
@@ -306,8 +358,23 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
                   <strong>Documents Required:</strong> {pkg.travelRequirements}
                 </p>
                 <p>
-                  <strong>Terms & Payment Conditions:</strong> {pkg.termsAndConditions}
+                  <strong>Terms &amp; Payment Conditions:</strong> {pkg.termsAndConditions}
                 </p>
+                {pkg.cancellationPolicy && (
+                  <p>
+                    <strong>Cancellation Policy:</strong> {pkg.cancellationPolicy}
+                  </p>
+                )}
+                {pkg.refundPolicy && (
+                  <p>
+                    <strong>Refund Policy:</strong> {pkg.refundPolicy}
+                  </p>
+                )}
+                {pkg.importantNotes && (
+                  <p className="bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-amber-900 mt-2">
+                    <strong>Important Notes:</strong> {pkg.importantNotes}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -320,9 +387,16 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
                 <span className="text-[11px] font-semibold text-neutral-500 block uppercase">
                   Select Room Sharing & Price
                 </span>
-                <div className="text-3xl font-serif font-bold text-forest-950 mt-1">
-                  ₹{activePrice.toLocaleString("en-IN")}
-                  <span className="text-xs font-normal text-neutral-500"> / pilgrim</span>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <div className="text-3xl font-serif font-bold text-forest-950">
+                    ₹{activePrice.toLocaleString("en-IN")}
+                    <span className="text-xs font-normal text-neutral-500"> / pilgrim</span>
+                  </div>
+                  {pkg.mrpPrice && (
+                    <span className="text-xs text-neutral-400 line-through">
+                      ₹{pkg.mrpPrice.toLocaleString("en-IN")}
+                    </span>
+                  )}
                 </div>
               </div>
 

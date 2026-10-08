@@ -7,9 +7,10 @@ import { buildWhatsAppLink, getFloatingWhatsAppMessage } from "@/lib/whatsapp";
 
 interface FloatingWhatsAppProps {
   packageName?: string;
+  settings?: Record<string, string>;
 }
 
-export default function FloatingWhatsApp({ packageName }: FloatingWhatsAppProps) {
+export default function FloatingWhatsApp({ packageName, settings = {} }: FloatingWhatsAppProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [customMsg, setCustomMsg] = useState("");
@@ -24,7 +25,8 @@ export default function FloatingWhatsApp({ packageName }: FloatingWhatsAppProps)
 
   const defaultMessage = getFloatingWhatsAppMessage(pageType, packageName);
   const activeMessage = customMsg.trim() || defaultMessage;
-  const whatsappUrl = buildWhatsAppLink("919890708013", activeMessage);
+  const whatsappNumber = settings.whatsapp_number || "919890708013";
+  const whatsappUrl = buildWhatsAppLink(whatsappNumber, activeMessage);
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
@@ -104,4 +106,3 @@ export default function FloatingWhatsApp({ packageName }: FloatingWhatsAppProps)
     </div>
   );
 }
-

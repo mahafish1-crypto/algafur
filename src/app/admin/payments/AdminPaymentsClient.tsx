@@ -372,7 +372,7 @@ export default function AdminPaymentsClient({
                 <select
                   value={recordForm.bookingId}
                   onChange={(e) => setRecordForm({ ...recordForm, bookingId: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   required
                 >
                   {bookings.map((b) => (
@@ -430,7 +430,7 @@ export default function AdminPaymentsClient({
                     onChange={(e) =>
                       setRecordForm({ ...recordForm, paymentMethod: e.target.value })
                     }
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   >
                     <option value="BANK_TRANSFER">Bank Transfer (NEFT/RTGS)</option>
                     <option value="UPI">UPI / GooglePay / PhonePe</option>

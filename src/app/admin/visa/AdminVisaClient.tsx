@@ -529,7 +529,7 @@ export default function AdminVisaClient({
                 <select
                   value={editForm.status}
                   onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-emerald-700"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-emerald-700 focus:outline-none"
                 >
                   <option value="NOT_STARTED">Not Started</option>
                   <option value="DOCUMENTS_PENDING">Documents Pending</option>
@@ -668,7 +668,7 @@ export default function AdminVisaClient({
                       passportNumber: cust?.passportNumber || newForm.passportNumber,
                     });
                   }}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                   required
                 >
                   {customers.map((c) => (
@@ -688,7 +688,7 @@ export default function AdminVisaClient({
                   placeholder="e.g. Z1234567"
                   value={newForm.passportNumber}
                   onChange={(e) => setNewForm({ ...newForm, passportNumber: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono uppercase"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono uppercase bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                   required
                 />
               </div>
@@ -700,7 +700,7 @@ export default function AdminVisaClient({
                 <select
                   value={newForm.bookingId}
                   onChange={(e) => setNewForm({ ...newForm, bookingId: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                 >
                   <option value="">No linked booking</option>
                   {bookings.map((b) => (

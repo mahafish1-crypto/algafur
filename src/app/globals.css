@@ -91,3 +91,64 @@
   border: 1px solid rgba(212, 175, 55, 0.22);
 }
 
+/* ==========================================================================
+   GLOBAL FORM CONTROLS & DROPDOWN/SELECT TEXT VISIBILITY FIX
+   ========================================================================== */
+/* Default Light Theme Dropdown / Select */
+select {
+  color: #0f172a !important;
+  background-color: #ffffff;
+  color-scheme: light;
+}
+
+select option {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
+/* Dark Theme Dropdowns / Selects */
+select.bg-slate-900,
+select.bg-slate-950,
+select.bg-slate-800,
+select.bg-forest-900,
+select.bg-forest-950,
+.bg-slate-950 select:not(.bg-white),
+.bg-slate-900 select:not(.bg-white),
+.bg-forest-950 select:not(.bg-white) {
+  color: #f8fafc !important;
+  background-color: #0f172a !important;
+  color-scheme: dark;
+}
+
+select.bg-slate-900 option,
+select.bg-slate-950 option,
+select.bg-slate-800 option,
+select.bg-forest-900 option,
+select.bg-forest-950 option,
+.bg-slate-950 select:not(.bg-white) option,
+.bg-slate-900 select:not(.bg-white) option,
+.bg-forest-950 select:not(.bg-white) option {
+  color: #f8fafc !important;
+  background-color: #0f172a !important;
+}
+
+/* Explicit Light Dropdowns inside Modals or Cards */
+select.bg-white,
+.bg-white select,
+.modal select,
+[role="dialog"] select {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  color-scheme: light;
+}
+
+select.bg-white option,
+.bg-white select option,
+.modal select option,
+[role="dialog"] select option {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+

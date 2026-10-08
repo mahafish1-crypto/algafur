@@ -15,8 +15,30 @@ import {
   Compass,
 } from "lucide-react";
 
-export default function Footer() {
+interface FooterProps {
+  settings?: Record<string, string>;
+}
+
+export default function Footer({ settings = {} }: FooterProps) {
   const { t } = useLanguage();
+
+  const logoUrl = settings.footer_logo || settings.site_logo || "";
+  const companyName = settings.company_name || "Al-Gafur International Tours And Travels";
+  const footerDesc =
+    settings.footer_description ||
+    "Al-Gafur International Tours And Travels is dedicated to facilitating serene, spiritually uplifting, and meticulously organized Hajj & Umrah pilgrimages. With experienced guides, walking distance hotels in holy cities, and authentic Indian hospitality.";
+  const phone1 = settings.company_phone_1 || "+91 8793939393";
+  const phone2 = settings.company_phone_2 || "+91 9890708013";
+  const phone3 = settings.company_phone_3 || "+91 9764444044";
+  const whatsapp = settings.whatsapp_number || "919890708013";
+  const email = settings.company_email || "contact@algafurtours.com";
+  const address =
+    settings.company_address ||
+    "183, M.G. Road, 15 August Chowk, Khadda Market, Camp, Pune - 411001";
+  const workingHours = settings.working_hours || "Mon – Sat: 10:00 AM – 8:30 PM";
+  const copyright =
+    settings.footer_copyright ||
+    `© ${new Date().getFullYear()} ${companyName}. ${t("footer_rights")}`;
 
   return (
     <footer className="bg-forest-950 text-emerald-100/80 border-t border-gold-500/20 pt-16 pb-8">
@@ -25,9 +47,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-emerald-900/60">
           {/* Column 1: Brand Info & Accreditation */}
           <div className="lg:col-span-2 space-y-4">
-            <BrandLogo variant="light" size="md" showTagline={true} />
+            <BrandLogo
+              variant="light"
+              size="md"
+              showTagline={true}
+              customLogoUrl={logoUrl}
+              companyName={companyName}
+            />
             <p className="text-xs leading-relaxed text-emerald-200/70 max-w-sm mt-3">
-              Al-Gafur International Tours And Travels is dedicated to facilitating serene, spiritually uplifting, and meticulously organized Hajj & Umrah pilgrimages. With experienced guides, walking distance hotels in holy cities, and authentic Indian hospitality.
+              {footerDesc}
             </p>
 
             <div className="pt-2 flex flex-col gap-2">
@@ -141,40 +169,51 @@ export default function Footer() {
                 <span>
                   <strong>Pune Head Office:</strong>
                   <br />
-                  183, M.G. Road, 15 August Chowk, Khadda Market, Camp, Pune - 411001
+                  {address}
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-gold-400 flex-shrink-0" />
                 <div>
-                  <a href="tel:+918793939393" className="hover:text-gold-300 block">
-                    +91 8793939393 (Dr. Mudassir)
+                  <a href={`tel:${phone1.replace(/\s+/g, "")}`} className="hover:text-gold-300 block">
+                    {phone1} (Dr. Mudassir)
                   </a>
-                  <a href="tel:+919890708013" className="hover:text-gold-300 block">
-                    +91 9890708013 (Hafiz Asrar)
+                  <a href={`tel:${phone2.replace(/\s+/g, "")}`} className="hover:text-gold-300 block">
+                    {phone2} (Hafiz Asrar)
                   </a>
-                  <a href="tel:+919764444044" className="hover:text-gold-300 block">
-                    +91 9764444044 (Zahir Ali)
-                  </a>
+                  {phone3 && (
+                    <a href={`tel:${phone3.replace(/\s+/g, "")}`} className="hover:text-gold-300 block">
+                      {phone3} (Zahir Ali)
+                    </a>
+                  )}
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                 <a
-                  href="https://wa.me/919890708013?text=Assalamualaikum"
+                  href={`https://wa.me/${whatsapp}?text=Assalamualaikum`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-emerald-300 hover:underline"
                 >
-                  WhatsApp: +91 9890708013
+                  WhatsApp: +{whatsapp}
                 </a>
               </div>
 
+              {email && (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-gold-400 flex-shrink-0" />
+                  <a href={`mailto:${email}`} className="hover:text-gold-300">
+                    {email}
+                  </a>
+                </div>
+              )}
+
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gold-400 flex-shrink-0" />
-                <span>Mon – Sat: 10:00 AM – 8:30 PM</span>
+                <span>{workingHours}</span>
               </div>
             </div>
           </div>
@@ -182,7 +221,7 @@ export default function Footer() {
 
         {/* Bottom Bar: Copyright & Compliance */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-emerald-200/60">
-          <p>© {new Date().getFullYear()} Al-Gafur International Tours And Travels. {t("footer_rights")}</p>
+          <p>{copyright}</p>
           <div className="flex items-center gap-4 text-[11px]">
             <Link href="/about" className="hover:text-gold-300">
               Terms & Conditions
@@ -201,4 +240,3 @@ export default function Footer() {
     </footer>
   );
 }
-

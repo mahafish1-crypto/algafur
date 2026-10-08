@@ -233,7 +233,7 @@ export default function AdminFlightsClient({ initialFlights }: Props) {
                   <select
                     value={form.cabin}
                     onChange={(e) => setForm({ ...form, cabin: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   >
                     <option value="Economy">Economy</option>
                     <option value="Business">Business</option>

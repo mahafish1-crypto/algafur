@@ -321,7 +321,7 @@ export default function AdminQuotationsClient({
                 <select
                   value={selectedCustId}
                   onChange={(e) => setSelectedCustId(e.target.value)}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   required
                 >
                   {customers.map((c) => (
@@ -339,7 +339,7 @@ export default function AdminQuotationsClient({
                 <select
                   value={selectedPkgId}
                   onChange={(e) => setSelectedPkgId(e.target.value)}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   required
                 >
                   {packages.map((p) => (
@@ -358,7 +358,7 @@ export default function AdminQuotationsClient({
                   <select
                     value={roomType}
                     onChange={(e) => setRoomType(e.target.value as any)}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   >
                     <option value="QUAD">Quad Sharing (4 in a room)</option>
                     <option value="TRIPLE">Triple Sharing (3 in a room)</option>
