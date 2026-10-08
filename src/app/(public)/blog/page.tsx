@@ -9,11 +9,18 @@ export const metadata = {
   description: "Educational articles, Sunnah du'as, and practical guides for Hajj & Umrah pilgrims.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function BlogPage() {
-  const posts = await prisma.blogPost.findMany({
-    where: { status: "PUBLISHED" },
-    orderBy: { createdAt: "desc" },
-  });
+  let posts: any[] = [];
+  try {
+    posts = await prisma.blogPost.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (err) {
+    console.error("Failed to query blog posts from PostgreSQL:", err);
+  }
 
   return (
     <div className="bg-ivory-100/50 min-h-screen py-16">

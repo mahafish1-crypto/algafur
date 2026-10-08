@@ -6,6 +6,8 @@ export const metadata = {
   description: "Seamless 7-step booking system for Hajj & Umrah pilgrimages.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function BookingPage({
   searchParams,
 }: {
@@ -15,24 +17,29 @@ export default async function BookingPage({
   const packageSlug = typeof resolvedParams.package === "string" ? resolvedParams.package : undefined;
   const preselectedRoom = typeof resolvedParams.room === "string" ? resolvedParams.room : undefined;
 
-  const packages = await prisma.package.findMany({
-    where: { status: "PUBLISHED" },
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      durationDays: true,
-      basePrice: true,
-      priceQuad: true,
-      priceTriple: true,
-      priceDouble: true,
-      departureDate: true,
-      departureCity: true,
-      totalSeats: true,
-      bookedSeats: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  let packages: any[] = [];
+  try {
+    packages = await prisma.package.findMany({
+      where: { status: "PUBLISHED" },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        durationDays: true,
+        basePrice: true,
+        priceQuad: true,
+        priceTriple: true,
+        priceDouble: true,
+        departureDate: true,
+        departureCity: true,
+        totalSeats: true,
+        bookedSeats: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (err) {
+    console.error("Failed to query packages in BookingPage:", err);
+  }
 
   return (
     <BookingFlowClient

@@ -16,11 +16,16 @@ export const revalidate = 60; // Revalidate every 60 seconds
 
 export default async function HomePage() {
   // Fetch real packages from database
-  const packages = await prisma.package.findMany({
-    where: { status: "PUBLISHED" },
-    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-    take: 6,
-  });
+  let packages: any[] = [];
+  try {
+    packages = await prisma.package.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      take: 6,
+    });
+  } catch (err) {
+    console.error("Failed to query packages in HomePage:", err);
+  }
 
   const featuredPlatinum = packages.find((p) => p.slug === "umrah-platinum-package-2026") || packages[0];
 

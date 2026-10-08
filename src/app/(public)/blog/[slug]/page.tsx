@@ -5,20 +5,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { Calendar, User, ChevronRight, Share2 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
-  const post = await prisma.blogPost.findUnique({
-    where: { slug: resolvedParams.slug },
-  });
-  if (!post) return { title: "Post Not Found" };
-  return {
-    title: `${post.title} | Al-Gafur Tours`,
-    description: post.excerpt,
-  };
+  try {
+    const post = await prisma.blogPost.findUnique({
+      where: { slug: resolvedParams.slug },
+    });
+    if (!post) return { title: "Post Not Found" };
+    return {
+      title: `${post.title} | Al-Gafur Tours`,
+      description: post.excerpt,
+    };
+  } catch {
+    return { title: "Pilgrim Guidance | Al-Gafur Tours" };
+  }
 }
 
 export default async function BlogPostPage({
@@ -27,9 +33,14 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
-  const post = await prisma.blogPost.findUnique({
-    where: { slug: resolvedParams.slug },
-  });
+  let post = null;
+  try {
+    post = await prisma.blogPost.findUnique({
+      where: { slug: resolvedParams.slug },
+    });
+  } catch (err) {
+    console.error("Failed to query blog post:", err);
+  }
 
   if (!post) notFound();
 

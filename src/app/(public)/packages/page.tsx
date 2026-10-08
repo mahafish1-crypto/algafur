@@ -1,7 +1,7 @@
 import prisma from "@/lib/db";
 import PackagesClientView from "./PackagesClientView";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function PackagesPage({
   searchParams,
@@ -24,13 +24,18 @@ export default async function PackagesPage({
     where.durationDays = parseInt(durationFilter);
   }
 
-  const packages = await prisma.package.findMany({
-    where,
-    include: {
-      inclusions: true,
-    },
-    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-  });
+  let packages: any[] = [];
+  try {
+    packages = await prisma.package.findMany({
+      where,
+      include: {
+        inclusions: true,
+      },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    });
+  } catch (err) {
+    console.error("Failed to query packages:", err);
+  }
 
   return <PackagesClientView initialPackages={packages} />;
 }

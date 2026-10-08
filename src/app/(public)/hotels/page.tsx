@@ -9,10 +9,17 @@ export const metadata = {
   description: "Explore our handpicked 4-star and luxury hotels within walking distance of Masjid Al-Haram and Masjid An-Nabawi.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function HotelsPage() {
-  const hotels = await prisma.hotel.findMany({
-    orderBy: { starRating: "desc" },
-  });
+  let hotels: any[] = [];
+  try {
+    hotels = await prisma.hotel.findMany({
+      orderBy: { starRating: "desc" },
+    });
+  } catch (err) {
+    console.error("Failed to query hotels:", err);
+  }
 
   return (
     <div className="bg-ivory-100/50 min-h-screen py-16">
