@@ -21,6 +21,10 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
+    if (!session || (session.role !== "SUPER_ADMIN" && session.role !== "ADMIN")) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
     const body: Record<string, string> = await req.json();
 
     const keys = Object.keys(body);

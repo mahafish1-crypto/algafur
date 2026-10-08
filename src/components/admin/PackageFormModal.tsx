@@ -704,6 +704,66 @@ export default function PackageFormModal({
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                    Couple Special Price
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-slate-400 text-sm">₹</span>
+                    <input
+                      type="number"
+                      value={form.couplePrice}
+                      onChange={(e) => handleTextChange("couplePrice", e.target.value)}
+                      placeholder="e.g. 290000"
+                      className="w-full text-sm pl-7 pr-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                    Currency
+                  </label>
+                  <select
+                    value={form.currency}
+                    onChange={(e) => handleTextChange("currency", e.target.value)}
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 font-semibold focus:ring-2 focus:ring-gold-500"
+                  >
+                    <option value="INR">INR (₹)</option>
+                    <option value="SAR">SAR (ر.س)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                    Discount Type
+                  </label>
+                  <select
+                    value={form.discountType}
+                    onChange={(e) => handleTextChange("discountType", e.target.value)}
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
+                  >
+                    <option value="FIXED">Fixed Amount (₹)</option>
+                    <option value="PERCENTAGE">Percentage (%)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                    Discount Value
+                  </label>
+                  <input
+                    type="number"
+                    value={form.discountValue}
+                    onChange={(e) => handleTextChange("discountValue", e.target.value)}
+                    placeholder="e.g. 5000"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
@@ -1344,6 +1404,30 @@ export default function PackageFormModal({
                       placeholder="Detailed schedule of prayers, historical visits, and rituals..."
                       className="w-full text-xs rounded-lg border border-slate-300 px-3 py-1.5 bg-white text-slate-900 leading-relaxed"
                     />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                      <input
+                        type="text"
+                        value={day.meals || ""}
+                        onChange={(e) => updateItineraryDay(idx, "meals", e.target.value)}
+                        placeholder="Meals (e.g. Indian Buffet 3 Times)"
+                        className="text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900"
+                      />
+                      <input
+                        type="text"
+                        value={day.hotel || ""}
+                        onChange={(e) => updateItineraryDay(idx, "hotel", e.target.value)}
+                        placeholder="Hotel (e.g. Makkah Hotel Stay)"
+                        className="text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900"
+                      />
+                      <input
+                        type="text"
+                        value={day.transport || ""}
+                        onChange={(e) => updateItineraryDay(idx, "transport", e.target.value)}
+                        placeholder="Transit (e.g. Luxury AC Bus)"
+                        className="text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1601,6 +1685,19 @@ export default function PackageFormModal({
                     className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                  Important Notes &amp; Special Instructions
+                </label>
+                <textarea
+                  rows={2}
+                  value={form.importantNotes}
+                  onChange={(e) => handleTextChange("importantNotes", e.target.value)}
+                  placeholder="e.g. Scholarly guidance by Hafiz Asrar Sahab throughout the journey, Zamzam water distribution instructions..."
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
+                />
               </div>
             </div>
           )}

@@ -75,6 +75,9 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
     company_address:
       initialSettings.company_address ||
       "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.",
+    company_city: initialSettings.company_city || "Pune",
+    company_state: initialSettings.company_state || "Maharashtra",
+    company_country: initialSettings.company_country || "India",
     working_hours:
       initialSettings.working_hours ||
       "Monday – Saturday: 10:00 AM – 8:30 PM (IST)",
@@ -708,6 +711,45 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
                     onChange={(e) => handleChange("company_address", e.target.value)}
                     className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.company_city}
+                      onChange={(e) => handleChange("company_city", e.target.value)}
+                      placeholder="Pune"
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      State / Province
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.company_state}
+                      onChange={(e) => handleChange("company_state", e.target.value)}
+                      placeholder="Maharashtra"
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.company_country}
+                      onChange={(e) => handleChange("company_country", e.target.value)}
+                      placeholder="India"
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

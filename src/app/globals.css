@@ -94,7 +94,7 @@
 /* ==========================================================================
    GLOBAL FORM CONTROLS & DROPDOWN/SELECT TEXT VISIBILITY FIX
    ========================================================================== */
-/* Default Light Theme Dropdown / Select */
+/* Universal Default Light Select */
 select {
   color: #0f172a !important;
   background-color: #ffffff;
@@ -108,7 +108,13 @@ select option {
   padding: 8px 12px;
 }
 
-/* Dark Theme Dropdowns / Selects */
+select option:checked,
+select option:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Explicit Dark Theme Dropdowns / Selects */
 select.bg-slate-900,
 select.bg-slate-950,
 select.bg-slate-800,
@@ -116,10 +122,12 @@ select.bg-forest-900,
 select.bg-forest-950,
 .bg-slate-950 select:not(.bg-white),
 .bg-slate-900 select:not(.bg-white),
-.bg-forest-950 select:not(.bg-white) {
+.bg-forest-950 select:not(.bg-white),
+.dark select:not(.bg-white),
+[data-theme="dark"] select:not(.bg-white) {
   color: #f8fafc !important;
   background-color: #0f172a !important;
-  color-scheme: dark;
+  color-scheme: dark !important;
 }
 
 select.bg-slate-900 option,
@@ -129,9 +137,19 @@ select.bg-forest-900 option,
 select.bg-forest-950 option,
 .bg-slate-950 select:not(.bg-white) option,
 .bg-slate-900 select:not(.bg-white) option,
-.bg-forest-950 select:not(.bg-white) option {
+.bg-forest-950 select:not(.bg-white) option,
+.dark select:not(.bg-white) option,
+[data-theme="dark"] select:not(.bg-white) option {
   color: #f8fafc !important;
   background-color: #0f172a !important;
+}
+
+select.bg-slate-900 option:checked,
+select.bg-slate-950 option:checked,
+select.bg-slate-900 option:hover,
+select.bg-slate-950 option:hover {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
 }
 
 /* Explicit Light Dropdowns inside Modals or Cards */
@@ -141,7 +159,7 @@ select.bg-white,
 [role="dialog"] select {
   color: #0f172a !important;
   background-color: #ffffff !important;
-  color-scheme: light;
+  color-scheme: light !important;
 }
 
 select.bg-white option,

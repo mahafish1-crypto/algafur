@@ -10,6 +10,9 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   whatsapp_number: "919890708013",
   company_email: "contact@algafurtours.com",
   company_address: "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.",
+  company_city: "Pune",
+  company_state: "Maharashtra",
+  company_country: "India",
   working_hours: "Monday – Saturday: 10:00 AM – 8:30 PM (IST)",
   google_maps_url: "https://maps.google.com",
   
@@ -49,4 +52,3 @@ export async function getSiteSettings(): Promise<Record<string, string>> {
     return DEFAULT_SITE_SETTINGS;
   }
 }
-
