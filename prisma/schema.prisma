@@ -1,0 +1,705 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("SALES_EXECUTIVE") // SUPER_ADMIN, ADMIN, MANAGER, SALES_EXECUTIVE, ACCOUNTS, VISA_TEAM, OPERATIONS, MARKETING, AGENT, CUSTOMER
+  phone        String?
+  status       String    @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  lastLogin    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  assignedLeads     Lead[]             @relation("AssignedLeads")
+  leadActivities    LeadActivity[]
+  followUps         FollowUp[]
+  tasks             Task[]             @relation("AssignedTasks")
+  agentProfile      Agent?
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  createdQuotations Quotation[]
+  createdBookings   Booking[]
+  createdPayments   Payment[]
+  verifiedDocuments Document[]
+  visaApplications  VisaApplication[]  @relation("AssignedVisaTeam")
+}
+
+model Customer {
+  id              String    @id @default(uuid())
+  customerCode    String    @unique // e.g. ALC-00001
+  name            String
+  email           String?
+  phone           String
+  whatsapp        String?
+  address         String?
+  city            String?
+  state           String?
+  pincode         String?
+  passportNumber  String?
+  passportExpiry  DateTime?
+  dateOfBirth     DateTime?
+  gender          String?   // MALE, FEMALE
+  nationality     String?   @default("Indian")
+  emergencyContact String?
+  notes           String?
+  agentId         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  agent           Agent?                 @relation(fields: [agentId], references: [id])
+  familyMembers   CustomerFamilyMember[]
+  bookings        Booking[]
+  documents       Document[]
+  visaApplications VisaApplication[]
+  quotations      Quotation[]
+  invoices        Invoice[]
+  payments        Payment[]
+  followUps       FollowUp[]
+  leads           Lead[]
+
+  @@index([phone])
+  @@index([customerCode])
+}
+
+model CustomerFamilyMember {
+  id             String    @id @default(uuid())
+  customerId     String
+  name           String
+  relationship   String    // SPOUSE, CHILD, PARENT, SIBLING, OTHER
+  passportNumber String?
+  passportExpiry DateTime?
+  dateOfBirth    DateTime?
+  gender         String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  customer       Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model Lead {
+  id              String         @id @default(uuid())
+  leadNumber      String         @unique // ALL-2026-0001
+  name            String
+  mobile          String
+  whatsapp        String?
+  email           String?
+  city            String?
+  journeyType     String         @default("UMRAH") // HAJJ, UMRAH, RAMADAN_UMRAH, GROUP, PRIVATE
+  packageInterest String?
+  travelDate      String?
+  adults          Int            @default(1)
+  children        Int            @default(0)
+  budget          String?
+  notes           String?
+  source          String         @default("Website") // Website, WhatsApp, Referral, Meta Ads, Walk-in, Agent
+  status          String         @default("NEW") // NEW, CONTACTED, QUALIFIED, PACKAGE_DISCUSSION, QUOTATION_SENT, FOLLOW_UP, ADVANCE_RECEIVED, BOOKING_CONFIRMED, DOCUMENTS_PENDING, VISA_PROCESSING, VISA_APPROVED, TRAVEL_READY, COMPLETED, LOST
+  
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  utmContent      String?
+  utmTerm         String?
+  
+  assignedToId    String?
+  customerId      String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  assignedTo      User?          @relation("AssignedLeads", fields: [assignedToId], references: [id])
+  customer        Customer?      @relation(fields: [customerId], references: [id])
+  activities      LeadActivity[]
+  followUps       FollowUp[]
+  quotations      Quotation[]
+
+  @@index([mobile])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model LeadActivity {
+  id          String   @id @default(uuid())
+  leadId      String
+  userId      String?
+  type        String   // CALL, WHATSAPP, NOTE, STATUS_CHANGE, EMAIL, MEETING, QUOTE
+  description String
+  metadata    String?  // JSON formatted data
+  createdAt   DateTime @default(now())
+
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model FollowUp {
+  id          String    @id @default(uuid())
+  leadId      String?
+  customerId  String?
+  userId      String
+  date        String    // YYYY-MM-DD
+  time        String?   // HH:mm
+  type        String    @default("CALL") // CALL, WHATSAPP, MEETING, PAYMENT_REMINDER, DOCUMENT_REMINDER, CUSTOM
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  notes       String?
+  status      String    @default("PENDING") // PENDING, COMPLETED, CANCELLED, OVERDUE
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  lead        Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@index([date])
+  @@index([status])
+}
+
+model Task {
+  id           String    @id @default(uuid())
+  title        String
+  description  String?
+  dueDate      DateTime?
+  priority     String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status       String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+  assignedToId String
+  leadId       String?
+  bookingId    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  assignedTo   User      @relation("AssignedTasks", fields: [assignedToId], references: [id])
+}
+
+model Package {
+  id                 String             @id @default(uuid())
+  slug               String             @unique
+  name               String
+  type               String             @default("UMRAH") // HAJJ, UMRAH, RAMADAN_UMRAH, GROUP, PRIVATE
+  year               String             @default("2026 / 1448 Hijri")
+  durationDays       Int                @default(20)
+  makkahNights       Int                @default(12)
+  madinahNights      Int                @default(7)
+  basePrice          Float              @default(120000)
+  priceQuad          Float?             @default(120000)
+  priceTriple        Float?             @default(130000)
+  priceDouble        Float?             @default(145000)
+  priceSingle        Float?             @default(180000)
+  departureDate      String             @default("31 October 2026")
+  returnDate         String             @default("19 November 2026")
+  departureCity      String             @default("Mumbai")
+  
+  makkahHotelId      String?
+  madinahHotelId     String?
+  makkahHotelName    String?            @default("Diyafa Jamal or similar")
+  madinahHotelName   String?            @default("Ilaf Kuba or similar")
+  makkahDistance     String?            @default("500m walking")
+  madinahDistance    String?            @default("400m walking")
+
+  totalSeats         Int                @default(45)
+  bookedSeats        Int                @default(18)
+  status             String             @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED
+  isFeatured         Boolean            @default(true)
+  isPopular          Boolean            @default(true)
+  badge              String?            @default("PLATINUM")
+  featuredImage      String?
+  overview           String?
+  travelRequirements String?
+  termsAndConditions String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  makkahHotel        Hotel?             @relation("MakkahHotel", fields: [makkahHotelId], references: [id])
+  madinahHotel       Hotel?             @relation("MadinahHotel", fields: [madinahHotelId], references: [id])
+  images             PackageImage[]
+  itineraries        PackageItinerary[]
+  inclusions         PackageInclusion[]
+  departureGroups    DepartureGroup[]
+  bookings           Booking[]
+  quotations         Quotation[]
+
+  @@index([slug])
+  @@index([status])
+}
+
+model PackageImage {
+  id        String   @id @default(uuid())
+  packageId String
+  url       String
+  caption   String?
+  sortOrder Int      @default(0)
+
+  package   Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+}
+
+model PackageItinerary {
+  id          String   @id @default(uuid())
+  packageId   String
+  dayNumber   Int
+  title       String
+  location    String   // Makkah, Madinah, Jeddah, Taif, Transit
+  hotel       String?
+  activities  String
+  meals       String?
+  transport   String?
+  notes       String?
+  images      String?  // JSON
+  sortOrder   Int      @default(0)
+
+  package     Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId, dayNumber])
+}
+
+model PackageInclusion {
+  id          String   @id @default(uuid())
+  packageId   String
+  title       String
+  description String?
+  icon        String?  // Lucide icon name
+  isIncluded  Boolean  @default(true) // true = Inclusion, false = Exclusion
+
+  package     Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+}
+
+model Hotel {
+  id               String    @id @default(uuid())
+  name             String
+  city             String    // MAKKAH, MADINAH, JEDDAH
+  starRating       Int       @default(4)
+  distanceFromHaram String   // e.g. "450m"
+  walkingTime      String?   // e.g. "5 mins walk"
+  roomTypes        String?   // Quad, Triple, Double, Sharing
+  amenities        String?   // Wi-Fi, 24/7 Room Service, Restaurant
+  address          String?
+  mapLocation      String?
+  description      String?
+  images           String?   // JSON URLs
+  pricePerNight    Float?
+  isAvailable      Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  makkahPackages   Package[] @relation("MakkahHotel")
+  madinahPackages  Package[] @relation("MadinahHotel")
+  bookingHotels    BookingHotel[]
+}
+
+model Flight {
+  id               String           @id @default(uuid())
+  airline          String           // Saudi Airlines, Air India, IndiGo
+  flightNumber     String
+  pnr              String?
+  departureAirport String           // BOM, DEL, HYD
+  arrivalAirport   String           // JED, MED
+  departureDate    String
+  departureTime    String
+  arrivalDate      String
+  arrivalTime      String
+  baggage          String?          @default("2x23kg + 7kg cabin")
+  cabin            String?          @default("Economy")
+  notes            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  departureGroups  DepartureGroup[]
+  bookingFlights   BookingFlight[]
+}
+
+model DepartureGroup {
+  id                  String    @id @default(uuid())
+  groupName           String    // e.g. "Umrah Group — 31 October 2026"
+  packageId           String
+  departureDate       String
+  returnDate          String
+  totalCapacity       Int       @default(45)
+  confirmedTravellers Int       @default(0)
+  flightId            String?
+  status              String    @default("OPEN") // OPEN, FULL, DEPARTED, COMPLETED
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  package             Package   @relation(fields: [packageId], references: [id])
+  flight              Flight?   @relation(fields: [flightId], references: [id])
+  bookings            Booking[]
+
+  @@index([status])
+}
+
+model Booking {
+  id                 String             @id @default(uuid())
+  bookingNumber      String             @unique // ALG-2026-00001
+  customerId         String
+  packageId          String
+  departureGroupId   String?
+  agentId            String?
+  journeyType        String             @default("UMRAH")
+  adults             Int                @default(1)
+  children           Int                @default(0)
+  roomType           String             @default("QUAD") // QUAD, TRIPLE, DOUBLE, SINGLE
+  totalAmount        Float
+  advanceAmount      Float              @default(0)
+  paidAmount         Float              @default(0)
+  outstandingAmount  Float              @default(0)
+  paymentStatus      String             @default("PENDING") // PENDING, PARTIALLY_PAID, PAID, FAILED, REFUNDED
+  bookingStatus      String             @default("CONFIRMED") // CONFIRMED, CANCELLED, COMPLETED, ON_HOLD
+  specialRequests    String?
+  notes              String?
+  bookedById         String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  customer           Customer           @relation(fields: [customerId], references: [id])
+  package            Package            @relation(fields: [packageId], references: [id])
+  departureGroup     DepartureGroup?    @relation(fields: [departureGroupId], references: [id])
+  agent              Agent?             @relation(fields: [agentId], references: [id])
+  bookedBy           User?              @relation(fields: [bookedById], references: [id])
+  travellers         BookingTraveller[]
+  payments           Payment[]
+  invoices           Invoice[]
+  documents          Document[]
+  visaApplications   VisaApplication[]
+  bookingHotels      BookingHotel[]
+  bookingFlights     BookingFlight[]
+
+  @@index([bookingNumber])
+  @@index([customerId])
+  @@index([bookingStatus])
+  @@index([paymentStatus])
+}
+
+model BookingTraveller {
+  id             String    @id @default(uuid())
+  bookingId      String
+  fullName       String
+  passportNumber String?
+  passportExpiry DateTime?
+  dateOfBirth    DateTime?
+  gender         String?   // MALE, FEMALE
+  roomType       String?
+  specialNeeds   String?
+  visaStatus     String    @default("NOT_STARTED") // NOT_STARTED, SUBMITTED, APPROVED
+
+  booking        Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model BookingHotel {
+  id          String   @id @default(uuid())
+  bookingId   String
+  hotelId     String
+  checkIn     String
+  checkOut    String
+  roomCount   Int      @default(1)
+  roomType    String   @default("QUAD")
+
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+}
+
+model BookingFlight {
+  id          String   @id @default(uuid())
+  bookingId   String
+  flightId    String
+
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  flight      Flight   @relation(fields: [flightId], references: [id])
+}
+
+model Payment {
+  id            String    @id @default(uuid())
+  receiptNumber String    @unique // ALR-2026-00001
+  bookingId     String
+  customerId    String
+  amount        Float
+  paymentMethod String    @default("BANK_TRANSFER") // BANK_TRANSFER, UPI, CASH, CHEQUE, ONLINE, CARD
+  transactionId String?
+  status        String    @default("PAID") // PENDING, PAID, FAILED, REFUNDED
+  paymentDate   DateTime  @default(now())
+  notes         String?
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  booking       Booking   @relation(fields: [bookingId], references: [id])
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  createdBy     User?     @relation(fields: [createdById], references: [id])
+
+  @@index([receiptNumber])
+  @@index([bookingId])
+  @@index([customerId])
+}
+
+model Quotation {
+  id              String    @id @default(uuid())
+  quotationNumber String    @unique // ALQ-2026-00001
+  customerId      String?
+  leadId          String?
+  packageId       String
+  travellersCount Int       @default(1)
+  roomType        String    @default("QUAD")
+  subtotal        Float
+  discount        Float     @default(0)
+  tax             Float     @default(0)
+  total           Float
+  advanceRequired Float     @default(0)
+  balanceAmount   Float     @default(0)
+  terms           String?
+  validUntil      DateTime?
+  status          String    @default("DRAFT") // DRAFT, SENT, ACCEPTED, EXPIRED, REJECTED
+  createdById     String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  customer        Customer? @relation(fields: [customerId], references: [id])
+  lead            Lead?     @relation(fields: [leadId], references: [id])
+  package         Package   @relation(fields: [packageId], references: [id])
+  createdBy       User      @relation(fields: [createdById], references: [id])
+
+  @@index([quotationNumber])
+}
+
+model Invoice {
+  id            String    @id @default(uuid())
+  invoiceNumber String    @unique // ALI-2026-00001
+  bookingId     String
+  customerId    String
+  subtotal      Float
+  discount      Float     @default(0)
+  tax           Float     @default(0)
+  total         Float
+  paidAmount    Float     @default(0)
+  balanceDue    Float     @default(0)
+  dueDate       DateTime?
+  status        String    @default("ISSUED") // DRAFT, ISSUED, PAID, OVERDUE, CANCELLED
+  notes         String?
+  terms         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  booking       Booking   @relation(fields: [bookingId], references: [id])
+  customer      Customer  @relation(fields: [customerId], references: [id])
+
+  @@index([invoiceNumber])
+}
+
+model Document {
+  id              String    @id @default(uuid())
+  customerId      String
+  bookingId       String?
+  type            String    // PASSPORT, PASSPORT_PHOTO, AADHAAR, PAN, VISA, FLIGHT_TICKET, VACCINATION, OTHER
+  fileUrl         String
+  fileName        String
+  fileSize        Int       @default(0)
+  mimeType        String    @default("application/pdf")
+  status          String    @default("UPLOADED") // PENDING, UPLOADED, UNDER_REVIEW, VERIFIED, REJECTED
+  rejectionReason String?
+  verifiedById    String?
+  verifiedAt      DateTime?
+  uploadedAt      DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  booking         Booking?  @relation(fields: [bookingId], references: [id])
+  verifiedBy      User?     @relation(fields: [verifiedById], references: [id])
+
+  @@index([customerId])
+  @@index([status])
+}
+
+model VisaApplication {
+  id                String    @id @default(uuid())
+  customerId        String
+  bookingId         String?
+  passportNumber    String
+  applicationNumber String?
+  visaNumber        String?
+  status            String    @default("DOCUMENTS_PENDING") // NOT_STARTED, DOCUMENTS_PENDING, SUBMITTED, PROCESSING, APPROVED, REJECTED, EXPIRED
+  submissionDate    DateTime?
+  approvalDate      DateTime?
+  expiryDate        DateTime?
+  notes             String?
+  assignedToId      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  customer          Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  booking           Booking?  @relation(fields: [bookingId], references: [id])
+  assignedTo        User?     @relation("AssignedVisaTeam", fields: [assignedToId], references: [id])
+
+  @@index([status])
+  @@index([passportNumber])
+}
+
+model Agent {
+  id                    String     @id @default(uuid())
+  userId                String     @unique
+  agentCode             String     @unique // ALA-0001
+  agencyName            String
+  contactPerson         String
+  phone                 String
+  email                 String
+  commissionRate        Float      @default(5.0) // 5%
+  totalCommissionEarned Float      @default(0)
+  pendingCommission     Float      @default(0)
+  bankDetails           String?
+  panNumber             String?
+  gstNumber             String?
+  status                String     @default("ACTIVE") // ACTIVE, SUSPENDED
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  user                  User       @relation(fields: [userId], references: [id])
+  customers             Customer[]
+  bookings              Booking[]
+
+  @@index([agentCode])
+}
+
+model Campaign {
+  id             String    @id @default(uuid())
+  title          String
+  type           String    // META, GOOGLE, WHATSAPP, EMAIL
+  budget         Float     @default(0)
+  spend          Float     @default(0)
+  leadsGenerated Int       @default(0)
+  conversions    Int       @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
+  status         String    @default("ACTIVE") // ACTIVE, PAUSED, COMPLETED
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Testimonial {
+  id           String   @id @default(uuid())
+  customerName String
+  photo        String?
+  city         String
+  packageTitle String
+  rating       Int      @default(5)
+  reviewText   String
+  videoUrl     String?
+  isFeatured   Boolean  @default(true)
+  status       String   @default("PUBLISHED")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model BlogPost {
+  id             String    @id @default(uuid())
+  slug           String    @unique
+  title          String
+  featuredImage  String?
+  excerpt        String
+  content        String
+  author         String    @default("Al-Gafur Editorial Team")
+  category       String    @default("Umrah Guide")
+  tags           String?   // comma separated
+  seoTitle       String?
+  seoDescription String?
+  status         String    @default("PUBLISHED") // DRAFT, PUBLISHED, SCHEDULED
+  publishedAt    DateTime? @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([slug])
+}
+
+model FAQ {
+  id          String   @id @default(uuid())
+  question    String
+  answer      String
+  category    String   @default("GENERAL") // GENERAL, HAJJ, UMRAH, VISA, PAYMENT, HOTELS
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+
+model Media {
+  id         String   @id @default(uuid())
+  name       String
+  category   String   @default("MARKETING") // LOGO, MAKKAH, MADINAH, HOTELS, PACKAGES, CUSTOMERS, MARKETING, AI_GENERATED, DOCUMENTS
+  url        String
+  fileType   String   @default("image/jpeg")
+  fileSize   Int      @default(0)
+  dimensions String?
+  isPrivate  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([category])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   // LEAD, BOOKING, PAYMENT, DOCUMENT, VISA, FOLLOW_UP, DEPARTURE
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+}
+
+model WhatsAppTemplate {
+  id          String   @id @default(uuid())
+  templateKey String   @unique // NEW_LEAD, BOOKING_CONFIRMED, PAYMENT_REMINDER, etc.
+  name        String
+  body        String
+  variables   String?  // JSON array of strings
+  isActive    Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+}
+
+model EmailTemplate {
+  id          String   @id @default(uuid())
+  templateKey String   @unique
+  subject     String
+  body        String
+  variables   String?
+  isActive    Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String   // LOGIN, LOGOUT, CREATE_LEAD, UPDATE_LEAD, CREATE_BOOKING, etc.
+  entity    String   // Lead, Customer, Booking, Payment, Document, Visa, User
+  entityId  String?
+  details   String?  // JSON or summary description
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+model SiteSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  category  String   @default("GENERAL") // GENERAL, BRAND, CONTACT, WHATSAPP, EMAIL, AI, PAYMENT, SEO
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+

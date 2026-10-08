@@ -1,0 +1,45 @@
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/db";
+import { getSession } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const resolvedParams = await params;
+    const body = await req.json();
+    const session = await getSession();
+
+    const lead = await prisma.lead.update({
+      where: { id: resolvedParams.id },
+      data: body,
+    });
+
+    if (body.status) {
+      await prisma.leadActivity.create({
+        data: {
+          leadId: lead.id,
+          userId: session?.id || null,
+          type: "STATUS_CHANGE",
+          description: `Stage updated to ${body.status}`,
+        },
+      });
+    }
+
+    await logAudit({
+      userId: session?.id || null,
+      action: "UPDATE_LEAD",
+      entity: "Lead",
+      entityId: lead.id,
+      details: body,
+    });
+
+    return NextResponse.json({ success: true, lead });
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
+  }
+}
+
