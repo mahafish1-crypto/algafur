@@ -7,9 +7,15 @@ export const metadata = {
   description: "GST-compliant tax invoices, billing management, and receivables.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminInvoicesPage() {
-  const [invoices, bookings] = await Promise.all([
-    prisma.invoice.findMany({
+  let invoices: any[] = [];
+  let bookings: any[] = [];
+
+  try {
+    const results = await Promise.all([
+      prisma.invoice.findMany({
       include: {
         customer: {
           select: {
@@ -65,6 +71,11 @@ export default async function AdminInvoicesPage() {
       take: 100,
     }),
   ]);
+  invoices = results[0];
+    bookings = results[1];
+  } catch (error) {
+    console.error("Failed to load invoices or bookings:", error);
+  }
 
   return (
     <AdminInvoicesClient

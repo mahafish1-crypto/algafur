@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { canAccessAdmin } from "@/lib/rbac";
 import AdminLayoutClient from "./AdminLayoutClient";
+export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({
   children,
