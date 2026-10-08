@@ -13,6 +13,7 @@ import {
   Printer,
   FileText,
 } from "lucide-react";
+import AdminSelect from "@/components/admin/AdminSelect";
 
 interface BookingsListClientProps {
   initialBookings: any[];
@@ -67,16 +68,17 @@ export default function BookingsListClient({ initialBookings }: BookingsListClie
 
         <div className="flex items-center gap-2 text-xs">
           <span className="text-slate-400">Status:</span>
-          <select
+          <AdminSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs p-2 rounded-xl bg-slate-900 border border-slate-800 text-white"
+            className="w-auto min-w-[170px]"
+            themeMode="dark"
           >
             <option value="ALL">All Bookings ({bookings.length})</option>
             <option value="CONFIRMED">CONFIRMED</option>
             <option value="COMPLETED">COMPLETED</option>
             <option value="CANCELLED">CANCELLED</option>
-          </select>
+          </AdminSelect>
         </div>
       </div>
 

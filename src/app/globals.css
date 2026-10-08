@@ -97,8 +97,8 @@
 /* Universal Default Light Select */
 select {
   color: #0f172a !important;
-  background-color: #ffffff;
-  color-scheme: light;
+  background-color: #ffffff !important;
+  color-scheme: light !important;
 }
 
 select option {
@@ -115,45 +115,45 @@ select option:hover {
 }
 
 /* Explicit Dark Theme Dropdowns / Selects */
-select.bg-slate-900,
-select.bg-slate-950,
-select.bg-slate-800,
-select.bg-forest-900,
-select.bg-forest-950,
-.bg-slate-950 select:not(.bg-white),
-.bg-slate-900 select:not(.bg-white),
-.bg-forest-950 select:not(.bg-white),
-.dark select:not(.bg-white),
-[data-theme="dark"] select:not(.bg-white) {
+.dark select,
+[data-theme="dark"] select,
+select[class*="bg-slate-900"],
+select[class*="bg-slate-950"],
+select[class*="bg-slate-800"],
+select[class*="bg-forest-900"],
+select[class*="bg-forest-950"],
+.bg-slate-950 select:not([class*="bg-white"]),
+.bg-slate-900 select:not([class*="bg-white"]),
+.bg-forest-950 select:not([class*="bg-white"]) {
   color: #f8fafc !important;
   background-color: #0f172a !important;
   color-scheme: dark !important;
 }
 
-select.bg-slate-900 option,
-select.bg-slate-950 option,
-select.bg-slate-800 option,
-select.bg-forest-900 option,
-select.bg-forest-950 option,
-.bg-slate-950 select:not(.bg-white) option,
-.bg-slate-900 select:not(.bg-white) option,
-.bg-forest-950 select:not(.bg-white) option,
-.dark select:not(.bg-white) option,
-[data-theme="dark"] select:not(.bg-white) option {
+.dark select option,
+[data-theme="dark"] select option,
+select[class*="bg-slate-900"] option,
+select[class*="bg-slate-950"] option,
+select[class*="bg-slate-800"] option,
+select[class*="bg-forest-900"] option,
+select[class*="bg-forest-950"] option,
+.bg-slate-950 select:not([class*="bg-white"]) option,
+.bg-slate-900 select:not([class*="bg-white"]) option,
+.bg-forest-950 select:not([class*="bg-white"]) option {
   color: #f8fafc !important;
   background-color: #0f172a !important;
 }
 
-select.bg-slate-900 option:checked,
-select.bg-slate-950 option:checked,
-select.bg-slate-900 option:hover,
-select.bg-slate-950 option:hover {
+select[class*="bg-slate-900"] option:checked,
+select[class*="bg-slate-950"] option:checked,
+select[class*="bg-slate-900"] option:hover,
+select[class*="bg-slate-950"] option:hover {
   background-color: #1e293b !important;
   color: #f8fafc !important;
 }
 
 /* Explicit Light Dropdowns inside Modals or Cards */
-select.bg-white,
+select[class*="bg-white"],
 .bg-white select,
 .modal select,
 [role="dialog"] select {
@@ -162,11 +162,12 @@ select.bg-white,
   color-scheme: light !important;
 }
 
-select.bg-white option,
+select[class*="bg-white"] option,
 .bg-white select option,
 .modal select option,
 [role="dialog"] select option {
   color: #0f172a !important;
   background-color: #ffffff !important;
 }
+
 

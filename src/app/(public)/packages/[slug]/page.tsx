@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/db";
+import { getSiteSettings } from "@/lib/settings";
 import PackageDetailClient from "./PackageDetailClient";
 
 export const dynamic = "force-dynamic";
@@ -76,6 +77,8 @@ export default async function PackageDetailPage({
     console.error("Failed to query related packages:", err);
   }
 
-  return <PackageDetailClient pkg={pkg} relatedPackages={relatedPackages} />;
+  const settings = await getSiteSettings();
+
+  return <PackageDetailClient pkg={pkg} relatedPackages={relatedPackages} settings={settings} />;
 }
 

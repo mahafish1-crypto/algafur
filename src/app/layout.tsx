@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { getSiteSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Al-Gafur International Tours And Travels | Premium Hajj & Umrah Operating System",
@@ -27,23 +28,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const settings = await getSiteSettings();
+  const faviconUrl = settings.favicon || "/favicon.ico";
+  const companyTitle = settings.company_name || "Al-Gafur International Tours And Travels";
+  const phone = settings.company_phone_1 || "+91-8793939393";
+  const email = settings.company_email || "contact@algafurtours.com";
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "TravelAgency",
-    name: "Al-Gafur International Tours And Travels",
+    name: companyTitle,
     image: "https://algafurtours.com/brand/poster.jpg",
-    telephone: "+91-8793939393",
-    email: "contact@algafurtours.com",
+    telephone: phone,
+    email: email,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "183, M.G. Road, 15 August Chowk, Khadda Market, Camp",
-      addressLocality: "Pune",
-      addressRegion: "Maharashtra",
+      streetAddress: settings.company_address || "183, M.G. Road, 15 August Chowk, Khadda Market, Camp",
+      addressLocality: settings.company_city || "Pune",
+      addressRegion: settings.company_state || "Maharashtra",
       postalCode: "411001",
       addressCountry: "IN",
     },
@@ -54,6 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href={faviconUrl} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -32,9 +32,14 @@ import { buildWhatsAppLink } from "@/lib/whatsapp";
 interface PackageDetailClientProps {
   pkg: any;
   relatedPackages: any[];
+  settings?: Record<string, string>;
 }
 
-export default function PackageDetailClient({ pkg, relatedPackages }: PackageDetailClientProps) {
+export default function PackageDetailClient({
+  pkg,
+  relatedPackages,
+  settings = {},
+}: PackageDetailClientProps) {
   const [selectedRoom, setSelectedRoom] = useState<"QUAD" | "TRIPLE" | "DOUBLE">("QUAD");
 
   const roomPrices = {
@@ -49,8 +54,29 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
   const inclusions = pkg.inclusions.filter((i: any) => i.isIncluded);
   const exclusions = pkg.inclusions.filter((i: any) => !i.isIncluded);
 
-  const whatsappMessage = `Assalamualaikum, I am interested in ${pkg.name} (${pkg.departureDate}) with Al-Gafur Tours. Please share seat booking details for ${selectedRoom} sharing.`;
-  const whatsappUrl = buildWhatsAppLink("919890708013", whatsappMessage);
+  const phone = settings.company_phone_1 || "+91 8793939393";
+  const whatsappNum = settings.whatsapp_number || "919890708013";
+  const companyTitle = settings.company_short_name || settings.company_name || "Al-Gafur Tours";
+  const whatsappMessage = `Assalamualaikum, I am interested in ${pkg.name} (${pkg.departureDate}) with ${companyTitle}. Please share seat booking details for ${selectedRoom} sharing.`;
+  const whatsappUrl = buildWhatsAppLink(whatsappNum, whatsappMessage);
+
+  let galleryImages: string[] = [];
+  if (pkg.gallery) {
+    try {
+      galleryImages = typeof pkg.gallery === "string" ? JSON.parse(pkg.gallery) : pkg.gallery;
+    } catch {
+      galleryImages = [];
+    }
+  }
+
+  let packageFeatures: string[] = [];
+  if (pkg.features) {
+    try {
+      packageFeatures = typeof pkg.features === "string" ? JSON.parse(pkg.features) : pkg.features;
+    } catch {
+      packageFeatures = typeof pkg.features === "string" ? pkg.features.split(",") : [];
+    }
+  }
 
   return (
     <div className="bg-ivory-100/50 min-h-screen pb-24">
@@ -250,7 +276,17 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Makkah Hotel Card */}
-                <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/60 space-y-3">
+                <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/60 space-y-3 overflow-hidden">
+                  {pkg.makkahImage && (
+                    <div className="relative h-44 w-full rounded-xl overflow-hidden mb-2">
+                      <Image
+                        src={pkg.makkahImage}
+                        alt={pkg.makkahHotelName || "Makkah Hotel"}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
                       Makkah Al-Mukarramah
@@ -276,7 +312,17 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
                 </div>
 
                 {/* Madinah Hotel Card */}
-                <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/60 space-y-3">
+                <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/60 space-y-3 overflow-hidden">
+                  {pkg.madinahImage && (
+                    <div className="relative h-44 w-full rounded-xl overflow-hidden mb-2">
+                      <Image
+                        src={pkg.madinahImage}
+                        alt={pkg.madinahHotelName || "Madinah Hotel"}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
                       Madinah Al-Munawwarah
@@ -302,6 +348,49 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
                 </div>
               </div>
             </div>
+
+            {/* Gallery Section */}
+            {galleryImages.length > 0 && (
+              <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-4">
+                <h2 className="text-xl font-serif font-bold text-forest-950 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-gold-600" />
+                  Photo Gallery &amp; Accommodations
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                  {galleryImages.map((imgUrl, idx) => (
+                    <div key={idx} className="relative h-44 rounded-2xl overflow-hidden border border-neutral-200 shadow-sm group">
+                      <Image
+                        src={imgUrl}
+                        alt={`${pkg.name} Gallery Photo ${idx + 1}`}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Features Highlights */}
+            {packageFeatures.length > 0 && (
+              <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-4">
+                <h2 className="text-xl font-serif font-bold text-forest-950 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-gold-600" />
+                  Package Key Highlights &amp; Features
+                </h2>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {packageFeatures.map((feat, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3.5 py-1.5 rounded-xl bg-ivory-100 text-forest-950 font-semibold text-xs border border-gold-500/30 flex items-center gap-2 shadow-xs"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                      {feat}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Day by Day Detailed Timeline */}
             <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
@@ -455,15 +544,15 @@ export default function PackageDetailClient({ pkg, relatedPackages }: PackageDet
                   className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Talk on WhatsApp (+91 9890708013)
+                  Talk on WhatsApp ({whatsappNum})
                 </a>
 
                 <a
-                  href="tel:+918793939393"
+                  href={`tel:${phone.replace(/\s+/g, "")}`}
                   className="w-full flex items-center justify-center gap-2 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-medium rounded-xl text-xs transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5" />
-                  Call Advisor: +91 8793939393
+                  Call Advisor: {phone}
                 </a>
               </div>
 
