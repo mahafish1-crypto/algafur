@@ -417,7 +417,7 @@ export default function AdminPaymentsClient({
                     placeholder="e.g. 50000"
                     value={recordForm.amount}
                     onChange={(e) => setRecordForm({ ...recordForm, amount: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-900"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-semibold bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                     required
                   />
                 </div>
@@ -452,7 +452,7 @@ export default function AdminPaymentsClient({
                   onChange={(e) =>
                     setRecordForm({ ...recordForm, transactionId: e.target.value })
                   }
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                 />
               </div>
 
@@ -465,7 +465,7 @@ export default function AdminPaymentsClient({
                   placeholder="Advance for Umrah package registration..."
                   value={recordForm.notes}
                   onChange={(e) => setRecordForm({ ...recordForm, notes: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                 />
               </div>
 

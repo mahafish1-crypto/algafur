@@ -38,7 +38,7 @@ export default async function ContactPage() {
 
         {/* Contact Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Pune Head Office */}
+          {/* Head Office / Booking Office */}
           <div className="bg-white p-7 rounded-3xl border border-neutral-200 shadow-sm space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-forest-900 text-gold-400 flex items-center justify-center">
               <MapPin className="w-6 h-6" />

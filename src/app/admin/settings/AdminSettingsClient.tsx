@@ -1032,7 +1032,7 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                    Pune Head Office Address
+                    HEAD OFFICE ADDRESS
                   </label>
                   <textarea
                     rows={2}

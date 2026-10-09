@@ -376,7 +376,7 @@ export default function AdminQuotationsClient({
                     max="50"
                     value={travellersCount}
                     onChange={(e) => setTravellersCount(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
                 </div>
               </div>
@@ -390,7 +390,7 @@ export default function AdminQuotationsClient({
                     type="number"
                     value={discount}
                     onChange={(e) => setDiscount(Math.max(0, parseFloat(e.target.value) || 0))}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
                 </div>
                 <div>
@@ -401,7 +401,7 @@ export default function AdminQuotationsClient({
                     type="number"
                     value={taxPercent}
                     onChange={(e) => setTaxPercent(Math.max(0, parseFloat(e.target.value) || 0))}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
                 </div>
                 <div>
@@ -412,7 +412,7 @@ export default function AdminQuotationsClient({
                     type="number"
                     value={advancePercent}
                     onChange={(e) => setAdvancePercent(Math.max(0, parseFloat(e.target.value) || 0))}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
                 </div>
               </div>

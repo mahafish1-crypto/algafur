@@ -322,7 +322,7 @@ export default function CustomerDashboardClient({
             <select
               value={docType}
               onChange={(e) => setDocType(e.target.value)}
-              className="text-xs p-2.5 rounded-xl border border-neutral-200 bg-white"
+              className="text-xs p-2.5 rounded-xl border border-neutral-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700"
             >
               <option value="PASSPORT">Passport Scan (Front & Back)</option>
               <option value="PASSPORT_PHOTO">White Background Photograph</option>

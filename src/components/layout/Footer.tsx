@@ -167,7 +167,7 @@ export default function Footer({ settings = {} }: FooterProps) {
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-gold-400 flex-shrink-0 mt-0.5" />
                 <span>
-                  <strong>Pune Head Office:</strong>
+                  <strong>Head Office Address:</strong>
                   <br />
                   {address}
                 </span>

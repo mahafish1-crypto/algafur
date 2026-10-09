@@ -219,7 +219,7 @@ export default function AgentDashboardClient({
                   value={newCust.name}
                   onChange={(e) => setNewCust({ ...newCust, name: e.target.value })}
                   placeholder="e.g. Salim Merchant"
-                  className="w-full text-xs p-2.5 rounded-lg border border-neutral-200"
+                  className="w-full text-xs p-2.5 rounded-lg border border-neutral-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                 />
               </div>
 
@@ -233,7 +233,7 @@ export default function AgentDashboardClient({
                   value={newCust.phone}
                   onChange={(e) => setNewCust({ ...newCust, phone: e.target.value })}
                   placeholder="+91 9820000000"
-                  className="w-full text-xs p-2.5 rounded-lg border border-neutral-200"
+                  className="w-full text-xs p-2.5 rounded-lg border border-neutral-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                 />
               </div>
 
@@ -244,7 +244,7 @@ export default function AgentDashboardClient({
                 <select
                   value={newCust.packageId}
                   onChange={(e) => setNewCust({ ...newCust, packageId: e.target.value })}
-                  className="w-full text-xs p-2.5 rounded-lg border border-neutral-200"
+                  className="w-full text-xs p-2.5 rounded-lg border border-neutral-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                 >
                   {packages.map((p) => (
                     <option key={p.id} value={p.id}>

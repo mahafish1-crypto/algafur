@@ -39,7 +39,7 @@ export const AdminSelect = forwardRef<HTMLSelectElement, AdminSelectProps>(
     return (
       <div className="w-full space-y-1">
         {label && (
-          <label className="block text-xs font-semibold text-slate-300">
+          <label className={`block text-xs font-semibold ${isDark ? "text-slate-300" : "text-slate-700"}`}>
             {label}
             {props.required && <span className="text-red-400 ml-1">*</span>}
           </label>

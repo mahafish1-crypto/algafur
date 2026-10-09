@@ -92,16 +92,105 @@
 }
 
 /* ==========================================================================
-   GLOBAL FORM CONTROLS & DROPDOWN/SELECT TEXT VISIBILITY FIX
+   ADMIN PANEL & GLOBAL FORM CONTROLS / POPUPS / MODALS READABILITY ENGINE
    ========================================================================== */
-/* Universal Default Light Select */
+
+/* 1. Global Baseline: Default Form Elements are Light with Crisp Dark Text */
+input,
+textarea,
 select {
+  color: #0f172a;
+  background-color: #ffffff;
+  color-scheme: light;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+/* 2. Light Containers, Modals & Popups (e.g. .bg-white, .bg-slate-50, dialogs, drawers) */
+/* Ensure elements nested inside ANY white/light container ALWAYS render dark text, even if inside dark admin layout */
+.bg-white,
+.bg-slate-50,
+.bg-gray-50,
+.bg-neutral-50,
+.bg-zinc-50,
+[data-theme="light"],
+[role="dialog"] .bg-white,
+[role="dialog"] .bg-slate-50,
+.modal .bg-white,
+.modal .bg-slate-50,
+[data-radix-popper-content-wrapper] .bg-white,
+[data-radix-select-content]:not([class*="bg-slate"]),
+[data-radix-dropdown-menu-content]:not([class*="bg-slate"]),
+[data-radix-popover-content]:not([class*="bg-slate"]) {
+  color-scheme: light;
+}
+
+/* Text and Labels inside light containers / modals */
+.bg-white,
+.bg-slate-50,
+[role="dialog"] .bg-white,
+.modal .bg-white {
+  color: #0f172a;
+}
+
+.bg-white label,
+.bg-slate-50 label,
+[role="dialog"] .bg-white label,
+.modal .bg-white label {
+  color: #334155;
+}
+
+/* Form controls inside ANY light container or modal */
+.bg-white input:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+.bg-white textarea:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+.bg-white select:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+.bg-slate-50 input:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+.bg-slate-50 textarea:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+.bg-slate-50 select:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+[role="dialog"] .bg-white input:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+[role="dialog"] .bg-white textarea:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+[role="dialog"] .bg-white select:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+.modal .bg-white input:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+.modal .bg-white textarea:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]),
+.modal .bg-white select:not([class*="bg-slate"]):not([class*="bg-black"]):not([class*="bg-forest"]) {
   color: #0f172a !important;
   background-color: #ffffff !important;
   color-scheme: light !important;
 }
 
-select option {
+.bg-white input::placeholder,
+.bg-white textarea::placeholder,
+.bg-slate-50 input::placeholder,
+.bg-slate-50 textarea::placeholder,
+[role="dialog"] .bg-white input::placeholder,
+[role="dialog"] .bg-white textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* 3. Universal Native <select> and <option> Text Visibility */
+/* Default / Light Selects */
+select,
+select[class*="bg-white"],
+.bg-white select,
+.bg-slate-50 select,
+[role="dialog"] .bg-white select,
+.modal select {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  color-scheme: light !important;
+}
+
+select option,
+select[class*="bg-white"] option,
+.bg-white select option,
+.bg-slate-50 select option,
+[role="dialog"] .bg-white select option,
+.modal select option {
   color: #0f172a !important;
   background-color: #ffffff !important;
   font-size: 13px;
@@ -109,37 +198,34 @@ select option {
 }
 
 select option:checked,
-select option:hover {
+select option:hover,
+select[class*="bg-white"] option:checked,
+select[class*="bg-white"] option:hover,
+.bg-white select option:checked,
+.bg-white select option:hover {
   background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
-/* Explicit Dark Theme Dropdowns / Selects */
-.dark select,
-[data-theme="dark"] select,
+/* 4. Explicit Dark Theme Dropdowns & Inputs */
+/* Only apply dark styling when the element ITSELF or its immediate card is explicitly dark, and NOT overridden by an inner white modal */
 select[class*="bg-slate-900"],
 select[class*="bg-slate-950"],
 select[class*="bg-slate-800"],
 select[class*="bg-forest-900"],
 select[class*="bg-forest-950"],
-.bg-slate-950 select:not([class*="bg-white"]),
-.bg-slate-900 select:not([class*="bg-white"]),
-.bg-forest-950 select:not([class*="bg-white"]) {
+[data-theme="dark"] select:not([class*="bg-white"]) {
   color: #f8fafc !important;
   background-color: #0f172a !important;
   color-scheme: dark !important;
 }
 
-.dark select option,
-[data-theme="dark"] select option,
 select[class*="bg-slate-900"] option,
 select[class*="bg-slate-950"] option,
 select[class*="bg-slate-800"] option,
 select[class*="bg-forest-900"] option,
 select[class*="bg-forest-950"] option,
-.bg-slate-950 select:not([class*="bg-white"]) option,
-.bg-slate-900 select:not([class*="bg-white"]) option,
-.bg-forest-950 select:not([class*="bg-white"]) option {
+[data-theme="dark"] select:not([class*="bg-white"]) option {
   color: #f8fafc !important;
   background-color: #0f172a !important;
 }
@@ -152,22 +238,110 @@ select[class*="bg-slate-950"] option:hover {
   color: #f8fafc !important;
 }
 
-/* Explicit Light Dropdowns inside Modals or Cards */
-select[class*="bg-white"],
-.bg-white select,
-.modal select,
-[role="dialog"] select {
-  color: #0f172a !important;
-  background-color: #ffffff !important;
-  color-scheme: light !important;
+/* Dark mode inputs in dark cards or dark modals (e.g. CRM leads modal) */
+.bg-slate-950 input[class*="bg-slate-900"],
+.bg-slate-950 textarea[class*="bg-slate-900"],
+.bg-slate-950 select[class*="bg-slate-900"],
+input[class*="bg-slate-900"],
+input[class*="bg-slate-950"],
+textarea[class*="bg-slate-900"],
+textarea[class*="bg-slate-950"] {
+  color: #f8fafc !important;
+  background-color: #0f172a !important;
+  color-scheme: dark !important;
 }
 
-select[class*="bg-white"] option,
-.bg-white select option,
-.modal select option,
-[role="dialog"] select option {
-  color: #0f172a !important;
-  background-color: #ffffff !important;
+input[class*="bg-slate-900"]::placeholder,
+input[class*="bg-slate-950"]::placeholder,
+textarea[class*="bg-slate-900"]::placeholder,
+textarea[class*="bg-slate-950"]::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
 }
+
+/* 5. Date & Time Input Picker Icons (Cross-browser Calendar Icon Contrast) */
+.bg-white input[type="date"]::-webkit-calendar-picker-indicator,
+.bg-white input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"][class*="bg-white"]::-webkit-calendar-picker-indicator,
+input[type="time"][class*="bg-white"]::-webkit-calendar-picker-indicator,
+[role="dialog"] .bg-white input[type="date"]::-webkit-calendar-picker-indicator,
+[role="dialog"] .bg-white input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.bg-white input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.bg-white input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.bg-slate-950 input[type="date"]::-webkit-calendar-picker-indicator,
+.bg-slate-900 input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="date"][class*="bg-slate-900"]::-webkit-calendar-picker-indicator,
+input[type="time"][class*="bg-slate-900"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* 6. Radix UI, Headless UI, Popover, Menu & Combobox Primitives */
+/* Light Popups / Menus / Dropdowns */
+[data-radix-popper-content-wrapper] .bg-white,
+[data-radix-select-content],
+[data-radix-dropdown-menu-content],
+[data-radix-popover-content],
+[role="menu"].bg-white,
+[role="listbox"].bg-white,
+[role="combobox"].bg-white,
+[cmdk-root] {
+  color-scheme: light;
+  color: #0f172a;
+}
+
+[data-radix-select-item],
+[data-radix-dropdown-menu-item],
+[role="menuitem"],
+[role="option"],
+[cmdk-item] {
+  color: #0f172a;
+  cursor: pointer;
+}
+
+[data-radix-select-item][data-highlighted],
+[data-radix-dropdown-menu-item][data-highlighted],
+[role="menuitem"]:hover,
+[role="option"][aria-selected="true"],
+[role="option"]:hover,
+[cmdk-item][data-selected="true"] {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Dark Popups / Menus (e.g. notifications dropdown, dark profile menu) */
+[role="menu"][class*="bg-slate-950"],
+[role="menu"][class*="bg-slate-900"],
+[role="listbox"][class*="bg-slate-950"],
+[role="listbox"][class*="bg-slate-900"],
+[data-radix-select-content][class*="bg-slate"],
+[data-radix-dropdown-menu-content][class*="bg-slate"] {
+  color-scheme: dark;
+  color: #f8fafc;
+  background-color: #020617;
+}
+
+[role="menu"][class*="bg-slate-950"] [role="menuitem"],
+[role="menu"][class*="bg-slate-900"] [role="menuitem"],
+[role="listbox"][class*="bg-slate-950"] [role="option"],
+[role="listbox"][class*="bg-slate-900"] [role="option"] {
+  color: #f8fafc;
+}
+
+[role="menu"][class*="bg-slate-950"] [role="menuitem"]:hover,
+[role="menu"][class*="bg-slate-900"] [role="menuitem"]:hover,
+[role="listbox"][class*="bg-slate-950"] [role="option"]:hover {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
 
 

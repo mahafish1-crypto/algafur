@@ -219,7 +219,7 @@ export default function AdminHotelsClient({ initialHotels }: Props) {
                   placeholder="e.g. Diyafa Jamal Makkah"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   required
                 />
               </div>
@@ -265,7 +265,7 @@ export default function AdminHotelsClient({ initialHotels }: Props) {
                     placeholder="e.g. 500m"
                     value={form.distanceFromHaram}
                     onChange={(e) => setForm({ ...form, distanceFromHaram: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                     required
                   />
                 </div>
@@ -278,7 +278,7 @@ export default function AdminHotelsClient({ initialHotels }: Props) {
                     placeholder="e.g. 5 mins walk"
                     value={form.walkingTime}
                     onChange={(e) => setForm({ ...form, walkingTime: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
                 </div>
               </div>
@@ -292,7 +292,7 @@ export default function AdminHotelsClient({ initialHotels }: Props) {
                   placeholder="e.g. Wi-Fi, 24/7 Room Service, Buffet Restaurant"
                   value={form.amenities}
                   onChange={(e) => setForm({ ...form, amenities: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                 />
               </div>
 
@@ -305,7 +305,7 @@ export default function AdminHotelsClient({ initialHotels }: Props) {
                   placeholder="e.g. Ibrahim Al Khalil Rd, Makkah"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                 />
               </div>
 

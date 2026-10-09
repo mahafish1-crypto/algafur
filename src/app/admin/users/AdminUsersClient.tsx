@@ -241,7 +241,7 @@ export default function AdminUsersClient({ initialUsers }: Props) {
                   placeholder="e.g. Tariq Khan"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   required
                 />
               </div>
@@ -255,7 +255,7 @@ export default function AdminUsersClient({ initialUsers }: Props) {
                   placeholder="e.g. tariq@algafurtours.com"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   required
                 />
               </div>
@@ -269,7 +269,7 @@ export default function AdminUsersClient({ initialUsers }: Props) {
                   placeholder="Min 6 characters"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   required
                 />
               </div>

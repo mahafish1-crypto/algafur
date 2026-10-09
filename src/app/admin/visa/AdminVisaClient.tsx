@@ -551,7 +551,7 @@ export default function AdminVisaClient({
                     placeholder="e.g. 6009876543"
                     value={editForm.visaNumber}
                     onChange={(e) => setEditForm({ ...editForm, visaNumber: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
                 <div>
@@ -565,7 +565,7 @@ export default function AdminVisaClient({
                     onChange={(e) =>
                       setEditForm({ ...editForm, applicationNumber: e.target.value })
                     }
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
               </div>
@@ -581,7 +581,7 @@ export default function AdminVisaClient({
                     onChange={(e) =>
                       setEditForm({ ...editForm, approvalDate: e.target.value })
                     }
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
                 <div>
@@ -594,7 +594,7 @@ export default function AdminVisaClient({
                     onChange={(e) =>
                       setEditForm({ ...editForm, expiryDate: e.target.value })
                     }
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
               </div>
@@ -608,7 +608,7 @@ export default function AdminVisaClient({
                   placeholder="e.g. Biometrics verified at VFS, sent for stamping."
                   value={editForm.notes}
                   onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                 />
               </div>
 
@@ -722,7 +722,7 @@ export default function AdminVisaClient({
                   onChange={(e) =>
                     setNewForm({ ...newForm, applicationNumber: e.target.value })
                   }
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                 />
               </div>
 
@@ -735,7 +735,7 @@ export default function AdminVisaClient({
                   placeholder="Special instructions or remarks..."
                   value={newForm.notes}
                   onChange={(e) => setNewForm({ ...newForm, notes: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700"
                 />
               </div>
 

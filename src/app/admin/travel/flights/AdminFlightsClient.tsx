@@ -194,7 +194,7 @@ export default function AdminFlightsClient({ initialFlights }: Props) {
                     placeholder="e.g. Saudi Airlines"
                     value={form.airline}
                     onChange={(e) => setForm({ ...form, airline: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                     required
                   />
                 </div>
@@ -207,7 +207,7 @@ export default function AdminFlightsClient({ initialFlights }: Props) {
                     placeholder="e.g. SV-741"
                     value={form.flightNumber}
                     onChange={(e) => setForm({ ...form, flightNumber: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono uppercase"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono uppercase bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                     required
                   />
                 </div>
@@ -223,7 +223,7 @@ export default function AdminFlightsClient({ initialFlights }: Props) {
                     placeholder="e.g. 7H82KM"
                     value={form.pnr}
                     onChange={(e) => setForm({ ...form, pnr: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
                 </div>
                 <div>
@@ -251,7 +251,7 @@ export default function AdminFlightsClient({ initialFlights }: Props) {
                     placeholder="BOM (Mumbai)"
                     value={form.departureAirport}
                     onChange={(e) => setForm({ ...form, departureAirport: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                     required
                   />
                 </div>
@@ -264,7 +264,7 @@ export default function AdminFlightsClient({ initialFlights }: Props) {
                     placeholder="JED (Jeddah)"
                     value={form.arrivalAirport}
                     onChange={(e) => setForm({ ...form, arrivalAirport: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                     required
                   />
                 </div>
@@ -280,7 +280,7 @@ export default function AdminFlightsClient({ initialFlights }: Props) {
                     placeholder="31 Oct 2026, 08:30"
                     value={form.departureDate}
                     onChange={(e) => setForm({ ...form, departureDate: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
                 </div>
                 <div>
@@ -292,7 +292,7 @@ export default function AdminFlightsClient({ initialFlights }: Props) {
                     placeholder="12:45"
                     value={form.arrivalTime}
                     onChange={(e) => setForm({ ...form, arrivalTime: e.target.value })}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
                 </div>
               </div>
@@ -302,11 +302,11 @@ export default function AdminFlightsClient({ initialFlights }: Props) {
                   Baggage Quota
                 </label>
                 <input
-                  type="text"
-                  placeholder="2x23kg check-in + 7kg cabin"
-                  value={form.baggage}
-                  onChange={(e) => setForm({ ...form, baggage: e.target.value })}
-                  className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2"
+                    type="text"
+                    placeholder="2x23kg check-in + 7kg cabin"
+                    value={form.baggage}
+                    onChange={(e) => setForm({ ...form, baggage: e.target.value })}
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-gold-500"
                 />
               </div>
 
