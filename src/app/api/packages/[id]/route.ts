@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -193,6 +194,16 @@ async function handleUpdate(
       },
     });
 
+    try {
+      revalidatePath("/");
+      revalidatePath("/packages");
+      if (fullPackage?.slug) {
+        revalidatePath(`/packages/${fullPackage.slug}`);
+      }
+    } catch (e) {
+      console.warn("revalidatePath warning:", e);
+    }
+
     return NextResponse.json({ success: true, package: fullPackage });
   } catch (error: unknown) {
     console.error("Error updating package:", error);
@@ -252,6 +263,14 @@ export async function DELETE(
       entityId: id,
       details: { name: existing.name, slug: existing.slug },
     });
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/packages");
+      revalidatePath(`/packages/${existing.slug}`);
+    } catch (e) {
+      console.warn("revalidatePath warning:", e);
+    }
 
     return NextResponse.json({ success: true, message: "Package deleted successfully" });
   } catch (error: unknown) {

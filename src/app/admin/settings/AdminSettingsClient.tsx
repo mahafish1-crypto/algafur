@@ -18,6 +18,8 @@ import {
   Phone,
   Trash2,
   ExternalLink,
+  FileText,
+  Award,
 } from "lucide-react";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 
@@ -28,6 +30,7 @@ interface Props {
 type TabType =
   | "branding"
   | "header_footer"
+  | "about"
   | "contact"
   | "company"
   | "whatsapp"
@@ -112,6 +115,36 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
     default_currency: initialSettings.default_currency || "INR (₹)",
     default_language: initialSettings.default_language || "en",
     timezone: initialSettings.timezone || "Asia/Kolkata",
+
+    // About Page CMS
+    about_badge: initialSettings.about_badge || "About Al-Gafur Tours",
+    about_title: initialSettings.about_title || "Serving the Guests of Allah with Honor and Care",
+    about_subtitle:
+      initialSettings.about_subtitle ||
+      "A premier international Hajj & Umrah travel organization founded on devotion, transparency, and scholarly guidance.",
+    about_mandate_title: initialSettings.about_mandate_title || "Our Spiritual Mandate",
+    about_mandate_description_1:
+      initialSettings.about_mandate_description_1 ||
+      "At Al-Gafur International Tours And Travels, we believe embarking on Hajj or Umrah is not merely an itinerary — it is the milestone pilgrimage of a lifetime. Every detail, from selecting hotels with level walking pathways to the Haram courtyards, to preparing fresh Indian meals that nourish tired worshippers, is managed with intense responsibility.",
+    about_mandate_description_2:
+      initialSettings.about_mandate_description_2 ||
+      'Our slogan reflects our devotion: "एक सफर जिंदगी में तब्दीली लानेवाला... इन्शाअल्लाह" — A journey destined to transform your heart and life.',
+    about_image: initialSettings.about_image || "/brand/img2.jpeg",
+    about_feature_1: initialSettings.about_feature_1 || "Ministry of Hajj & Umrah Recognized Operations",
+    about_feature_2: initialSettings.about_feature_2 || "Over 1,500+ Satisfied Pilgrims Guided Across Maharashtra",
+    about_feature_3: initialSettings.about_feature_3 || "Direct Mumbai Return Flights Guaranteed",
+    about_leader_1_name: initialSettings.about_leader_1_name || "Dr. Mudassir Rafique Sayyad",
+    about_leader_1_role: initialSettings.about_leader_1_role || "Managing Director",
+    about_leader_1_desc: initialSettings.about_leader_1_desc || "Oversees institutional partnerships, airline charters, and pilgrim welfare.",
+    about_leader_1_phone: initialSettings.about_leader_1_phone || "+91 8793939393",
+    about_leader_2_name: initialSettings.about_leader_2_name || "Hafiz Asrar Sahab (S.B.)",
+    about_leader_2_role: initialSettings.about_leader_2_role || "Religious Director & International Naat Khwan",
+    about_leader_2_desc: initialSettings.about_leader_2_desc || "Leads spiritual discourses, lectures on Umrah virtues, and Madinah salam sessions.",
+    about_leader_2_phone: initialSettings.about_leader_2_phone || "+91 9890708013",
+    about_leader_3_name: initialSettings.about_leader_3_name || "Zahir Ali Pathan",
+    about_leader_3_role: initialSettings.about_leader_3_role || "Director of Operations",
+    about_leader_3_desc: initialSettings.about_leader_3_desc || "Directs hotel contracting in Makkah & Madinah and airport transfer operations.",
+    about_leader_3_phone: initialSettings.about_leader_3_phone || "+91 9764444044",
   });
 
   const [saving, setSaving] = useState(false);
@@ -164,7 +197,7 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
       <MediaPickerModal
         isOpen={Boolean(mediaTarget)}
         onClose={() => setMediaTarget(null)}
-        categoryFilter="LOGO"
+        categoryFilter={mediaTarget === "about_image" ? "ALL" : "LOGO"}
         title={
           mediaTarget === "favicon"
             ? "Select Favicon Icon"
@@ -172,6 +205,8 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
             ? "Select Header Logo"
             : mediaTarget === "footer_logo"
             ? "Select Footer Logo"
+            : mediaTarget === "about_image"
+            ? "Select About Page Story Image"
             : "Select Site Logo"
         }
         onSelect={(url) => {
@@ -219,6 +254,7 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
           {[
             { id: "branding", label: "Logos & Branding", icon: ImageIcon },
             { id: "header_footer", label: "Header & Footer CMS", icon: LayoutTemplate },
+            { id: "about", label: "About Us Page CMS", icon: FileText },
             { id: "contact", label: "Contact & Offices", icon: Phone },
             { id: "company", label: "Agency Profile & Banking", icon: Building },
             { id: "whatsapp", label: "WhatsApp Cloud API", icon: MessageCircle },
@@ -621,6 +657,299 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
                         onChange={(e) => handleChange("social_twitter", e.target.value)}
                         className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                       />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* About Us Page CMS Tab */}
+            {activeTab === "about" && (
+              <div className="space-y-6">
+                <div className="border-b pb-3 border-slate-100">
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-emerald-700" />
+                    About Us Page Dynamic CMS
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Manage the public About Us page narrative, spiritual mandate, statistics, scholar leadership portraits, and credentials.
+                  </p>
+                </div>
+
+                {/* Hero / Header Section */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-4">
+                  <h3 className="text-sm font-bold text-slate-900">Header & Title</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Top Badge Tagline
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.about_badge}
+                        onChange={(e) => handleChange("about_badge", e.target.value)}
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Main Heading Title
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.about_title}
+                        onChange={(e) => handleChange("about_title", e.target.value)}
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Header Subtitle
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={settings.about_subtitle}
+                      onChange={(e) => handleChange("about_subtitle", e.target.value)}
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Spiritual Mandate & Story */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-4">
+                  <h3 className="text-sm font-bold text-slate-900">Spiritual Mandate & Narrative</h3>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Section Title
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.about_mandate_title}
+                      onChange={(e) => handleChange("about_mandate_title", e.target.value)}
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Narrative Paragraph 1
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={settings.about_mandate_description_1}
+                      onChange={(e) => handleChange("about_mandate_description_1", e.target.value)}
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Slogan / Paragraph 2
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={settings.about_mandate_description_2}
+                      onChange={(e) => handleChange("about_mandate_description_2", e.target.value)}
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
+
+                  {/* About Feature Points */}
+                  <div className="space-y-2 pt-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                      Key Trust Bullet Points
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.about_feature_1}
+                      onChange={(e) => handleChange("about_feature_1", e.target.value)}
+                      className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                      placeholder="Bullet 1"
+                    />
+                    <input
+                      type="text"
+                      value={settings.about_feature_2}
+                      onChange={(e) => handleChange("about_feature_2", e.target.value)}
+                      className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                      placeholder="Bullet 2"
+                    />
+                    <input
+                      type="text"
+                      value={settings.about_feature_3}
+                      onChange={(e) => handleChange("about_feature_3", e.target.value)}
+                      className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                      placeholder="Bullet 3"
+                    />
+                  </div>
+
+                  {/* About Image with Media Picker */}
+                  <div className="pt-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      About Story Image
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={settings.about_image}
+                        onChange={(e) => handleChange("about_image", e.target.value)}
+                        className="flex-1 text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500 font-mono"
+                        placeholder="/brand/img2.jpeg or image URL"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setMediaTarget("about_image")}
+                        className="px-3 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold text-xs rounded-lg transition-colors whitespace-nowrap"
+                      >
+                        Select from Media Library
+                      </button>
+                    </div>
+                    {settings.about_image && (
+                      <div className="mt-2 relative h-28 w-44 rounded-lg overflow-hidden border border-slate-200 bg-slate-900">
+                        <img
+                          src={settings.about_image}
+                          alt="About Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Scholarly Leadership */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-4">
+                  <h3 className="text-sm font-bold text-slate-900">Scholarly Leadership & Directorship</h3>
+
+                  {/* Leader 1 */}
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-3">
+                    <span className="text-xs font-extrabold text-gold-700 uppercase">Director 1</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] text-slate-600 mb-1">Full Name</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_1_name}
+                          onChange={(e) => handleChange("about_leader_1_name", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-600 mb-1">Designation / Role</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_1_role}
+                          onChange={(e) => handleChange("about_leader_1_role", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="md:col-span-2">
+                        <label className="block text-[11px] text-slate-600 mb-1">Bio / Responsibilities</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_1_desc}
+                          onChange={(e) => handleChange("about_leader_1_desc", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-600 mb-1">Direct Phone</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_1_phone}
+                          onChange={(e) => handleChange("about_leader_1_phone", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Leader 2 */}
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-3">
+                    <span className="text-xs font-extrabold text-gold-700 uppercase">Director 2 (Religious Scholar)</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] text-slate-600 mb-1">Full Name</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_2_name}
+                          onChange={(e) => handleChange("about_leader_2_name", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-600 mb-1">Designation / Role</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_2_role}
+                          onChange={(e) => handleChange("about_leader_2_role", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="md:col-span-2">
+                        <label className="block text-[11px] text-slate-600 mb-1">Bio / Responsibilities</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_2_desc}
+                          onChange={(e) => handleChange("about_leader_2_desc", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-600 mb-1">Direct Phone</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_2_phone}
+                          onChange={(e) => handleChange("about_leader_2_phone", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Leader 3 */}
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-3">
+                    <span className="text-xs font-extrabold text-gold-700 uppercase">Director 3 (Operations)</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] text-slate-600 mb-1">Full Name</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_3_name}
+                          onChange={(e) => handleChange("about_leader_3_name", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-600 mb-1">Designation / Role</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_3_role}
+                          onChange={(e) => handleChange("about_leader_3_role", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="md:col-span-2">
+                        <label className="block text-[11px] text-slate-600 mb-1">Bio / Responsibilities</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_3_desc}
+                          onChange={(e) => handleChange("about_leader_3_desc", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-600 mb-1">Direct Phone</label>
+                        <input
+                          type="text"
+                          value={settings.about_leader_3_phone}
+                          onChange={(e) => handleChange("about_leader_3_phone", e.target.value)}
+                          className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

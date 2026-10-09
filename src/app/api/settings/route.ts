@@ -3,6 +3,8 @@ import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 
+import { revalidatePath } from "next/cache";
+
 export async function GET() {
   try {
     const settings = await prisma.siteSetting.findMany();
@@ -46,6 +48,16 @@ export async function POST(req: NextRequest) {
       entity: "SiteSetting",
       details: { updatedKeys: keys },
     });
+
+    try {
+      revalidatePath("/", "layout");
+      revalidatePath("/");
+      revalidatePath("/about");
+      revalidatePath("/contact");
+      revalidatePath("/packages");
+    } catch (e) {
+      console.warn("revalidatePath warning:", e);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

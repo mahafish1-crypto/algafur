@@ -35,6 +35,30 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   social_instagram: "https://instagram.com",
   social_youtube: "https://youtube.com",
   social_twitter: "https://twitter.com",
+
+  // About Page CMS
+  about_badge: "About Al-Gafur Tours",
+  about_title: "Serving the Guests of Allah with Honor and Care",
+  about_subtitle: "A premier international Hajj & Umrah travel organization founded on devotion, transparency, and scholarly guidance.",
+  about_mandate_title: "Our Spiritual Mandate",
+  about_mandate_description_1: "At Al-Gafur International Tours And Travels, we believe embarking on Hajj or Umrah is not merely an itinerary — it is the milestone pilgrimage of a lifetime. Every detail, from selecting hotels with level walking pathways to the Haram courtyards, to preparing fresh Indian meals that nourish tired worshippers, is managed with intense responsibility.",
+  about_mandate_description_2: "Our slogan reflects our devotion: \"एक सफर जिंदगी में तब्दीली लानेवाला... इन्शाअल्लाह\" — A journey destined to transform your heart and life.",
+  about_image: "/brand/img2.jpeg",
+  about_feature_1: "Ministry of Hajj & Umrah Recognized Operations",
+  about_feature_2: "Over 1,500+ Satisfied Pilgrims Guided Across Maharashtra",
+  about_feature_3: "Direct Mumbai Return Flights Guaranteed",
+  about_leader_1_name: "Dr. Mudassir Rafique Sayyad",
+  about_leader_1_role: "Managing Director",
+  about_leader_1_desc: "Oversees institutional partnerships, airline charters, and pilgrim welfare.",
+  about_leader_1_phone: "+91 8793939393",
+  about_leader_2_name: "Hafiz Asrar Sahab (S.B.)",
+  about_leader_2_role: "Religious Director & International Naat Khwan",
+  about_leader_2_desc: "Leads spiritual discourses, lectures on Umrah virtues, and Madinah salam sessions.",
+  about_leader_2_phone: "+91 9890708013",
+  about_leader_3_name: "Zahir Ali Pathan",
+  about_leader_3_role: "Director of Operations",
+  about_leader_3_desc: "Directs hotel contracting in Makkah & Madinah and airport transfer operations.",
+  about_leader_3_phone: "+91 9764444044",
 };
 
 export async function getSiteSettings(): Promise<Record<string, string>> {

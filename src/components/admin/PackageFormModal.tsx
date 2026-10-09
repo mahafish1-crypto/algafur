@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Save,
@@ -204,6 +204,275 @@ export default function PackageFormModal({
       { dayNumber: 20, title: "Tawaf al-Wida & Return Flight to Mumbai", location: "Jeddah / Transit", activities: "Perform Farewell Tawaf (Tawaf al-Wida). Luxury coach to King Abdulaziz Airport Jeddah. Receive 5L Zamzam. Return flight to Mumbai." },
     ],
   });
+
+  // Synchronize form when initialPackage or isOpen changes
+  useEffect(() => {
+    if (isOpen) {
+      if (initialPackage) {
+        setForm({
+          name: initialPackage.name || "",
+          slug: initialPackage.slug || "",
+          type: initialPackage.type || "UMRAH",
+          badge: initialPackage.badge || "PLATINUM",
+          year: initialPackage.year || "2026 / 1448 Hijri",
+          status: initialPackage.status || "PUBLISHED",
+          isFeatured: initialPackage.isFeatured ?? true,
+          isPopular: initialPackage.isPopular ?? true,
+          sortOrder: initialPackage.sortOrder || 0,
+          overview: initialPackage.overview || "",
+
+          // Pricing
+          basePrice: initialPackage.basePrice || 120000,
+          priceQuad: initialPackage.priceQuad || 120000,
+          priceTriple: initialPackage.priceTriple || 130000,
+          priceDouble: initialPackage.priceDouble || 145000,
+          priceSingle: initialPackage.priceSingle || 180000,
+          childPrice: initialPackage.childPrice || "",
+          infantPrice: initialPackage.infantPrice || "",
+          couplePrice: initialPackage.couplePrice || "",
+          mrpPrice: initialPackage.mrpPrice || 140000,
+          currency: initialPackage.currency || "INR",
+          taxGst: initialPackage.taxGst || "5% GST included",
+          additionalCharges: initialPackage.additionalCharges || "No hidden extra charges",
+          discountType: initialPackage.discountType || "FIXED",
+          discountValue: initialPackage.discountValue || "",
+
+          // Duration & Dates
+          durationDays: initialPackage.durationDays || 20,
+          makkahNights: initialPackage.makkahNights || 12,
+          madinahNights: initialPackage.madinahNights || 7,
+          departureDate: initialPackage.departureDate || "31 October 2026",
+          returnDate: initialPackage.returnDate || "19 November 2026",
+          departureCity: initialPackage.departureCity || "Mumbai",
+
+          // Media
+          featuredImage: initialPackage.featuredImage || "/brand/poster.jpg",
+          heroImage: initialPackage.heroImage || "/brand/poster.jpg",
+          thumbnailImage: initialPackage.thumbnailImage || "/brand/poster.jpg",
+          gallery: initialPackage.gallery
+            ? typeof initialPackage.gallery === "string"
+              ? JSON.parse(initialPackage.gallery)
+              : initialPackage.gallery
+            : [],
+
+          // Makkah Hotel
+          makkahHotelName: initialPackage.makkahHotelName || "Diyafa Jamal or similar",
+          makkahDistance: initialPackage.makkahDistance || "500m walking",
+          makkahHotelRating: initialPackage.makkahHotelRating || 4,
+          makkahRoomType: initialPackage.makkahRoomType || "Quad, Triple, Double available",
+          makkahMealPlan: initialPackage.makkahMealPlan || "Indian Buffet 3 Times Daily (Breakfast, Lunch, Dinner)",
+          makkahDescription: initialPackage.makkahDescription || "Walking route to King Abdulaziz Gate with 24/7 elevators and authentic Indian dining hall.",
+          makkahAmenities: initialPackage.makkahAmenities || "Air Conditioned, High Speed WiFi, Elevators, Indian Buffet, Daily Housekeeping",
+          makkahImage: initialPackage.makkahImage || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
+
+          // Madinah Hotel
+          madinahHotelName: initialPackage.madinahHotelName || "Ilaf Kuba or similar",
+          madinahDistance: initialPackage.madinahDistance || "400m walking",
+          madinahHotelRating: initialPackage.madinahHotelRating || 4,
+          madinahRoomType: initialPackage.madinahRoomType || "Quad, Triple, Double available",
+          madinahMealPlan: initialPackage.madinahMealPlan || "Indian Buffet 3 Times Daily (Breakfast, Lunch, Dinner)",
+          madinahDescription: initialPackage.madinahDescription || "Close to Ladies Entrance with 24-hr front desk and prayer view corridors.",
+          madinahAmenities: initialPackage.madinahAmenities || "Air Conditioned, High Speed WiFi, Close to Ladies Gate, Indian Buffet, 24h Front Desk",
+          madinahImage: initialPackage.madinahImage || "https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=1200&q=80",
+
+          // Flight
+          airline: initialPackage.airline || "Saudi Airlines (SV)",
+          flightNumber: initialPackage.flightNumber || "SV-771",
+          pnr: initialPackage.pnr || "ALG9872",
+          departureAirport: initialPackage.departureAirport || "BOM (Mumbai)",
+          arrivalAirport: initialPackage.arrivalAirport || "MED (Madinah)",
+          flightType: initialPackage.flightType || "DIRECT",
+          baggage: initialPackage.baggage || "2x23kg check-in + 7kg cabin",
+          flightDetails: initialPackage.flightDetails || "Direct flight BOM to MED, return JED to BOM with baggage allowance and meal included.",
+
+          // Departure & Seats
+          totalSeats: initialPackage.totalSeats || 45,
+          bookedSeats: initialPackage.bookedSeats || 0,
+          registrationDeadline: initialPackage.registrationDeadline || "15 October 2026",
+
+          // Policies & Terms
+          travelRequirements: initialPackage.travelRequirements || "Original passport valid for minimum 6 months, 2 passport-size white background photographs, PAN card & Aadhaar card copy.",
+          termsAndConditions: initialPackage.termsAndConditions || "₹25,000 advance non-refundable deposit upon booking confirmation. Remaining balance to be cleared 15 days before flight departure. Package cost based on current airfare and forex rates.",
+          cancellationPolicy: initialPackage.cancellationPolicy || "Cancellations 30 days prior: 10% deduction. 15-30 days: 30% deduction. Less than 15 days: Non-refundable.",
+          refundPolicy: initialPackage.refundPolicy || "Refunds processed within 7 business days via direct bank transfer.",
+          importantNotes: initialPackage.importantNotes || "Scholarly guidance by Hafiz Asrar Sahab & Hafiz Sameer Madani throughout the journey.",
+
+          // SEO
+          seoTitle: initialPackage.seoTitle || "",
+          seoDescription: initialPackage.seoDescription || "",
+          seoKeywords: initialPackage.seoKeywords || "Umrah 2026, Mumbai direct flight Umrah, Al-Gafur Umrah package",
+          ogImage: initialPackage.ogImage || "",
+
+          // Features
+          features: initialPackage.features
+            ? typeof initialPackage.features === "string"
+              ? JSON.parse(initialPackage.features)
+              : initialPackage.features
+            : [
+                "Saudi Direct Flight",
+                "Umrah Visa & Insurance",
+                "5 Star / 4 Star Hotels Walking Distance",
+                "3 Times Indian Buffet Meals",
+                "Luxury AC Bus Transport",
+                "5 Guided Umrahs with Scholars",
+                "Makkah & Madinah Historical Ziyarat",
+                "Complimentary 5L Zamzam Can",
+                "Free Laundry Service",
+                "Al-Gafur Welcome Kit & Shoulder Bags",
+              ],
+
+          // Inclusions & Exclusions
+          inclusions: initialPackage.inclusions
+            ? initialPackage.inclusions.filter((i: any) => i.isIncluded)
+            : [],
+          exclusions: initialPackage.inclusions
+            ? initialPackage.inclusions.filter((i: any) => !i.isIncluded)
+            : [],
+
+          // Itineraries
+          itineraries:
+            initialPackage.itineraries && initialPackage.itineraries.length > 0
+              ? initialPackage.itineraries
+              : [],
+        });
+      } else {
+        setForm({
+          name: "",
+          slug: "",
+          type: "UMRAH",
+          badge: "PLATINUM",
+          year: "2026 / 1448 Hijri",
+          status: "PUBLISHED",
+          isFeatured: true,
+          isPopular: true,
+          sortOrder: 0,
+          overview: "",
+
+          // Pricing
+          basePrice: 120000,
+          priceQuad: 120000,
+          priceTriple: 130000,
+          priceDouble: 145000,
+          priceSingle: 180000,
+          childPrice: "",
+          infantPrice: "",
+          couplePrice: "",
+          mrpPrice: 140000,
+          currency: "INR",
+          taxGst: "5% GST included",
+          additionalCharges: "No hidden extra charges",
+          discountType: "FIXED",
+          discountValue: "",
+
+          // Duration & Dates
+          durationDays: 20,
+          makkahNights: 12,
+          madinahNights: 7,
+          departureDate: "31 October 2026",
+          returnDate: "19 November 2026",
+          departureCity: "Mumbai",
+
+          // Media
+          featuredImage: "/brand/poster.jpg",
+          heroImage: "/brand/poster.jpg",
+          thumbnailImage: "/brand/poster.jpg",
+          gallery: [],
+
+          // Makkah Hotel
+          makkahHotelName: "Diyafa Jamal or similar",
+          makkahDistance: "500m walking",
+          makkahHotelRating: 4,
+          makkahRoomType: "Quad, Triple, Double available",
+          makkahMealPlan: "Indian Buffet 3 Times Daily (Breakfast, Lunch, Dinner)",
+          makkahDescription: "Walking route to King Abdulaziz Gate with 24/7 elevators and authentic Indian dining hall.",
+          makkahAmenities: "Air Conditioned, High Speed WiFi, Elevators, Indian Buffet, Daily Housekeeping",
+          makkahImage: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
+
+          // Madinah Hotel
+          madinahHotelName: "Ilaf Kuba or similar",
+          madinahDistance: "400m walking",
+          madinahHotelRating: 4,
+          madinahRoomType: "Quad, Triple, Double available",
+          madinahMealPlan: "Indian Buffet 3 Times Daily (Breakfast, Lunch, Dinner)",
+          madinahDescription: "Close to Ladies Entrance with 24-hr front desk and prayer view corridors.",
+          madinahAmenities: "Air Conditioned, High Speed WiFi, Close to Ladies Gate, Indian Buffet, 24h Front Desk",
+          madinahImage: "https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=1200&q=80",
+
+          // Flight
+          airline: "Saudi Airlines (SV)",
+          flightNumber: "SV-771",
+          pnr: "ALG9872",
+          departureAirport: "BOM (Mumbai)",
+          arrivalAirport: "MED (Madinah)",
+          flightType: "DIRECT",
+          baggage: "2x23kg check-in + 7kg cabin",
+          flightDetails: "Direct flight BOM to MED, return JED to BOM with baggage allowance and meal included.",
+
+          // Departure & Seats
+          totalSeats: 45,
+          bookedSeats: 0,
+          registrationDeadline: "15 October 2026",
+
+          // Policies & Terms
+          travelRequirements: "Original passport valid for minimum 6 months, 2 passport-size white background photographs, PAN card & Aadhaar card copy.",
+          termsAndConditions: "₹25,000 advance non-refundable deposit upon booking confirmation. Remaining balance to be cleared 15 days before flight departure. Package cost based on current airfare and forex rates.",
+          cancellationPolicy: "Cancellations 30 days prior: 10% deduction. 15-30 days: 30% deduction. Less than 15 days: Non-refundable.",
+          refundPolicy: "Refunds processed within 7 business days via direct bank transfer.",
+          importantNotes: "Scholarly guidance by Hafiz Asrar Sahab & Hafiz Sameer Madani throughout the journey.",
+
+          // SEO
+          seoTitle: "",
+          seoDescription: "",
+          seoKeywords: "Umrah 2026, Mumbai direct flight Umrah, Al-Gafur Umrah package",
+          ogImage: "",
+
+          // Features
+          features: [
+            "Saudi Direct Flight",
+            "Umrah Visa & Insurance",
+            "5 Star / 4 Star Hotels Walking Distance",
+            "3 Times Indian Buffet Meals",
+            "Luxury AC Bus Transport",
+            "5 Guided Umrahs with Scholars",
+            "Makkah & Madinah Historical Ziyarat",
+            "Complimentary 5L Zamzam Can",
+            "Free Laundry Service",
+            "Al-Gafur Welcome Kit & Shoulder Bags",
+          ],
+
+          // Inclusions & Exclusions
+          inclusions: [
+            { title: "Umrah Visa & Medical Insurance", description: "Saudi Tourist / Umrah E-Visa with full health insurance coverage" },
+            { title: "Direct Flight Tickets (Return)", description: "Direct flights with 2x23kg baggage allowance" },
+            { title: "Makkah & Madinah Hotels", description: "Walking distance 400m-500m stays" },
+            { title: "Indian Buffet Meals (3 Times Daily)", description: "Fresh hot breakfast, lunch, and dinner prepared by Indian chefs" },
+            { title: "Luxury AC Transportation", description: "Modern buses for airport, Makkah, Madinah, and Jeddah transit" },
+            { title: "5 Guided Umrahs with Scholars", description: "Step-by-step rituals guidance by senior scholars" },
+            { title: "Complete Holy Ziyarat", description: "Guided tour to Jabal al-Noor, Ghar Thawr, Mina, Arafat, Quba, Uhud" },
+            { title: "Zamzam Water (5 Litres)", description: "Official 5-litre packed Zamzam can provided at Jeddah airport" },
+            { title: "Free Laundry Facilities", description: "Complimentary laundry service every 3 days" },
+            { title: "Al-Gafur Pilgrimage Kit", description: "Shoulder bag, passport pouch, shoe bag, and Umrah guidebook" },
+          ],
+          exclusions: [
+            { title: "Room Service & Personal Expenses", description: "Personal laundry outside package, phone calls, room service" },
+            { title: "Excess Baggage Charges", description: "Any baggage exceeding the 46kg airline limit" },
+            { title: "Wheelchair Attendant Charges", description: "Personal wheelchair helpers in Haram courtyards" },
+          ],
+
+          // Itineraries
+          itineraries: [
+            { dayNumber: 1, title: "Departure from Mumbai & Arrival in Madinah", location: "Madinah", activities: "Assemble at CSIA Mumbai Terminal 2. Board flight. Land at Prince Mohammad Airport Madinah. Check-in at hotel and initial Darood & Salaam at Prophet's Mosque." },
+            { dayNumber: 2, title: "Ibadah in Masjid an-Nabawi & Riyazul Jannah", location: "Madinah", activities: "Perform prayers in Masjid an-Nabawi. Group appointment for Rawdah ash-Sharifah (Riyazul Jannah) through Nusuk." },
+            { dayNumber: 3, title: "Holy Ziyarat of Madinah Al-Munawwarah", location: "Madinah", activities: "Visit Masjid Quba, Masjid Qiblatayn, Mount Uhud and Shuhada Uhud cemetery, and Seven Mosques." },
+            { dayNumber: 7, title: "Ihram Preparation & Departure to Makkah", location: "Transit / Makkah", activities: "Perform Ghusl, put on Ihram at hotel, proceed to Dhul Hulayfah (Bir Ali) for Niyyah of First Umrah. High speed train/AC coach to Makkah. Check-in and perform First Umrah." },
+            { dayNumber: 10, title: "Second Umrah via Masjid Aisha (Taneem)", location: "Makkah", activities: "Group departure to Masjid Aisha in Taneem. Tie Ihram and perform 2nd guided Umrah." },
+            { dayNumber: 15, title: "Holy Ziyarat of Makkah Al-Mukarramah", location: "Makkah", activities: "Guided ziyarat to Cave of Hira (Jabal an-Nour), Jabal Thawr, Arafat plains, Mina, Muzdalifah, and Jannat al-Mu'alla." },
+            { dayNumber: 20, title: "Tawaf al-Wida & Return Flight to Mumbai", location: "Jeddah / Transit", activities: "Perform Farewell Tawaf (Tawaf al-Wida). Luxury coach to King Abdulaziz Airport Jeddah. Receive 5L Zamzam. Return flight to Mumbai." },
+          ],
+        });
+      }
+    }
+  }, [initialPackage, isOpen]);
 
   const availableSeats = Math.max(0, Number(form.totalSeats) - Number(form.bookedSeats));
 

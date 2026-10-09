@@ -8,7 +8,7 @@ export default async function AdminPackagesPage() {
     take: 100,
     include: {
       inclusions: true,
-      itineraries: true,
+      itineraries: { orderBy: { dayNumber: "asc" } },
       _count: { select: { bookings: true } },
     },
     orderBy: { createdAt: "desc" },

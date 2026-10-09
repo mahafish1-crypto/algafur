@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -268,6 +269,14 @@ export async function POST(req: NextRequest) {
       entityId: newPackage.id,
       details: { name: newPackage.name, slug: newPackage.slug, price: newPackage.basePrice },
     });
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/packages");
+      revalidatePath(`/packages/${newPackage.slug}`);
+    } catch (e) {
+      console.warn("revalidatePath warning:", e);
+    }
 
     return NextResponse.json({ success: true, package: newPackage });
   } catch (error: unknown) {
