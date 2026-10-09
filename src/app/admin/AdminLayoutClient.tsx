@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import BrandLogo from "@/components/brand/BrandLogo";
+import { hasPermission, Permission } from "@/lib/rbac";
 import {
   LayoutDashboard,
   Users,
@@ -34,12 +35,14 @@ interface AdminLayoutClientProps {
   children: React.ReactNode;
   session: any;
   initialNotifications: any[];
+  siteLogo?: string;
 }
 
 export default function AdminLayoutClient({
   children,
   session,
   initialNotifications,
+  siteLogo,
 }: AdminLayoutClientProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -54,59 +57,82 @@ export default function AdminLayoutClient({
     router.refresh();
   };
 
-  const navGroups = [
+  interface NavItem {
+    name: string;
+    href: string;
+    icon: any;
+    permission?: Permission;
+  }
+
+  interface NavGroup {
+    title: string;
+    items: NavItem[];
+  }
+
+  const rawNavGroups: NavGroup[] = [
     {
       title: "Core Operations",
       items: [
-        { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-        { name: "Leads Pipeline", href: "/admin/crm/leads", icon: Users },
-        { name: "Customers Base", href: "/admin/customers", icon: UserCheck },
-        { name: "Follow-ups & Tasks", href: "/admin/crm/followups", icon: Calendar },
+        { name: "Dashboard", href: "/admin", icon: LayoutDashboard, permission: "view:dashboard" },
+        { name: "Leads Pipeline", href: "/admin/crm/leads", icon: Users, permission: "view:leads" },
+        { name: "Customers Base", href: "/admin/customers", icon: UserCheck, permission: "view:customers" },
+        { name: "Follow-ups & Tasks", href: "/admin/crm/followups", icon: Calendar, permission: "view:leads" },
       ],
     },
     {
       title: "Bookings & Travel",
       items: [
-        { name: "All Bookings", href: "/admin/bookings", icon: Compass },
-        { name: "Departure Groups", href: "/admin/bookings/groups", icon: Users },
-        { name: "Packages Catalog", href: "/admin/packages", icon: FileText },
-        { name: "Hotels Inventory", href: "/admin/travel/hotels", icon: Building },
-        { name: "Flights & PNRs", href: "/admin/travel/flights", icon: Plane },
+        { name: "All Bookings", href: "/admin/bookings", icon: Compass, permission: "view:bookings" },
+        { name: "Departure Groups", href: "/admin/bookings/groups", icon: Users, permission: "manage:departure_groups" },
+        { name: "Packages Catalog", href: "/admin/packages", icon: FileText, permission: "view:packages" },
+        { name: "Hotels Inventory", href: "/admin/travel/hotels", icon: Building, permission: "manage:hotels" },
+        { name: "Flights & PNRs", href: "/admin/travel/flights", icon: Plane, permission: "manage:flights" },
       ],
     },
     {
       title: "Compliance & Visas",
       items: [
-        { name: "Document Verification", href: "/admin/documents", icon: FileCheck },
-        { name: "Visa Processing Desk", href: "/admin/visa", icon: ShieldCheck },
+        { name: "Document Verification", href: "/admin/documents", icon: FileCheck, permission: "manage:documents" },
+        { name: "Visa Processing Desk", href: "/admin/visa", icon: ShieldCheck, permission: "manage:visas" },
       ],
     },
     {
       title: "Accounts & Revenue",
       items: [
-        { name: "Payments & Receipts", href: "/admin/payments", icon: CreditCard },
-        { name: "Quotation Generator", href: "/admin/quotations", icon: FileText },
-        { name: "Invoices & Billing", href: "/admin/invoices", icon: FileText },
-        { name: "Reports & Analytics", href: "/admin/reports", icon: BarChart3 },
+        { name: "Payments & Receipts", href: "/admin/payments", icon: CreditCard, permission: "view:payments" },
+        { name: "Quotation Generator", href: "/admin/quotations", icon: FileText, permission: "view:quotations" },
+        { name: "Invoices & Billing", href: "/admin/invoices", icon: FileText, permission: "view:invoices" },
+        { name: "Reports & Analytics", href: "/admin/reports", icon: BarChart3, permission: "view:reports" },
       ],
     },
     {
       title: "AI Growth Studio",
       items: [
-        { name: "AI Poster Generator", href: "/admin/ai-studio/image-generator", icon: Sparkles },
-        { name: "AI Content & Ads", href: "/admin/ai-studio/content-generator", icon: FileText },
-        { name: "Media Assets Library", href: "/admin/media", icon: ImageIcon },
+        { name: "AI Poster Generator", href: "/admin/ai-studio/image-generator", icon: Sparkles, permission: "manage:ai_studio" },
+        { name: "AI Content & Ads", href: "/admin/ai-studio/content-generator", icon: FileText, permission: "manage:ai_studio" },
+        { name: "Media Assets Library", href: "/admin/media", icon: ImageIcon, permission: "manage:media" },
       ],
     },
     {
       title: "System & Governance",
       items: [
-        { name: "User Management & RBAC", href: "/admin/users", icon: UserCheck },
-        { name: "Security Audit Logs", href: "/admin/audit-logs", icon: History },
-        { name: "System Settings", href: "/admin/settings", icon: Settings },
+        { name: "User Management & RBAC", href: "/admin/users", icon: UserCheck, permission: "manage:users" },
+        { name: "Security Audit Logs", href: "/admin/audit-logs", icon: History, permission: "view:audit_logs" },
+        { name: "System Settings", href: "/admin/settings", icon: Settings, permission: "manage:settings" },
       ],
     },
   ];
+
+  // Filter groups and items based on current session role
+  const navGroups = rawNavGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !item.permission || hasPermission(session.role, item.permission)
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+
 
   return (
     <div className="flex min-h-screen bg-slate-900 text-slate-100">
@@ -114,7 +140,7 @@ export default function AdminLayoutClient({
       <aside className="hidden lg:flex flex-col w-64 bg-slate-950 border-r border-slate-800 flex-shrink-0">
         {/* Brand Header */}
         <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-          <BrandLogo variant="light" size="sm" href="/admin" />
+          <BrandLogo variant="light" size="sm" href="/admin" customLogoUrl={siteLogo} />
         </div>
 
         {/* Navigation Items */}
@@ -258,7 +284,7 @@ export default function AdminLayoutClient({
           <div className="w-72 bg-slate-950 h-full overflow-y-auto p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
-                <BrandLogo variant="light" size="sm" />
+                <BrandLogo variant="light" size="sm" customLogoUrl={siteLogo} />
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="text-slate-400 hover:text-white"

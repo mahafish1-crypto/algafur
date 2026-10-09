@@ -79,12 +79,14 @@ interface Props {
   initialQuotations: QuotationItem[];
   packages: PackageOption[];
   customers: CustomerOption[];
+  siteSettings?: Record<string, string>;
 }
 
 export default function AdminQuotationsClient({
   initialQuotations,
   packages,
   customers,
+  siteSettings = {},
 }: Props) {
   const [quotations, setQuotations] = useState<QuotationItem[]>(initialQuotations);
   const [search, setSearch] = useState("");
@@ -518,12 +520,16 @@ export default function AdminQuotationsClient({
               {/* Header */}
               <div className="flex items-center justify-between border-b pb-4 border-slate-200">
                 <div>
-                  <BrandLogo variant="light" size="md" />
-                  <p className="text-xs text-slate-500 mt-1">
-                    Govt. Approved Hajj & Umrah Tour Operator
+                  <BrandLogo
+                    variant="light"
+                    size="md"
+                    customLogoUrl={siteSettings.site_logo || siteSettings.header_logo || ""}
+                  />
+                  <p className="text-xs text-slate-500 mt-1 font-semibold">
+                    {siteSettings.company_name || "AL-GAFUR International Tours And Travels"}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Phone: +91 98200 00000 | Email: info@algafurtours.com
+                    Phone: {siteSettings.company_phone_1 || "+91 8793939393"} | Email: {siteSettings.company_email || "contact@algafurtours.com"}
                   </p>
                 </div>
                 <div className="text-right">

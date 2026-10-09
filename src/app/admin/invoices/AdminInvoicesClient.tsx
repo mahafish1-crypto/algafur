@@ -77,11 +77,13 @@ interface BookingOption {
 interface Props {
   initialInvoices: InvoiceItem[];
   bookings: BookingOption[];
+  siteSettings?: Record<string, string>;
 }
 
 export default function AdminInvoicesClient({
   initialInvoices,
   bookings,
+  siteSettings = {},
 }: Props) {
   const [invoices, setInvoices] = useState<InvoiceItem[]>(initialInvoices);
   const [search, setSearch] = useState("");
@@ -446,15 +448,19 @@ export default function AdminInvoicesClient({
               {/* Header with Official Logo */}
               <div className="flex items-center justify-between border-b pb-4 border-slate-200">
                 <div>
-                  <BrandLogo variant="light" size="md" />
-                  <p className="text-xs text-slate-500 mt-1">
-                    AL-GAFUR International Tours And Travels
+                  <BrandLogo
+                    variant="light"
+                    size="md"
+                    customLogoUrl={siteSettings.site_logo || siteSettings.header_logo || ""}
+                  />
+                  <p className="text-xs text-slate-500 mt-1 font-semibold">
+                    {siteSettings.company_name || "AL-GAFUR International Tours And Travels"}
                   </p>
                   <p className="text-xs text-slate-500">
-                    GSTIN: 27AABCA1234F1Z5 &bull; PAN: AABCA1234F
+                    GSTIN: {siteSettings.gst_number || "27AABCA1234F1Z5"} &bull; PAN: {siteSettings.pan_number || "AABCA1234F"}
                   </p>
-                  <p className="text-xs text-slate-500">
-                    Head Office: Mumbai, Maharashtra 400001, India
+                  <p className="text-xs text-slate-500 max-w-sm">
+                    Head Office: {siteSettings.company_address || "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India."}
                   </p>
                 </div>
                 <div className="text-right">

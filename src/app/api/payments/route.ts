@@ -2,14 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAuth(req, "view:payments");
+    if (!auth.authorized) return auth.response;
+
     const searchParams = req.nextUrl.searchParams;
     const search = searchParams.get("search");
     const method = searchParams.get("method");
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (method && method !== "ALL") {
       where.paymentMethod = method;
     }
@@ -68,9 +72,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
-    const body = await req.json();
+    const auth = await requireAuth(req, "manage:payments");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
 
+    const body = await req.json();
     const { bookingId, amount, paymentMethod, transactionId, notes } = body;
 
     if (!bookingId || !amount || Number(amount) <= 0) {
@@ -105,7 +111,7 @@ export async function POST(req: NextRequest) {
         transactionId: transactionId || null,
         status: "PAID",
         notes: notes || null,
-        createdById: session?.id || null,
+        createdById: session.id,
       },
       include: {
         customer: true,
@@ -133,7 +139,7 @@ export async function POST(req: NextRequest) {
     });
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "RECORD_PAYMENT",
       entity: "Payment",
       entityId: payment.id,
@@ -151,4 +157,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

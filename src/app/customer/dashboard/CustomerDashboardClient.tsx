@@ -109,7 +109,7 @@ export default function CustomerDashboardClient({
               Pilgrim Code: {customer?.customerCode || "ALC-2026-0001"}
             </span>
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-              Assalamualaikum, {customer?.name}!
+              Assalamualaikum, {customer?.name || session.name || "Respected Pilgrim"}!
             </h1>
             <p className="text-xs sm:text-sm text-emerald-200/80 max-w-xl">
               Track your pilgrimage milestones, download payment vouchers, and review your hotel allocations in Makkah &amp; Madinah.
@@ -146,7 +146,7 @@ export default function CustomerDashboardClient({
         </div>
 
         {/* Active Booking Summary & Financials */}
-        {activeBooking && (
+        {activeBooking ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Booking Highlights (2 Cols) */}
             <div className="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200 shadow-sm space-y-6">
@@ -301,6 +301,22 @@ export default function CustomerDashboardClient({
                 </a>
               </div>
             </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-neutral-200 shadow-sm text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
+              <Calendar className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-serif font-bold text-forest-950">No Active Bookings Found</h3>
+            <p className="text-xs sm:text-sm text-neutral-500 max-w-md mx-auto">
+              You do not have any active or confirmed pilgrimage bookings under this account yet. Select a package to reserve your place.
+            </p>
+            <Link
+              href="/packages"
+              className="inline-flex items-center gap-2 bg-forest-900 hover:bg-forest-950 text-gold-300 font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md mt-2"
+            >
+              Explore 2026 Umrah &amp; Hajj Packages ↗
+            </Link>
           </div>
         )}
 

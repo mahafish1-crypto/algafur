@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 import fs from "fs";
 import path from "path";
 
@@ -35,10 +36,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
-    }
+    const auth = await requireAuth(req, "manage:media");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
 
     const contentType = req.headers.get("content-type") || "";
 

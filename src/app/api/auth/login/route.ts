@@ -47,9 +47,20 @@ export async function POST(req: NextRequest) {
     // Customer association if role is CUSTOMER
     let customerId: string | null = null;
     if (user.role === "CUSTOMER") {
-      const cust = await prisma.customer.findFirst({
+      let cust = await prisma.customer.findFirst({
         where: { email: cleanEmail },
       });
+      if (!cust && user.phone) {
+        cust = await prisma.customer.findFirst({
+          where: { phone: user.phone },
+        });
+        if (cust && !cust.email) {
+          await prisma.customer.update({
+            where: { id: cust.id },
+            data: { email: cleanEmail },
+          });
+        }
+      }
       customerId = cust?.id || null;
     }
 

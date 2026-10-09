@@ -1,29 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAuth(req, "verify:documents");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
+
     const resolvedParams = await params;
     const body = await req.json();
-    const session = await getSession();
 
     const updated = await prisma.document.update({
       where: { id: resolvedParams.id },
       data: {
         status: body.status,
         rejectionReason: body.rejectionReason,
-        verifiedById: session?.id || null,
+        verifiedById: session.id,
         verifiedAt: body.status === "VERIFIED" ? new Date() : null,
       },
     });
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "VERIFY_DOCUMENT",
       entity: "Document",
       entityId: updated.id,
@@ -36,4 +39,3 @@ export async function PATCH(
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAuth(req, "manage:visas");
+    if (!auth.authorized) return auth.response;
+
     const searchParams = req.nextUrl.searchParams;
     const status = searchParams.get("status");
     const search = searchParams.get("search");
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (status && status !== "ALL") {
       where.status = status;
     }
@@ -70,9 +73,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
-    const body = await req.json();
+    const auth = await requireAuth(req, "manage:visas");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
 
+    const body = await req.json();
     const { customerId, bookingId, passportNumber, applicationNumber, notes, assignedToId } = body;
 
     if (!customerId || !passportNumber) {
@@ -90,7 +95,7 @@ export async function POST(req: NextRequest) {
         applicationNumber: applicationNumber || null,
         status: "DOCUMENTS_PENDING",
         notes: notes || null,
-        assignedToId: assignedToId || session?.id || null,
+        assignedToId: assignedToId || session.id,
       },
       include: {
         customer: true,
@@ -98,7 +103,7 @@ export async function POST(req: NextRequest) {
     });
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "CREATE_VISA_APPLICATION",
       entity: "VisaApplication",
       entityId: application.id,
@@ -111,4 +116,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

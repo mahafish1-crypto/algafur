@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAuth(req, "view:invoices");
+    if (!auth.authorized) return auth.response;
+
     const searchParams = req.nextUrl.searchParams;
     const search = searchParams.get("search");
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (search) {
       where.OR = [
         { invoiceNumber: { contains: search } },
@@ -66,9 +70,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
-    const body = await req.json();
+    const auth = await requireAuth(req, "manage:invoices");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
 
+    const body = await req.json();
     const { bookingId, dueDate, notes, terms } = body;
 
     if (!bookingId) {
@@ -82,6 +88,17 @@ export async function POST(req: NextRequest) {
 
     if (!booking) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    // Check if an invoice already exists for this booking to prevent duplicates
+    const existingInvoice = await prisma.invoice.findFirst({
+      where: { bookingId: booking.id },
+    });
+    if (existingInvoice) {
+      return NextResponse.json(
+        { error: `An invoice (${existingInvoice.invoiceNumber}) already exists for this booking.` },
+        { status: 409 }
+      );
     }
 
     const count = await prisma.invoice.count();
@@ -114,7 +131,7 @@ export async function POST(req: NextRequest) {
     });
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "CREATE_INVOICE",
       entity: "Invoice",
       entityId: invoice.id,
@@ -127,4 +144,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

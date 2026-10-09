@@ -1,23 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateMarketingContent, ContentGenerationOptions } from "@/lib/ai-provider";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
+    const auth = await requireAuth(req, "manage:ai_studio");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
+
     const body: ContentGenerationOptions = await req.json();
 
     const result = await generateMarketingContent(body);
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "GENERATE_AI_CONTENT",
       entity: "MarketingStudio",
       details: {
         packageTitle: body.packageTitle,
         language: body.language,
         provider: result.provider,
+        error: result.error || null,
       },
     });
 
@@ -27,4 +31,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

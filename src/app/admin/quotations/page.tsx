@@ -1,5 +1,6 @@
 import React from "react";
 import prisma from "@/lib/db";
+import { getSiteSettings } from "@/lib/settings";
 import AdminQuotationsClient from "./AdminQuotationsClient";
 
 export const metadata = {
@@ -7,8 +8,10 @@ export const metadata = {
   description: "Create and manage branded Hajj & Umrah travel quotations and proposals.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminQuotationsPage() {
-  const [quotations, packages, customers] = await Promise.all([
+  const [quotations, packages, customers, siteSettings] = await Promise.all([
     prisma.quotation.findMany({
       include: {
         customer: {
@@ -66,6 +69,7 @@ export default async function AdminQuotationsPage() {
       orderBy: { name: "asc" },
       take: 100,
     }),
+    getSiteSettings(),
   ]);
 
   return (
@@ -73,7 +77,7 @@ export default async function AdminQuotationsPage() {
       initialQuotations={JSON.parse(JSON.stringify(quotations))}
       packages={JSON.parse(JSON.stringify(packages))}
       customers={JSON.parse(JSON.stringify(customers))}
+      siteSettings={siteSettings}
     />
   );
 }
-

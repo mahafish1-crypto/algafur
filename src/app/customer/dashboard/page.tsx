@@ -3,46 +3,20 @@ import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import CustomerDashboardClient from "./CustomerDashboardClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function CustomerDashboardPage() {
   const session = await getSession();
   if (!session) {
     redirect("/login");
   }
 
-  // Find customer associated with user
-  let customer = await prisma.customer.findFirst({
-    where: {
-      OR: [
-        { email: session.email },
-        { phone: "+91 8888890830" }, // Demo fallback for customer demo
-      ],
-    },
-    include: {
-      bookings: {
-        include: {
-          package: true,
-          travellers: true,
-          payments: true,
-          invoices: true,
-          documents: true,
-          visaApplications: true,
-          bookingFlights: {
-            include: { flight: true },
-          },
-          bookingHotels: {
-            include: { hotel: true },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      },
-      documents: true,
-      familyMembers: true,
-    },
-  });
+  // Find customer associated strictly with this logged in user
+  let customer = null;
 
-  if (!customer) {
-    // Look up any booking to display demo data if needed
-    const anyCustomer = await prisma.customer.findFirst({
+  if (session.customerId) {
+    customer = await prisma.customer.findUnique({
+      where: { id: session.customerId },
       include: {
         bookings: {
           include: {
@@ -65,7 +39,67 @@ export default async function CustomerDashboardPage() {
         familyMembers: true,
       },
     });
-    customer = anyCustomer;
+  }
+
+  if (!customer && session.email) {
+    customer = await prisma.customer.findFirst({
+      where: { email: session.email.toLowerCase() },
+      include: {
+        bookings: {
+          include: {
+            package: true,
+            travellers: true,
+            payments: true,
+            invoices: true,
+            documents: true,
+            visaApplications: true,
+            bookingFlights: {
+              include: { flight: true },
+            },
+            bookingHotels: {
+              include: { hotel: true },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        documents: true,
+        familyMembers: true,
+      },
+    });
+  }
+
+  if (!customer) {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { phone: true },
+    });
+
+    if (userRecord?.phone) {
+      customer = await prisma.customer.findFirst({
+        where: { phone: userRecord.phone },
+        include: {
+          bookings: {
+            include: {
+              package: true,
+              travellers: true,
+              payments: true,
+              invoices: true,
+              documents: true,
+              visaApplications: true,
+              bookingFlights: {
+                include: { flight: true },
+              },
+              bookingHotels: {
+                include: { hotel: true },
+              },
+            },
+            orderBy: { createdAt: "desc" },
+          },
+          documents: true,
+          familyMembers: true,
+        },
+      });
+    }
   }
 
   return <CustomerDashboardClient session={session} customer={customer} />;

@@ -1,3 +1,5 @@
+import prisma from "@/lib/db";
+
 export interface ContentGenerationOptions {
   type: "caption" | "reel" | "whatsapp" | "ad" | "package_description" | "blog";
   packageTitle: string;
@@ -23,6 +25,7 @@ export interface GeneratedContentResult {
     reelScript?: string;
   };
   error?: string;
+  errorCode?: "RATE_LIMIT" | "AUTH_ERROR" | "QUOTA_EXCEEDED" | "MODEL_UNAVAILABLE" | "NETWORK_ERROR" | "PARSE_ERROR";
 }
 
 export interface PosterGenerationOptions {
@@ -36,14 +39,125 @@ export interface PosterGenerationOptions {
   style: "classic_gold_green" | "royal_black_gold" | "modern_minimalist" | "cinematic_makkah";
 }
 
+async function getEffectiveGeminiConfig(): Promise<{ apiKey: string | null; modelName: string }> {
+  let apiKey = process.env.GEMINI_API_KEY || null;
+  let modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+  try {
+    const dbSettings = await prisma.siteSetting.findMany({
+      where: {
+        key: { in: ["ai_gemini_api_key", "ai_model_name"] },
+      },
+    });
+
+    for (const s of dbSettings) {
+      if (s.key === "ai_gemini_api_key" && s.value && !apiKey) {
+        apiKey = s.value;
+      }
+      if (s.key === "ai_model_name" && s.value) {
+        modelName = s.value;
+      }
+    }
+  } catch (err) {
+    console.warn("Could not load AI settings from database, using env fallback:", err);
+  }
+
+  return { apiKey, modelName };
+}
+
+async function callGeminiApiWithRetry(
+  prompt: string,
+  apiKey: string,
+  modelName: string,
+  retries = 2
+): Promise<{ text?: string; error?: string; errorCode?: GeneratedContentResult["errorCode"] }> {
+  const modelsToTry = [modelName, "gemini-1.5-flash"];
+  // remove duplicates
+  const uniqueModels = Array.from(new Set(modelsToTry));
+
+  for (const currentModel of uniqueModels) {
+    let attempt = 0;
+    while (attempt <= retries) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              temperature: 0.7,
+            },
+          }),
+        });
+
+        if (response.ok) {
+          const json = await response.json();
+          const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            return { text: rawText };
+          }
+        }
+
+        if (response.status === 429) {
+          if (attempt < retries) {
+            // Exponential backoff: 1s, 2s
+            await new Promise((resolve) => setTimeout(resolve, (attempt + 1) * 1000));
+            attempt++;
+            continue;
+          }
+          return {
+            error: "Gemini API rate limit reached or quota exhausted. Please try again shortly.",
+            errorCode: "RATE_LIMIT",
+          };
+        }
+
+        if (response.status === 401 || response.status === 403) {
+          return {
+            error: "Invalid Gemini API Key or permission denied.",
+            errorCode: "AUTH_ERROR",
+          };
+        }
+
+        if (response.status === 404) {
+          // Model not found, try next model in loop
+          break;
+        }
+
+        const errBody = await response.text().catch(() => "");
+        console.warn(`Gemini API error (Status ${response.status}):`, errBody);
+      } catch (err) {
+        if (attempt < retries) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          attempt++;
+          continue;
+        }
+        return {
+          error: err instanceof Error ? err.message : "Network failure calling Gemini",
+          errorCode: "NETWORK_ERROR",
+        };
+      }
+      attempt++;
+    }
+  }
+
+  return {
+    error: "All Gemini models failed or returned non-200 status.",
+    errorCode: "MODEL_UNAVAILABLE",
+  };
+}
+
 export async function generateMarketingContent(
   options: ContentGenerationOptions
 ): Promise<GeneratedContentResult> {
-  const geminiApiKey = process.env.GEMINI_API_KEY;
+  const { apiKey: geminiApiKey, modelName } = await getEffectiveGeminiConfig();
+
+  let apiError: string | undefined;
+  let apiErrorCode: GeneratedContentResult["errorCode"] | undefined;
 
   if (geminiApiKey) {
-    try {
-      const prompt = `You are a specialist Islamic travel copywriter for "Al-Gafur International Tours And Travels".
+    const prompt = `You are a specialist Islamic travel copywriter for "Al-Gafur International Tours And Travels".
 Generate marketing copy for:
 Package: ${options.packageTitle}
 Duration: ${options.duration || "20 Days"}
@@ -63,37 +177,28 @@ Return a JSON object with:
 - reelScript (audio and visual cues)
 Format strictly as JSON.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json" },
-          }),
-        }
-      );
+    const result = await callGeminiApiWithRetry(prompt, geminiApiKey, modelName);
 
-      if (response.ok) {
-        const json = await response.json();
-        const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const parsed = JSON.parse(rawText);
-          return {
-            success: true,
-            configured: true,
-            provider: "Gemini",
-            data: parsed,
-          };
-        }
+    if (result.text) {
+      try {
+        const parsed = JSON.parse(result.text);
+        return {
+          success: true,
+          configured: true,
+          provider: "Gemini",
+          data: parsed,
+        };
+      } catch {
+        apiError = "AI returned invalid JSON formatting";
+        apiErrorCode = "PARSE_ERROR";
       }
-    } catch {
-      // Fall through to high-fidelity template engine if remote call fails
+    } else {
+      apiError = result.error;
+      apiErrorCode = result.errorCode;
     }
   }
 
-  // High-fidelity multilingual marketing copy engine
+  // High-fidelity multilingual fallback marketing copy engine
   const isHindi = options.language === "Hindi";
   const isMarathi = options.language === "Marathi";
   const isArabic = options.language === "Arabic";
@@ -126,7 +231,7 @@ Format strictly as JSON.`;
   return {
     success: true,
     configured: Boolean(geminiApiKey),
-    provider: geminiApiKey ? "Gemini" : "Local-Studio-Engine",
+    provider: "Local-Studio-Engine",
     data: {
       headline,
       caption,
@@ -137,6 +242,7 @@ Format strictly as JSON.`;
       whatsappVersion,
       reelScript,
     },
+    error: apiError,
+    errorCode: apiErrorCode,
   };
 }
-

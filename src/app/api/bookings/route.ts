@@ -51,9 +51,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Generate Booking Number ALG-2026-XXXXX
+    // 2. Generate Booking Number ALG-2026-XXXXX (collision-proof)
     const bookingCount = await prisma.booking.count();
-    const bookingNumber = `ALG-2026-${String(bookingCount + 1).padStart(5, "0")}`;
+    let bookingNumber = `ALG-2026-${String(bookingCount + 1).padStart(5, "0")}`;
+    const existingB = await prisma.booking.findUnique({ where: { bookingNumber } });
+    if (existingB) {
+      bookingNumber = `ALG-2026-${String(bookingCount + 1).padStart(5, "0")}-${Date.now().toString().slice(-4)}`;
+    }
 
     const outstanding = Math.max(0, totalAmount - (paidAmount || 0));
     const paymentStatus =
@@ -110,9 +114,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 6. Generate Invoice ALI-2026-XXXXX
+    // 6. Generate Invoice ALI-2026-XXXXX (collision-proof)
     const invoiceCount = await prisma.invoice.count();
-    const invoiceNumber = `ALI-2026-${String(invoiceCount + 1).padStart(5, "0")}`;
+    let invoiceNumber = `ALI-2026-${String(invoiceCount + 1).padStart(5, "0")}`;
+    const existingInv = await prisma.invoice.findUnique({ where: { invoiceNumber } });
+    if (existingInv) {
+      invoiceNumber = `ALI-2026-${String(invoiceCount + 1).padStart(5, "0")}-${Date.now().toString().slice(-4)}`;
+    }
+
     await prisma.invoice.create({
       data: {
         invoiceNumber,
@@ -126,11 +135,16 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 7. If payment made, generate Payment & Receipt ALR-2026-XXXXX
+    // 7. If payment made, generate Payment & Receipt ALR-2026-XXXXX (collision-proof)
     let receiptNumber = null;
     if (paidAmount && paidAmount > 0) {
       const paymentCount = await prisma.payment.count();
       receiptNumber = `ALR-2026-${String(paymentCount + 1).padStart(5, "0")}`;
+      const existingPay = await prisma.payment.findUnique({ where: { receiptNumber } });
+      if (existingPay) {
+        receiptNumber = `ALR-2026-${String(paymentCount + 1).padStart(5, "0")}-${Date.now().toString().slice(-4)}`;
+      }
+
       await prisma.payment.create({
         data: {
           receiptNumber,

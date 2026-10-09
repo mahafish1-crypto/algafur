@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -157,11 +158,15 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAuth(req, "view:leads");
+    if (!auth.authorized) return auth.response;
+
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");
 
     const where: Record<string, unknown> = {};
+
     if (status && status !== "ALL") {
       where.status = status;
     }

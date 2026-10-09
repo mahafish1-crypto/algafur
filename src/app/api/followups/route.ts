@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requireAuth(req, "manage:leads");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
+
     const body = await req.json();
-    const session = await getSession();
 
     const followUp = await prisma.followUp.create({
       data: {
         leadId: body.leadId || null,
         customerId: body.customerId || null,
-        userId: body.userId || session?.id || "admin",
+        userId: body.userId || session.id,
         date: body.date,
         time: body.time || "11:00",
         type: body.type || "CALL",
@@ -30,6 +33,9 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const auth = await requireAuth(req, "manage:leads");
+    if (!auth.authorized) return auth.response;
+
     const { id, status } = await req.json();
     const updated = await prisma.followUp.update({
       where: { id },
@@ -41,4 +47,3 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

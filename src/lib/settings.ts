@@ -59,6 +59,10 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   about_leader_3_role: "Director of Operations",
   about_leader_3_desc: "Directs hotel contracting in Makkah & Madinah and airport transfer operations.",
   about_leader_3_phone: "+91 9764444044",
+
+  // AI Growth Studio & Gemini
+  ai_gemini_api_key: "",
+  ai_model_name: "gemini-2.5-flash",
 };
 
 export async function getSiteSettings(): Promise<Record<string, string>> {

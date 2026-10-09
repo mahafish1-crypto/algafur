@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 import fs from "fs";
 import path from "path";
 
@@ -12,10 +12,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireAuth(req, "manage:media");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
 
     const { id } = await params;
     const media = await prisma.media.findUnique({
@@ -56,4 +55,3 @@ export async function DELETE(
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

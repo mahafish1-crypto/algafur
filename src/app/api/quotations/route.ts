@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAuth(req, "view:quotations");
+    if (!auth.authorized) return auth.response;
+
     const searchParams = req.nextUrl.searchParams;
     const search = searchParams.get("search");
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (search) {
       where.OR = [
         { quotationNumber: { contains: search } },
@@ -58,7 +61,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
+    const auth = await requireAuth(req, "manage:quotations");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
+
     const body = await req.json();
 
     const {
@@ -104,7 +110,7 @@ export async function POST(req: NextRequest) {
         terms: terms || "Prices subject to flight fare and visa slot availability.",
         validUntil: validUntil ? new Date(validUntil) : new Date(Date.now() + 7 * 86400000),
         status: "SENT",
-        createdById: session?.id || "admin",
+        createdById: session.id,
       },
       include: {
         customer: true,
@@ -114,7 +120,7 @@ export async function POST(req: NextRequest) {
     });
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "CREATE_QUOTATION",
       entity: "Quotation",
       entityId: quotation.id,
@@ -127,4 +133,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

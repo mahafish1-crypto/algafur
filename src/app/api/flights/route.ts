@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET() {
   try {
@@ -17,7 +17,10 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
+    const auth = await requireAuth(req, "manage:flights");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
+
     const body = await req.json();
 
     const {
@@ -58,7 +61,7 @@ export async function POST(req: NextRequest) {
     });
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "CREATE_FLIGHT",
       entity: "Flight",
       entityId: flight.id,
@@ -71,4 +74,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

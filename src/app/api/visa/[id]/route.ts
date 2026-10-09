@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAuth(req, "manage:visas");
+    if (!auth.authorized) return auth.response;
+
     const resolvedParams = await params;
     const application = await prisma.visaApplication.findUnique({
       where: { id: resolvedParams.id },
@@ -39,11 +42,14 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAuth(req, "manage:visas");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
+
     const resolvedParams = await params;
     const body = await req.json();
-    const session = await getSession();
 
-    const data: any = {};
+    const data: Record<string, unknown> = {};
     if (body.status !== undefined) data.status = body.status;
     if (body.applicationNumber !== undefined) data.applicationNumber = body.applicationNumber;
     if (body.visaNumber !== undefined) data.visaNumber = body.visaNumber;
@@ -86,7 +92,7 @@ export async function PATCH(
     }
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "UPDATE_VISA_APPLICATION",
       entity: "VisaApplication",
       entityId: updated.id,
@@ -105,15 +111,18 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAuth(req, "manage:visas");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
+
     const resolvedParams = await params;
-    const session = await getSession();
 
     const deleted = await prisma.visaApplication.delete({
       where: { id: resolvedParams.id },
     });
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "DELETE_VISA_APPLICATION",
       entity: "VisaApplication",
       entityId: deleted.id,
@@ -125,4 +134,3 @@ export async function DELETE(
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

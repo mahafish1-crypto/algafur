@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { requireAuth } from "@/lib/api-auth";
 import bcrypt from "bcryptjs";
 
 export async function GET(req: NextRequest) {
   try {
+    // Security: only users with manage:users permission can list staff
+    const auth = await requireAuth(req, "manage:users");
+    if (!auth.authorized) return auth.response;
+
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -29,15 +34,27 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
-    const body = await req.json();
+    // Security: only SUPER_ADMIN or ADMIN can create users
+    const auth = await requireAuth(req, "manage:users");
+    if (!auth.authorized) return auth.response;
+    const session = auth.session;
 
+    // Only SUPER_ADMIN can create other SUPER_ADMIN accounts
+    const body = await req.json();
     const { name, email, password, role, phone } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: "Name, email, and password are required" },
         { status: 400 }
+      );
+    }
+
+    // Prevent privilege escalation: non-SUPER_ADMIN cannot create SUPER_ADMIN
+    if (role === "SUPER_ADMIN" && session.role !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Only a SUPER_ADMIN can create another SUPER_ADMIN account." },
+        { status: 403 }
       );
     }
 
@@ -75,7 +92,7 @@ export async function POST(req: NextRequest) {
     });
 
     await logAudit({
-      userId: session?.id || null,
+      userId: session.id,
       action: "CREATE_USER",
       entity: "User",
       entityId: user.id,
@@ -88,4 +105,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-
