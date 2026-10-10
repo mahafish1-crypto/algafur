@@ -8,11 +8,25 @@ export const metadata = {
   description: "Centralized digital asset management for marketing, hotels, and brand identity.",
 };
 
+const MEDIA_LIST_SELECT = {
+  id: true,
+  name: true,
+  category: true,
+  url: true,
+  fileType: true,
+  fileSize: true,
+  dimensions: true,
+  createdAt: true,
+} as const;
+
 export default async function AdminMediaPage() {
   const { allowed, session } = await verifyModuleAccess("media");
   if (!allowed) return <AccessDeniedView moduleKey="media" session={session} />;
   let media = await prisma.media.findMany({
+    where: { isPrivate: false },
+    select: MEDIA_LIST_SELECT,
     orderBy: { createdAt: "desc" },
+    take: 200,
   });
 
   // Seed default brand assets if library is empty
@@ -62,15 +76,23 @@ export default async function AdminMediaPage() {
       },
     ];
 
-    for (const item of defaults) {
-      await prisma.media.create({ data: item });
-    }
+    await prisma.media.createMany({ data: defaults });
 
     media = await prisma.media.findMany({
+      where: { isPrivate: false },
+      select: MEDIA_LIST_SELECT,
       orderBy: { createdAt: "desc" },
+      take: 200,
     });
   }
 
-  return <AdminMediaClient initialMedia={JSON.parse(JSON.stringify(media))} />;
+  return (
+    <AdminMediaClient
+      initialMedia={media.map((m) => ({
+        ...m,
+        createdAt: m.createdAt.toISOString(),
+      }))}
+    />
+  );
 }
 

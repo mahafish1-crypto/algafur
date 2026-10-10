@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAuth } from "@/lib/api-auth";
+import { PACKAGES_CACHE_TAG } from "@/lib/packages-data";
 
 export const dynamic = "force-dynamic";
 
@@ -195,9 +195,14 @@ async function handleUpdate(
     });
 
     try {
+      revalidateTag(PACKAGES_CACHE_TAG);
       revalidatePath("/");
       revalidatePath("/packages");
-      if (fullPackage?.slug) {
+      revalidatePath("/booking");
+      if (existing.slug) {
+        revalidatePath(`/packages/${existing.slug}`);
+      }
+      if (fullPackage?.slug && fullPackage.slug !== existing.slug) {
         revalidatePath(`/packages/${fullPackage.slug}`);
       }
     } catch (e) {
@@ -245,6 +250,15 @@ export async function DELETE(
         where: { id },
         data: { status: "ARCHIVED" },
       });
+      try {
+        revalidateTag(PACKAGES_CACHE_TAG);
+        revalidatePath("/");
+        revalidatePath("/packages");
+        revalidatePath("/booking");
+        revalidatePath(`/packages/${existing.slug}`);
+      } catch (e) {
+        console.warn("revalidatePath warning:", e);
+      }
       return NextResponse.json({
         success: true,
         message: "Package has existing pilgrim bookings and was archived instead of deleted.",
@@ -264,8 +278,10 @@ export async function DELETE(
     });
 
     try {
+      revalidateTag(PACKAGES_CACHE_TAG);
       revalidatePath("/");
       revalidatePath("/packages");
+      revalidatePath("/booking");
       revalidatePath(`/packages/${existing.slug}`);
     } catch (e) {
       console.warn("revalidatePath warning:", e);

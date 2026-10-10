@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-
-export const dynamic = "force-dynamic";
+import { getSession } from "@/lib/auth";
 
 export async function GET(
   req: NextRequest,
@@ -11,10 +10,24 @@ export async function GET(
     const { id } = await params;
     const media = await prisma.media.findUnique({
       where: { id },
+      select: {
+        id: true,
+        data: true,
+        fileType: true,
+        url: true,
+        isPrivate: true,
+      },
     });
 
     if (!media) {
       return new NextResponse("File Not Found", { status: 404 });
+    }
+
+    if (media.isPrivate) {
+      const session = await getSession();
+      if (!session) {
+        return new NextResponse("Authentication required", { status: 401 });
+      }
     }
 
     // If binary data is stored in data column (base64)
@@ -27,13 +40,15 @@ export async function GET(
         headers: {
           "Content-Type": media.fileType || "image/jpeg",
           "Content-Length": buffer.length.toString(),
-          "Cache-Control": "public, max-age=31536000, immutable",
+          "Cache-Control": media.isPrivate
+            ? "private, max-age=3600"
+            : "public, max-age=31536000, immutable",
         },
       });
     }
 
-    // If external or static URL, redirect
-    if (media.url) {
+    // If external or static URL, redirect (guarding against self-redirect loop)
+    if (media.url && !media.url.endsWith(`/api/media/${id}/file`)) {
       return NextResponse.redirect(new URL(media.url, req.url));
     }
 

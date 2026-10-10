@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAuth } from "@/lib/api-auth";
+import { PACKAGES_CACHE_TAG } from "@/lib/packages-data";
 
 export const dynamic = "force-dynamic";
 
@@ -271,8 +271,10 @@ export async function POST(req: NextRequest) {
     });
 
     try {
+      revalidateTag(PACKAGES_CACHE_TAG);
       revalidatePath("/");
       revalidatePath("/packages");
+      revalidatePath("/booking");
       revalidatePath(`/packages/${newPackage.slug}`);
     } catch (e) {
       console.warn("revalidatePath warning:", e);

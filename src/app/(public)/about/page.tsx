@@ -3,7 +3,7 @@ import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata() {
   const settings = await getSiteSettings();

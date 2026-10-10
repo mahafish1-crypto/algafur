@@ -100,26 +100,6 @@ export async function POST(req: NextRequest) {
     const receiptNumber = `ALR-2026-${String(count + 101).padStart(5, "0")}`;
 
     const numAmount = parseFloat(amount);
-
-    const payment = await prisma.payment.create({
-      data: {
-        receiptNumber,
-        bookingId: booking.id,
-        customerId: booking.customerId,
-        amount: numAmount,
-        paymentMethod: paymentMethod || "BANK_TRANSFER",
-        transactionId: transactionId || null,
-        status: "PAID",
-        notes: notes || null,
-        createdById: session.id,
-      },
-      include: {
-        customer: true,
-        booking: true,
-      },
-    });
-
-    // Update booking totals
     const newPaidAmount = booking.paidAmount + numAmount;
     const newOutstanding = Math.max(0, booking.totalAmount - newPaidAmount);
     const newPaymentStatus =
@@ -129,14 +109,33 @@ export async function POST(req: NextRequest) {
         ? "PARTIALLY_PAID"
         : "PENDING";
 
-    await prisma.booking.update({
-      where: { id: booking.id },
-      data: {
-        paidAmount: newPaidAmount,
-        outstandingAmount: newOutstanding,
-        paymentStatus: newPaymentStatus,
-      },
-    });
+    const [payment] = await prisma.$transaction([
+      prisma.payment.create({
+        data: {
+          receiptNumber,
+          bookingId: booking.id,
+          customerId: booking.customerId,
+          amount: numAmount,
+          paymentMethod: paymentMethod || "BANK_TRANSFER",
+          transactionId: transactionId || null,
+          status: "PAID",
+          notes: notes || null,
+          createdById: session.id,
+        },
+        include: {
+          customer: true,
+          booking: true,
+        },
+      }),
+      prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          paidAmount: newPaidAmount,
+          outstandingAmount: newOutstanding,
+          paymentStatus: newPaymentStatus,
+        },
+      }),
+    ]);
 
     await logAudit({
       userId: session.id,

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/api-auth";
 import fs from "fs";
@@ -8,13 +7,38 @@ import path from "path";
 
 export const dynamic = "force-dynamic";
 
+const MEDIA_METADATA_SELECT = {
+  id: true,
+  name: true,
+  category: true,
+  url: true,
+  fileType: true,
+  fileSize: true,
+  dimensions: true,
+  isPrivate: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAuth(req, [
+      "view:media",
+      "manage:media",
+      "manage:packages",
+      "manage:settings",
+    ]);
+    if (!auth.authorized) return auth.response;
+
     const searchParams = req.nextUrl.searchParams;
     const category = searchParams.get("category");
     const search = searchParams.get("search");
+    const limitParam = parseInt(searchParams.get("limit") || "200", 10);
+    const take = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 500) : 200;
 
-    const where: any = {};
+    const where: Record<string, unknown> = {
+      isPrivate: false,
+    };
     if (category && category !== "ALL") {
       where.category = category;
     }
@@ -24,7 +48,9 @@ export async function GET(req: NextRequest) {
 
     const mediaList = await prisma.media.findMany({
       where,
+      select: MEDIA_METADATA_SELECT,
       orderBy: { createdAt: "desc" },
+      take,
     });
 
     return NextResponse.json({ success: true, media: mediaList });
@@ -89,7 +115,7 @@ export async function POST(req: NextRequest) {
         console.warn("Could not write to local filesystem (expected in read-only/serverless):", err);
       }
 
-      // Create record in database
+      // Create record in database (select metadata only to avoid returning Base64 in JSON response)
       const media = await prisma.media.create({
         data: {
           name: originalName,
@@ -100,6 +126,7 @@ export async function POST(req: NextRequest) {
           fileSize: file.size,
           dimensions: null,
         },
+        select: MEDIA_METADATA_SELECT,
       });
 
       // If local filesystem was not writable, set URL to streaming endpoint with assigned ID
@@ -107,6 +134,7 @@ export async function POST(req: NextRequest) {
         await prisma.media.update({
           where: { id: media.id },
           data: { url: `/api/media/${media.id}/file` },
+          select: { id: true },
         });
         media.url = `/api/media/${media.id}/file`;
       }
@@ -139,6 +167,7 @@ export async function POST(req: NextRequest) {
         fileSize: Number(fileSize) || 0,
         dimensions: dimensions || null,
       },
+      select: MEDIA_METADATA_SELECT,
     });
 
     await logAudit({

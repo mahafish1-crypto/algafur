@@ -2,14 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
-import { revalidatePath } from "next/cache";
-
-const SECRET_SETTING_KEYS = ["ai_gemini_api_key"];
-
-function maskSecret(val: string): string {
-  if (!val || val.length < 8) return val ? "••••••••" : "";
-  return `${val.substring(0, 4)}••••••••${val.substring(val.length - 4)}`;
-}
+import { revalidatePath, revalidateTag } from "next/cache";
+import {
+  SECRET_SETTING_KEYS,
+  SITE_SETTINGS_CACHE_TAG,
+  maskSecretSetting,
+} from "@/lib/settings";
 
 export async function GET() {
   try {
@@ -22,7 +20,7 @@ export async function GET() {
     const settingsMap: Record<string, string> = {};
     settings.forEach((s) => {
       if (SECRET_SETTING_KEYS.includes(s.key)) {
-        settingsMap[s.key] = s.value ? maskSecret(s.value) : "";
+        settingsMap[s.key] = s.value ? maskSecretSetting(s.value) : "";
       } else {
         settingsMap[s.key] = s.value;
       }
@@ -45,6 +43,8 @@ export async function POST(req: NextRequest) {
     const body: Record<string, string> = await req.json();
 
     const keys = Object.keys(body);
+    const upsertOperations = [];
+
     for (const key of keys) {
       const incomingVal = String(body[key] ?? "");
 
@@ -56,15 +56,21 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      await prisma.siteSetting.upsert({
-        where: { key },
-        update: { value: incomingVal },
-        create: {
-          key,
-          value: incomingVal,
-          category: key.split("_")[0] || "GENERAL",
-        },
-      });
+      upsertOperations.push(
+        prisma.siteSetting.upsert({
+          where: { key },
+          update: { value: incomingVal },
+          create: {
+            key,
+            value: incomingVal,
+            category: key.split("_")[0] || "GENERAL",
+          },
+        })
+      );
+    }
+
+    if (upsertOperations.length > 0) {
+      await prisma.$transaction(upsertOperations);
     }
 
     await logAudit({
@@ -75,6 +81,7 @@ export async function POST(req: NextRequest) {
     });
 
     try {
+      revalidateTag(SITE_SETTINGS_CACHE_TAG);
       revalidatePath("/", "layout");
       revalidatePath("/");
       revalidatePath("/about");

@@ -46,9 +46,8 @@ export default async function AdminDashboardPage() {
   const [
     totalLeads,
     newLeads,
-    totalBookings,
+    bookingStats,
     totalCustomers,
-    bookings,
     nextDeparture,
     recentLeads,
     followUps,
@@ -59,23 +58,31 @@ export default async function AdminDashboardPage() {
     canViewLeads
       ? prisma.lead.count({ where: { status: "NEW" } })
       : Promise.resolve(0),
-    canViewBookings ? prisma.booking.count() : Promise.resolve(0),
-    canViewCustomers || canViewBookings
-      ? prisma.customer.count()
-      : Promise.resolve(0),
-    canViewPayments
-      ? prisma.booking.findMany({
-          select: {
-            totalAmount: true,
+    canViewBookings || canViewPayments
+      ? prisma.booking.aggregate({
+          _count: { _all: true },
+          _sum: {
             paidAmount: true,
             outstandingAmount: true,
           },
         })
-      : Promise.resolve([]),
+      : Promise.resolve({
+          _count: { _all: 0 },
+          _sum: { paidAmount: 0, outstandingAmount: 0 },
+        }),
+    canViewCustomers || canViewBookings
+      ? prisma.customer.count()
+      : Promise.resolve(0),
     canViewGroups
       ? prisma.departureGroup.findFirst({
           where: { status: "OPEN" },
-          include: { package: true },
+          select: {
+            id: true,
+            groupName: true,
+            departureDate: true,
+            totalCapacity: true,
+            confirmedTravellers: true,
+          },
           orderBy: { departureDate: "asc" },
         })
       : Promise.resolve(null),
@@ -83,7 +90,15 @@ export default async function AdminDashboardPage() {
       ? prisma.lead.findMany({
           take: 5,
           orderBy: { createdAt: "desc" },
-          include: { assignedTo: { select: { name: true } } },
+          select: {
+            id: true,
+            name: true,
+            leadNumber: true,
+            mobile: true,
+            city: true,
+            packageInterest: true,
+            status: true,
+          },
         })
       : Promise.resolve([]),
     canViewFollowups
@@ -91,7 +106,13 @@ export default async function AdminDashboardPage() {
           where: { status: "PENDING" },
           take: 5,
           orderBy: { createdAt: "desc" },
-          include: { lead: true, user: { select: { name: true } } },
+          select: {
+            id: true,
+            priority: true,
+            notes: true,
+            lead: { select: { name: true, mobile: true } },
+            user: { select: { name: true } },
+          },
         })
       : Promise.resolve([]),
     canViewDocs
@@ -102,11 +123,11 @@ export default async function AdminDashboardPage() {
       : Promise.resolve(0),
   ]);
 
-  const totalRevenue = bookings.reduce((acc, b) => acc + b.paidAmount, 0);
-  const totalOutstanding = bookings.reduce(
-    (acc, b) => acc + b.outstandingAmount,
-    0
-  );
+  const totalBookings = canViewBookings ? bookingStats._count._all : 0;
+  const totalRevenue = canViewPayments ? bookingStats._sum.paidAmount ?? 0 : 0;
+  const totalOutstanding = canViewPayments
+    ? bookingStats._sum.outstandingAmount ?? 0
+    : 0;
 
   const displayRole =
     session.role === "SUPER_ADMIN"

@@ -11,65 +11,97 @@ export const metadata = {
 export default async function AdminReportsPage() {
   const { allowed, session } = await verifyModuleAccess("reports");
   if (!allowed) return <AccessDeniedView moduleKey="reports" session={session} />;
-  const [bookings, payments, packages, leads] = await Promise.all([
-    prisma.booking.findMany({
-      include: {
-        package: true,
-        customer: true,
+  const [
+    bookingGroups,
+    paymentGroups,
+    recentPayments,
+    packages,
+    totalLeads,
+  ] = await Promise.all([
+    prisma.booking.groupBy({
+      by: ["packageId"],
+      _count: { _all: true },
+      _sum: {
+        totalAmount: true,
+        adults: true,
+        children: true,
+      },
+    }),
+    prisma.payment.groupBy({
+      by: ["paymentMethod"],
+      _count: { _all: true },
+      _sum: {
+        amount: true,
       },
     }),
     prisma.payment.findMany({
-      include: {
-        customer: true,
-      },
+      take: 5,
       orderBy: { paymentDate: "desc" },
+      select: {
+        receiptNumber: true,
+        amount: true,
+        paymentMethod: true,
+        paymentDate: true,
+        customer: {
+          select: { name: true },
+        },
+      },
     }),
-    prisma.package.findMany(),
-    prisma.lead.findMany({
-      select: { id: true, status: true },
+    prisma.package.findMany({
+      select: {
+        id: true,
+        name: true,
+        bookedSeats: true,
+        totalSeats: true,
+        type: true,
+      },
     }),
+    prisma.lead.count(),
   ]);
 
-  const totalRevenue = bookings.reduce((acc, b) => acc + b.totalAmount, 0);
-  const totalCollected = payments.reduce((acc, p) => acc + p.amount, 0);
+  const totalRevenue = bookingGroups.reduce(
+    (acc, g) => acc + (g._sum.totalAmount ?? 0),
+    0
+  );
+  const totalCollected = paymentGroups.reduce(
+    (acc, g) => acc + (g._sum.amount ?? 0),
+    0
+  );
   const outstandingDue = Math.max(0, totalRevenue - totalCollected);
-  const totalBookings = bookings.length;
-  const totalPilgrims = bookings.reduce((acc, b) => acc + b.adults + b.children, 0);
-  const totalLeads = leads.length;
+  const totalBookings = bookingGroups.reduce(
+    (acc, g) => acc + g._count._all,
+    0
+  );
+  const totalPilgrims = bookingGroups.reduce(
+    (acc, g) => acc + (g._sum.adults ?? 0) + (g._sum.children ?? 0),
+    0
+  );
   const conversionRate =
     totalLeads > 0 ? Math.round((totalBookings / totalLeads) * 100) : 0;
 
   // Group by packages
-  const packagesPerformance = packages.map((pkg) => {
-    const pkgBookings = bookings.filter((b) => b.packageId === pkg.id);
-    const rev = pkgBookings.reduce((acc, b) => acc + b.totalAmount, 0);
-    return {
-      id: pkg.id,
-      name: pkg.name,
-      bookedSeats: pkg.bookedSeats,
-      totalSeats: pkg.totalSeats,
-      revenue: rev,
-      type: pkg.type,
-    };
+  const packageRevMap = new Map<string, number>();
+  bookingGroups.forEach((g) => {
+    packageRevMap.set(g.packageId, g._sum.totalAmount ?? 0);
   });
 
-  // Payment methods breakdown
-  const methodMap: Record<string, { count: number; amount: number }> = {};
-  payments.forEach((p) => {
-    if (!methodMap[p.paymentMethod]) {
-      methodMap[p.paymentMethod] = { count: 0, amount: 0 };
-    }
-    methodMap[p.paymentMethod].count += 1;
-    methodMap[p.paymentMethod].amount += p.amount;
-  });
-
-  const methodBreakdown = Object.entries(methodMap).map(([method, val]) => ({
-    method,
-    count: val.count,
-    amount: val.amount,
+  const packagesPerformance = packages.map((pkg) => ({
+    id: pkg.id,
+    name: pkg.name,
+    bookedSeats: pkg.bookedSeats,
+    totalSeats: pkg.totalSeats,
+    revenue: packageRevMap.get(pkg.id) ?? 0,
+    type: pkg.type,
   }));
 
-  const recentTransactions = payments.slice(0, 5).map((p) => ({
+  // Payment methods breakdown
+  const methodBreakdown = paymentGroups.map((g) => ({
+    method: g.paymentMethod,
+    count: g._count._all,
+    amount: g._sum.amount ?? 0,
+  }));
+
+  const recentTransactions = recentPayments.map((p) => ({
     receiptNumber: p.receiptNumber,
     amount: p.amount,
     method: p.paymentMethod,

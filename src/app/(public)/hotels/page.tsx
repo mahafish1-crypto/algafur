@@ -9,7 +9,7 @@ export const metadata = {
   description: "Explore our handpicked 4-star and luxury hotels within walking distance of Masjid Al-Haram and Masjid An-Nabawi.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function HotelsPage() {
   let hotels: any[] = [];

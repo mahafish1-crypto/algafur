@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
@@ -64,7 +65,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
-export async function getSession(): Promise<SessionUser | null> {
+export const getSession = cache(async (): Promise<SessionUser | null> => {
   const cookieStore = await cookies();
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
   if (!token) return null;
@@ -116,7 +117,7 @@ export async function getSession(): Promise<SessionUser | null> {
     console.error("Session verification DB lookup error:", err);
     return null;
   }
-}
+});
 
 export async function setSessionCookie(user: SessionUser) {
   const token = signSessionToken(user);

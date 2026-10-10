@@ -2,6 +2,7 @@ import React from "react";
 import prisma from "@/lib/db";
 import AdminSettingsClient from "./AdminSettingsClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
+import { SECRET_SETTING_KEYS, maskSecretSetting } from "@/lib/settings";
 
 export const metadata = {
   title: "System Settings & Integrations | AL-GAFUR Admin",
@@ -14,7 +15,11 @@ export default async function AdminSettingsPage() {
   const settings = await prisma.siteSetting.findMany();
   const settingsMap: Record<string, string> = {};
   settings.forEach((s) => {
-    settingsMap[s.key] = s.value;
+    if (SECRET_SETTING_KEYS.includes(s.key)) {
+      settingsMap[s.key] = s.value ? maskSecretSetting(s.value) : "";
+    } else {
+      settingsMap[s.key] = s.value;
+    }
   });
 
   return <AdminSettingsClient initialSettings={settingsMap} />;

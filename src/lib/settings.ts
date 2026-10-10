@@ -1,4 +1,14 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import prisma from "@/lib/db";
+
+export const SITE_SETTINGS_CACHE_TAG = "site-settings";
+export const SECRET_SETTING_KEYS = ["ai_gemini_api_key"];
+
+export function maskSecretSetting(val: string): string {
+  if (!val || val.length < 8) return val ? "••••••••" : "";
+  return `${val.substring(0, 4)}••••••••${val.substring(val.length - 4)}`;
+}
 
 export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   company_name: "AL-GAFUR International Tours And Travels",
@@ -60,23 +70,41 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   about_leader_3_desc: "Directs hotel contracting in Makkah & Madinah and airport transfer operations.",
   about_leader_3_phone: "+91 9764444044",
 
-  // AI Growth Studio & Gemini
+  // AI Growth Studio & Gemini (Note: secret keys are never loaded into public shared cache)
   ai_gemini_api_key: "",
   ai_model_name: "gemini-2.5-flash",
 };
 
-export async function getSiteSettings(): Promise<Record<string, string>> {
-  try {
-    const list = await prisma.siteSetting.findMany();
+const getCachedPublicSiteSettings = unstable_cache(
+  async (): Promise<Record<string, string>> => {
+    const list = await prisma.siteSetting.findMany({
+      where: {
+        key: { notIn: SECRET_SETTING_KEYS },
+      },
+    });
     const map: Record<string, string> = { ...DEFAULT_SITE_SETTINGS };
     list.forEach((s) => {
-      if (s.value) {
+      if (s.value && !SECRET_SETTING_KEYS.includes(s.key)) {
         map[s.key] = s.value;
       }
     });
     return map;
-  } catch (err) {
-    console.error("Failed to query site settings from database:", err);
-    return DEFAULT_SITE_SETTINGS;
+  },
+  ["public-site-settings"],
+  {
+    revalidate: 300,
+    tags: [SITE_SETTINGS_CACHE_TAG],
   }
-}
+);
+
+export const getSiteSettings = cache(
+  async (): Promise<Record<string, string>> => {
+    try {
+      return await getCachedPublicSiteSettings();
+    } catch (err) {
+      console.error("Failed to query site settings from database:", err);
+      return { ...DEFAULT_SITE_SETTINGS };
+    }
+  }
+);
+

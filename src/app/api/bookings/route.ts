@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import prisma from "@/lib/db";
 import { logAudit } from "@/lib/audit";
+import { PACKAGES_CACHE_TAG } from "@/lib/packages-data";
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,12 +53,43 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Generate Booking Number ALG-2026-XXXXX (collision-proof)
-    const bookingCount = await prisma.booking.count();
+    // 2. Pre-compute Counts in Parallel to Preserve Exact Identifier Formats
+    const [bookingCount, invoiceCount, paymentCount, adminUser] = await Promise.all([
+      prisma.booking.count(),
+      prisma.invoice.count(),
+      paidAmount && paidAmount > 0 ? prisma.payment.count() : Promise.resolve(0),
+      prisma.user.findFirst({
+        where: { role: "SUPER_ADMIN" },
+        select: { id: true },
+      }),
+    ]);
+
     let bookingNumber = `ALG-2026-${String(bookingCount + 1).padStart(5, "0")}`;
-    const existingB = await prisma.booking.findUnique({ where: { bookingNumber } });
+    let invoiceNumber = `ALI-2026-${String(invoiceCount + 1).padStart(5, "0")}`;
+    let candidateReceipt =
+      paidAmount && paidAmount > 0
+        ? `ALR-2026-${String(paymentCount + 1).padStart(5, "0")}`
+        : null;
+
+    const [existingB, existingInv, existingPay] = await Promise.all([
+      prisma.booking.findUnique({ where: { bookingNumber }, select: { id: true } }),
+      prisma.invoice.findUnique({ where: { invoiceNumber }, select: { id: true } }),
+      candidateReceipt
+        ? prisma.payment.findUnique({
+            where: { receiptNumber: candidateReceipt },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+    ]);
+
     if (existingB) {
       bookingNumber = `ALG-2026-${String(bookingCount + 1).padStart(5, "0")}-${Date.now().toString().slice(-4)}`;
+    }
+    if (existingInv) {
+      invoiceNumber = `ALI-2026-${String(invoiceCount + 1).padStart(5, "0")}-${Date.now().toString().slice(-4)}`;
+    }
+    if (candidateReceipt && existingPay) {
+      candidateReceipt = `ALR-2026-${String(paymentCount + 1).padStart(5, "0")}-${Date.now().toString().slice(-4)}`;
     }
 
     const outstanding = Math.max(0, totalAmount - (paidAmount || 0));
@@ -67,102 +100,84 @@ export async function POST(req: NextRequest) {
         ? "PARTIALLY_PAID"
         : "PENDING";
 
-    // 3. Create Booking
-    const newBooking = await prisma.booking.create({
-      data: {
-        bookingNumber,
-        customerId: dbCustomer.id,
-        packageId,
-        adults: Number(adults) || 1,
-        children: Number(children) || 0,
-        roomType: roomType || "QUAD",
-        totalAmount: Number(totalAmount),
-        advanceAmount: Number(advanceAmount) || 0,
-        paidAmount: Number(paidAmount) || 0,
-        outstandingAmount: outstanding,
-        paymentStatus,
-        bookingStatus: "CONFIRMED",
-      },
-    });
-
-    // 4. Create Travellers
-    if (Array.isArray(travellers) && travellers.length > 0) {
-      for (const t of travellers) {
-        if (t.fullName) {
-          await prisma.bookingTraveller.create({
-            data: {
-              bookingId: newBooking.id,
-              fullName: t.fullName,
-              passportNumber: t.passportNumber || null,
-              gender: t.gender || "MALE",
-              roomType: roomType || "QUAD",
-              visaStatus: "NOT_STARTED",
-            },
-          });
-        }
-      }
-    }
-
-    // 5. Increment booked seats on package
     const seatsToBook = (Number(adults) || 1) + (Number(children) || 0);
-    await prisma.package.update({
-      where: { id: packageId },
-      data: {
-        bookedSeats: {
-          increment: seatsToBook,
-        },
-      },
-    });
+    const validTravellers = Array.isArray(travellers)
+      ? travellers.filter((t: any) => Boolean(t?.fullName))
+      : [];
 
-    // 6. Generate Invoice ALI-2026-XXXXX (collision-proof)
-    const invoiceCount = await prisma.invoice.count();
-    let invoiceNumber = `ALI-2026-${String(invoiceCount + 1).padStart(5, "0")}`;
-    const existingInv = await prisma.invoice.findUnique({ where: { invoiceNumber } });
-    if (existingInv) {
-      invoiceNumber = `ALI-2026-${String(invoiceCount + 1).padStart(5, "0")}-${Date.now().toString().slice(-4)}`;
-    }
-
-    await prisma.invoice.create({
-      data: {
-        invoiceNumber,
-        bookingId: newBooking.id,
-        customerId: dbCustomer.id,
-        subtotal: Number(totalAmount),
-        total: Number(totalAmount),
-        paidAmount: Number(paidAmount) || 0,
-        balanceDue: outstanding,
-        status: outstanding === 0 ? "PAID" : "ISSUED",
-      },
-    });
-
-    // 7. If payment made, generate Payment & Receipt ALR-2026-XXXXX (collision-proof)
-    let receiptNumber = null;
-    if (paidAmount && paidAmount > 0) {
-      const paymentCount = await prisma.payment.count();
-      receiptNumber = `ALR-2026-${String(paymentCount + 1).padStart(5, "0")}`;
-      const existingPay = await prisma.payment.findUnique({ where: { receiptNumber } });
-      if (existingPay) {
-        receiptNumber = `ALR-2026-${String(paymentCount + 1).padStart(5, "0")}-${Date.now().toString().slice(-4)}`;
-      }
-
-      await prisma.payment.create({
+    // 3. Execute Booking + Travellers + Seat Increment + Invoice + Payment Atomically
+    const newBooking = await prisma.$transaction(async (tx) => {
+      const createdBooking = await tx.booking.create({
         data: {
-          receiptNumber,
-          bookingId: newBooking.id,
+          bookingNumber,
           customerId: dbCustomer.id,
-          amount: Number(paidAmount),
-          paymentMethod: paymentMethod || "BANK_TRANSFER",
-          transactionId: transactionId || null,
-          status: "PAID",
-          notes: `Online reservation payment (${paymentOption})`,
+          packageId,
+          adults: Number(adults) || 1,
+          children: Number(children) || 0,
+          roomType: roomType || "QUAD",
+          totalAmount: Number(totalAmount),
+          advanceAmount: Number(advanceAmount) || 0,
+          paidAmount: Number(paidAmount) || 0,
+          outstandingAmount: outstanding,
+          paymentStatus,
+          bookingStatus: "CONFIRMED",
         },
       });
-    }
 
-    // 8. Create Notification for Admin
-    const adminUser = await prisma.user.findFirst({
-      where: { role: "SUPER_ADMIN" },
+      if (validTravellers.length > 0) {
+        await tx.bookingTraveller.createMany({
+          data: validTravellers.map((t: any) => ({
+            bookingId: createdBooking.id,
+            fullName: t.fullName,
+            passportNumber: t.passportNumber || null,
+            gender: t.gender || "MALE",
+            roomType: roomType || "QUAD",
+            visaStatus: "NOT_STARTED",
+          })),
+        });
+      }
+
+      await tx.package.update({
+        where: { id: packageId },
+        data: {
+          bookedSeats: {
+            increment: seatsToBook,
+          },
+        },
+      });
+
+      await tx.invoice.create({
+        data: {
+          invoiceNumber,
+          bookingId: createdBooking.id,
+          customerId: dbCustomer.id,
+          subtotal: Number(totalAmount),
+          total: Number(totalAmount),
+          paidAmount: Number(paidAmount) || 0,
+          balanceDue: outstanding,
+          status: outstanding === 0 ? "PAID" : "ISSUED",
+        },
+      });
+
+      if (candidateReceipt && paidAmount && paidAmount > 0) {
+        await tx.payment.create({
+          data: {
+            receiptNumber: candidateReceipt,
+            bookingId: createdBooking.id,
+            customerId: dbCustomer.id,
+            amount: Number(paidAmount),
+            paymentMethod: paymentMethod || "BANK_TRANSFER",
+            transactionId: transactionId || null,
+            status: "PAID",
+            notes: `Online reservation payment (${paymentOption})`,
+          },
+        });
+      }
+
+      return createdBooking;
     });
+
+    // 4. Create Notification & Audit Log
     if (adminUser) {
       await prisma.notification.create({
         data: {
@@ -183,11 +198,20 @@ export async function POST(req: NextRequest) {
       details: { bookingNumber, customer: dbCustomer.name, totalAmount, paidAmount },
     });
 
+    try {
+      revalidateTag(PACKAGES_CACHE_TAG);
+      revalidatePath("/");
+      revalidatePath("/packages");
+      revalidatePath("/booking");
+    } catch (e) {
+      console.warn("revalidatePath warning:", e);
+    }
+
     return NextResponse.json({
       success: true,
       bookingId: newBooking.id,
       bookingNumber,
-      receiptNumber,
+      receiptNumber: candidateReceipt,
       customerId: dbCustomer.id,
     });
   } catch (error: unknown) {
