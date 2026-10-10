@@ -16,9 +16,13 @@ model User {
   role         String    @default("SALES_EXECUTIVE") // SUPER_ADMIN, ADMIN, MANAGER, SALES_EXECUTIVE, ACCOUNTS, VISA_TEAM, OPERATIONS, MARKETING, AGENT, CUSTOMER
   phone        String?
   status       String    @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  roleId       String?
+  permissions  String?   // JSON array of explicit granular permission keys
   lastLogin    DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  customRole        CustomRole?        @relation(fields: [roleId], references: [id], onDelete: SetNull)
 
   assignedLeads     Lead[]             @relation("AssignedLeads")
   leadActivities    LeadActivity[]
@@ -771,3 +775,15 @@ model SiteSetting {
   @@index([key])
 }
 
+model CustomRole {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  code        String   @unique
+  description String?
+  permissions String   // JSON array of permission keys
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+}

@@ -18,7 +18,7 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  if (!canAccessAdmin(session.role)) {
+  if (!canAccessAdmin(session)) {
     if (session.role === "CUSTOMER") redirect("/customer/dashboard");
     if (session.role === "AGENT") redirect("/agent/dashboard");
     redirect("/login");

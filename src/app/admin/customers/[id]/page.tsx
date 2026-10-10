@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/db";
 import Link from "next/link";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 import {
   User,
   Phone,
@@ -21,6 +22,8 @@ export default async function CustomerDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { allowed, session } = await verifyModuleAccess("customers");
+  if (!allowed) return <AccessDeniedView moduleKey="customers" session={session} />;
   const resolvedParams = await params;
   const customer = await prisma.customer.findUnique({
     where: { id: resolvedParams.id },

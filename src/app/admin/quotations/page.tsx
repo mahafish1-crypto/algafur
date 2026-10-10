@@ -2,6 +2,7 @@ import React from "react";
 import prisma from "@/lib/db";
 import { getSiteSettings } from "@/lib/settings";
 import AdminQuotationsClient from "./AdminQuotationsClient";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
   title: "Quotations & Tour Estimator | AL-GAFUR Admin",
@@ -11,6 +12,8 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminQuotationsPage() {
+  const { allowed, session } = await verifyModuleAccess("quotations");
+  if (!allowed) return <AccessDeniedView moduleKey="quotations" session={session} />;
   const [quotations, packages, customers, siteSettings] = await Promise.all([
     prisma.quotation.findMany({
       include: {

@@ -1,6 +1,7 @@
 import React from "react";
 import prisma from "@/lib/db";
 import AdminPaymentsClient from "./AdminPaymentsClient";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
   title: "Payments & Financial Ledger | AL-GAFUR Admin",
@@ -8,6 +9,8 @@ export const metadata = {
 };
 
 export default async function AdminPaymentsPage() {
+  const { allowed, session } = await verifyModuleAccess("payments");
+  if (!allowed) return <AccessDeniedView moduleKey="payments" session={session} />;
   const [payments, bookings] = await Promise.all([
     prisma.payment.findMany({
       include: {

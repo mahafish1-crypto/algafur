@@ -1,6 +1,7 @@
 import React from "react";
 import prisma from "@/lib/db";
 import AdminVisaClient from "./AdminVisaClient";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
   title: "Visa Applications & MOFA Pipeline | AL-GAFUR Admin",
@@ -8,6 +9,8 @@ export const metadata = {
 };
 
 export default async function AdminVisaPage() {
+  const { allowed, session } = await verifyModuleAccess("visas");
+  if (!allowed) return <AccessDeniedView moduleKey="visas" session={session} />;
   const [applications, customers, bookings] = await Promise.all([
     prisma.visaApplication.findMany({
       include: {

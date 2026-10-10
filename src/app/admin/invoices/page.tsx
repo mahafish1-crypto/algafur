@@ -2,6 +2,7 @@ import React from "react";
 import prisma from "@/lib/db";
 import { getSiteSettings } from "@/lib/settings";
 import AdminInvoicesClient from "./AdminInvoicesClient";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
   title: "Tax Invoices & Billing | AL-GAFUR Admin",
@@ -11,6 +12,8 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminInvoicesPage() {
+  const { allowed, session } = await verifyModuleAccess("invoices");
+  if (!allowed) return <AccessDeniedView moduleKey="invoices" session={session} />;
   let invoices: any[] = [];
   let bookings: any[] = [];
   let siteSettings: Record<string, string> = {};

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import prisma from "@/lib/db";
 import LeadDetailClient from "./LeadDetailClient";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const revalidate = 0;
 
@@ -9,6 +10,8 @@ export default async function LeadDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { allowed, session } = await verifyModuleAccess("leads");
+  if (!allowed) return <AccessDeniedView moduleKey="leads" session={session} />;
   const resolvedParams = await params;
   const lead = await prisma.lead.findUnique({
     where: { id: resolvedParams.id },

@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { getSession } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
-import { requireAuth } from "@/lib/api-auth";
+import { requireSuperAdmin } from "@/lib/api-auth";
+import {
+  normalizePermissionList,
+  resolveUserPermissions,
+} from "@/lib/rbac";
+import { ensureInitialRolesSeeded } from "@/lib/rbac-server";
 import bcrypt from "bcryptjs";
 
 export async function GET(req: NextRequest) {
   try {
-    // Security: only users with manage:users permission can list staff
-    const auth = await requireAuth(req, "manage:users");
+    const auth = await requireSuperAdmin(req);
     if (!auth.authorized) return auth.response;
+
+    await ensureInitialRolesSeeded();
 
     const users = await prisma.user.findMany({
       select: {
@@ -17,77 +22,182 @@ export async function GET(req: NextRequest) {
         name: true,
         email: true,
         role: true,
+        roleId: true,
+        permissions: true,
         phone: true,
         status: true,
         lastLogin: true,
         createdAt: true,
+        customRole: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            permissions: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ success: true, users });
+    const formatted = users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      roleId: u.roleId,
+      roleName:
+        u.role === "SUPER_ADMIN"
+          ? "Super Admin"
+          : u.customRole?.name || u.role.replace(/_/g, " "),
+      phone: u.phone,
+      status: u.status,
+      permissions: resolveUserPermissions(u),
+      lastLogin: u.lastLogin,
+      createdAt: u.createdAt,
+    }));
+
+    return NextResponse.json({ success: true, users: formatted });
   } catch (error: unknown) {
-    const errorMsg = error instanceof Error ? error.message : "Internal Server Error";
+    const errorMsg =
+      error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // Security: only SUPER_ADMIN or ADMIN can create users
-    const auth = await requireAuth(req, "manage:users");
+    const auth = await requireSuperAdmin(req);
     if (!auth.authorized) return auth.response;
     const session = auth.session;
 
-    // Only SUPER_ADMIN can create other SUPER_ADMIN accounts
     const body = await req.json();
-    const { name, email, password, role, phone } = body;
+    const {
+      name,
+      email,
+      password,
+      phone,
+      status = "ACTIVE",
+      roleId,
+      role,
+      createNewRole,
+      newRoleName,
+      newRoleDescription,
+      permissions,
+    } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "Name, email, and password are required" },
+        { error: "Name, email, and password are required." },
         { status: 400 }
       );
     }
 
-    // Prevent privilege escalation: non-SUPER_ADMIN cannot create SUPER_ADMIN
-    if (role === "SUPER_ADMIN" && session.role !== "SUPER_ADMIN") {
+    if (String(password).length < 6) {
       return NextResponse.json(
-        { error: "Only a SUPER_ADMIN can create another SUPER_ADMIN account." },
-        { status: 403 }
+        { error: "Password must be at least 6 characters long." },
+        { status: 400 }
       );
     }
 
+    const cleanEmail = String(email).toLowerCase().trim();
     const existing = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: cleanEmail },
     });
 
     if (existing) {
       return NextResponse.json(
-        { error: "User with this email already exists" },
+        { error: "A user with this email already exists." },
         { status: 400 }
       );
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const rawPerms: string[] = Array.isArray(permissions) ? permissions : [];
+    const normalizedPermissions = normalizePermissionList(
+      rawPerms.filter((p) => p !== "*")
+    );
+
+    let assignedRoleId: string | null = roleId || null;
+    let assignedRoleCode: string = role || "CUSTOM_STAFF";
+    let createdCustomRole: {
+      id: string;
+      name: string;
+      code: string;
+      description: string | null;
+      permissions: string[];
+    } | null = null;
+
+    if (assignedRoleCode === "SUPER_ADMIN") {
+      assignedRoleId = null;
+    } else if (createNewRole && newRoleName && String(newRoleName).trim()) {
+      const cleanRoleName = String(newRoleName).trim();
+      const generatedCode = cleanRoleName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 50);
+
+      const existingRole = await prisma.customRole.findFirst({
+        where: {
+          OR: [
+            { name: { equals: cleanRoleName, mode: "insensitive" } },
+            { code: { equals: generatedCode, mode: "insensitive" } },
+          ],
+        },
+      });
+
+      if (existingRole) {
+        assignedRoleId = existingRole.id;
+        assignedRoleCode = existingRole.code;
+      } else {
+        const newRoleRecord = await prisma.customRole.create({
+          data: {
+            name: cleanRoleName,
+            code: generatedCode || `ROLE_${Date.now()}`,
+            description: newRoleDescription ? String(newRoleDescription).trim() : null,
+            permissions: JSON.stringify(normalizedPermissions),
+            isSystem: false,
+          },
+        });
+        assignedRoleId = newRoleRecord.id;
+        assignedRoleCode = newRoleRecord.code;
+        createdCustomRole = {
+          id: newRoleRecord.id,
+          name: newRoleRecord.name,
+          code: newRoleRecord.code,
+          description: newRoleRecord.description,
+          permissions: normalizedPermissions,
+        };
+      }
+    } else if (assignedRoleId) {
+      const foundRole = await prisma.customRole.findUnique({
+        where: { id: assignedRoleId },
+      });
+      if (foundRole) {
+        assignedRoleCode = foundRole.code;
+      }
+    }
+
+    const passwordHash = await bcrypt.hash(String(password), 10);
 
     const user = await prisma.user.create({
       data: {
-        name,
-        email: email.toLowerCase(),
+        name: String(name).trim(),
+        email: cleanEmail,
         passwordHash,
-        role: role || "SALES_EXECUTIVE",
-        phone: phone || null,
-        status: "ACTIVE",
+        role: assignedRoleCode,
+        roleId: assignedRoleId,
+        permissions:
+          assignedRoleCode === "SUPER_ADMIN"
+            ? null
+            : JSON.stringify(normalizedPermissions),
+        phone: phone ? String(phone).trim() : null,
+        status: status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phone: true,
-        status: true,
-        createdAt: true,
+      include: {
+        customRole: {
+          select: { id: true, name: true, code: true, permissions: true },
+        },
       },
     });
 
@@ -96,12 +206,37 @@ export async function POST(req: NextRequest) {
       action: "CREATE_USER",
       entity: "User",
       entityId: user.id,
-      details: { email: user.email, role: user.role },
+      details: {
+        email: user.email,
+        role: user.role,
+        roleName: user.customRole?.name || user.role,
+        permissionCount: normalizedPermissions.length,
+      },
     });
 
-    return NextResponse.json({ success: true, user });
+    return NextResponse.json({
+      success: true,
+      createdCustomRole,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        roleId: user.roleId,
+        roleName:
+          user.role === "SUPER_ADMIN"
+            ? "Super Admin"
+            : user.customRole?.name || user.role.replace(/_/g, " "),
+        phone: user.phone,
+        status: user.status,
+        permissions: resolveUserPermissions(user),
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+      },
+    });
   } catch (error: unknown) {
-    const errorMsg = error instanceof Error ? error.message : "Internal Server Error";
+    const errorMsg =
+      error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }

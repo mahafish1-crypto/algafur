@@ -1,6 +1,7 @@
 import React from "react";
 import prisma from "@/lib/db";
 import AdminMediaClient from "./AdminMediaClient";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
   title: "Media Asset Library | AL-GAFUR Admin",
@@ -8,6 +9,8 @@ export const metadata = {
 };
 
 export default async function AdminMediaPage() {
+  const { allowed, session } = await verifyModuleAccess("media");
+  if (!allowed) return <AccessDeniedView moduleKey="media" session={session} />;
   let media = await prisma.media.findMany({
     orderBy: { createdAt: "desc" },
   });

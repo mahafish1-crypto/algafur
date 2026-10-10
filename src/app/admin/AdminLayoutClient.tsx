@@ -4,7 +4,12 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import BrandLogo from "@/components/brand/BrandLogo";
-import { hasPermission, Permission } from "@/lib/rbac";
+import {
+  hasUserPermission,
+  getModuleForAdminPath,
+  ModuleKey,
+  MODULES_CONFIG,
+} from "@/lib/rbac";
 import {
   LayoutDashboard,
   Users,
@@ -26,16 +31,37 @@ import {
   Menu,
   X,
   LogOut,
-  ChevronDown,
   Calendar,
-  CheckCircle2,
+  ShieldAlert,
+  Lock,
+  ArrowLeft,
+  Receipt,
+  FileSpreadsheet,
 } from "lucide-react";
 
 interface AdminLayoutClientProps {
   children: React.ReactNode;
-  session: any;
-  initialNotifications: any[];
+  session: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    roleName?: string;
+    permissions?: string[];
+  };
+  initialNotifications: Array<{
+    id: string;
+    title: string;
+    message: string;
+  }>;
   siteLogo?: string;
+}
+
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  moduleKey: ModuleKey;
 }
 
 export default function AdminLayoutClient({
@@ -57,82 +83,65 @@ export default function AdminLayoutClient({
     router.refresh();
   };
 
-  interface NavItem {
-    name: string;
-    href: string;
-    icon: any;
-    permission?: Permission;
-  }
-
-  interface NavGroup {
-    title: string;
-    items: NavItem[];
-  }
-
-  const rawNavGroups: NavGroup[] = [
-    {
-      title: "Core Operations",
-      items: [
-        { name: "Dashboard", href: "/admin", icon: LayoutDashboard, permission: "view:dashboard" },
-        { name: "Leads Pipeline", href: "/admin/crm/leads", icon: Users, permission: "view:leads" },
-        { name: "Customers Base", href: "/admin/customers", icon: UserCheck, permission: "view:customers" },
-        { name: "Follow-ups & Tasks", href: "/admin/crm/followups", icon: Calendar, permission: "view:leads" },
-      ],
-    },
-    {
-      title: "Bookings & Travel",
-      items: [
-        { name: "All Bookings", href: "/admin/bookings", icon: Compass, permission: "view:bookings" },
-        { name: "Departure Groups", href: "/admin/bookings/groups", icon: Users, permission: "manage:departure_groups" },
-        { name: "Packages Catalog", href: "/admin/packages", icon: FileText, permission: "view:packages" },
-        { name: "Hotels Inventory", href: "/admin/travel/hotels", icon: Building, permission: "manage:hotels" },
-        { name: "Flights & PNRs", href: "/admin/travel/flights", icon: Plane, permission: "manage:flights" },
-      ],
-    },
-    {
-      title: "Compliance & Visas",
-      items: [
-        { name: "Document Verification", href: "/admin/documents", icon: FileCheck, permission: "manage:documents" },
-        { name: "Visa Processing Desk", href: "/admin/visa", icon: ShieldCheck, permission: "manage:visas" },
-      ],
-    },
-    {
-      title: "Accounts & Revenue",
-      items: [
-        { name: "Payments & Receipts", href: "/admin/payments", icon: CreditCard, permission: "view:payments" },
-        { name: "Quotation Generator", href: "/admin/quotations", icon: FileText, permission: "view:quotations" },
-        { name: "Invoices & Billing", href: "/admin/invoices", icon: FileText, permission: "view:invoices" },
-        { name: "Reports & Analytics", href: "/admin/reports", icon: BarChart3, permission: "view:reports" },
-      ],
-    },
-    {
-      title: "AI Growth Studio",
-      items: [
-        { name: "AI Poster Generator", href: "/admin/ai-studio/image-generator", icon: Sparkles, permission: "manage:ai_studio" },
-        { name: "AI Content & Ads", href: "/admin/ai-studio/content-generator", icon: FileText, permission: "manage:ai_studio" },
-        { name: "Media Assets Library", href: "/admin/media", icon: ImageIcon, permission: "manage:media" },
-      ],
-    },
-    {
-      title: "System & Governance",
-      items: [
-        { name: "User Management & RBAC", href: "/admin/users", icon: UserCheck, permission: "manage:users" },
-        { name: "Security Audit Logs", href: "/admin/audit-logs", icon: History, permission: "view:audit_logs" },
-        { name: "System Settings", href: "/admin/settings", icon: Settings, permission: "manage:settings" },
-      ],
-    },
+  const allNavItems: NavItem[] = [
+    { name: "Dashboard", href: "/admin", icon: LayoutDashboard, moduleKey: "dashboard" },
+    { name: "Leads (CRM)", href: "/admin/crm/leads", icon: Users, moduleKey: "leads" },
+    { name: "Customers", href: "/admin/customers", icon: UserCheck, moduleKey: "customers" },
+    { name: "Follow-Ups", href: "/admin/crm/followups", icon: Calendar, moduleKey: "followups" },
+    { name: "Bookings", href: "/admin/bookings", icon: Compass, moduleKey: "bookings" },
+    { name: "Departure Groups", href: "/admin/bookings/groups", icon: Users, moduleKey: "departure_groups" },
+    { name: "Packages", href: "/admin/packages", icon: FileText, moduleKey: "packages" },
+    { name: "Hotels", href: "/admin/travel/hotels", icon: Building, moduleKey: "hotels" },
+    { name: "Flights", href: "/admin/travel/flights", icon: Plane, moduleKey: "flights" },
+    { name: "Document KYC", href: "/admin/documents", icon: FileCheck, moduleKey: "documents" },
+    { name: "Visa Processing", href: "/admin/visa", icon: ShieldCheck, moduleKey: "visas" },
+    { name: "Payments", href: "/admin/payments", icon: CreditCard, moduleKey: "payments" },
+    { name: "Quotations", href: "/admin/quotations", icon: FileSpreadsheet, moduleKey: "quotations" },
+    { name: "Invoices", href: "/admin/invoices", icon: Receipt, moduleKey: "invoices" },
+    { name: "Reports", href: "/admin/reports", icon: BarChart3, moduleKey: "reports" },
+    { name: "AI Poster Studio", href: "/admin/ai-studio/image-generator", icon: Sparkles, moduleKey: "ai_studio" },
+    { name: "AI Content Studio", href: "/admin/ai-studio/content-generator", icon: FileText, moduleKey: "ai_studio" },
+    { name: "Media Asset Library", href: "/admin/media", icon: ImageIcon, moduleKey: "media" },
+    { name: "Site Settings", href: "/admin/settings", icon: Settings, moduleKey: "settings" },
+    { name: "Audit Logs", href: "/admin/audit-logs", icon: History, moduleKey: "audit_logs" },
+    { name: "User & Role Access", href: "/admin/users", icon: UserCheck, moduleKey: "users" },
   ];
 
-  // Filter groups and items based on current session role
-  const navGroups = rawNavGroups
-    .map((group) => ({
-      ...group,
-      items: group.items.filter(
-        (item) => !item.permission || hasPermission(session.role, item.permission)
-      ),
-    }))
-    .filter((group) => group.items.length > 0);
+  // Filter items strictly by the user's live resolved module permissions
+  const authorizedNavItems = allNavItems.filter((item) => {
+    if (item.moduleKey === "users") {
+      return (
+        session.role === "SUPER_ADMIN" ||
+        hasUserPermission(session, "users:view")
+      );
+    }
+    return hasUserPermission(session, `${item.moduleKey}:view`);
+  });
 
+  // Search filtering over authorized modules
+  const searchMatchingModules = searchQuery.trim()
+    ? authorizedNavItems.filter((it) =>
+        it.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
+      )
+    : [];
+
+  // Route-level permission check for direct URL access
+  const currentModuleKey = getModuleForAdminPath(pathname);
+  const isRouteAllowed =
+    !currentModuleKey ||
+    currentModuleKey === "dashboard" ||
+    (currentModuleKey === "users"
+      ? session.role === "SUPER_ADMIN" || hasUserPermission(session, "users:view")
+      : hasUserPermission(session, `${currentModuleKey}:view`));
+
+  const currentModuleDef = currentModuleKey
+    ? MODULES_CONFIG.find((m) => m.key === currentModuleKey)
+    : null;
+
+  const displayRoleLabel =
+    session.role === "SUPER_ADMIN"
+      ? "Super Admin"
+      : session.roleName || session.role.replace(/_/g, " ");
 
   return (
     <div className="flex min-h-screen bg-slate-900 text-slate-100">
@@ -143,35 +152,42 @@ export default function AdminLayoutClient({
           <BrandLogo variant="light" size="sm" href="/admin" customLogoUrl={siteLogo} />
         </div>
 
-        {/* Navigation Items */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-          {navGroups.map((group, gIdx) => (
-            <div key={gIdx} className="space-y-1">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3">
-                {group.title}
-              </span>
-              <div className="space-y-0.5 mt-1">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                        isActive
-                          ? "bg-emerald-800 text-gold-300 font-bold border border-gold-500/30"
-                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                      }`}
-                    >
-                      <Icon className={`w-4 h-4 ${isActive ? "text-gold-400" : "text-slate-400"}`} />
-                      <span>{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        {/* Authorized Navigation Items (No Fixed Department Roles) */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+          <div className="px-3 pb-2 flex items-center justify-between">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+              Authorized Modules
+            </span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-900 text-gold-400 border border-slate-800">
+              {authorizedNavItems.length}
+            </span>
+          </div>
+
+          {authorizedNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.href === "/admin"
+                ? pathname === "/admin"
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  isActive
+                    ? "bg-emerald-800 text-gold-300 font-bold border border-gold-500/30 shadow-sm"
+                    : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
+              >
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${
+                    isActive ? "text-gold-400" : "text-slate-400"
+                  }`}
+                />
+                <span className="truncate">{item.name}</span>
+              </Link>
+            );
+          })}
         </div>
 
         {/* User Card at bottom */}
@@ -181,8 +197,12 @@ export default function AdminLayoutClient({
               {session.name?.charAt(0) || "U"}
             </div>
             <div className="overflow-hidden">
-              <span className="text-xs font-bold text-white block truncate">{session.name}</span>
-              <span className="text-[10px] text-gold-400 block truncate">{session.role}</span>
+              <span className="text-xs font-bold text-white block truncate">
+                {session.name}
+              </span>
+              <span className="text-[10px] text-gold-400 block truncate">
+                {displayRoleLabel}
+              </span>
             </div>
           </div>
           <button
@@ -207,16 +227,37 @@ export default function AdminLayoutClient({
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Global Search */}
+            {/* Quick Authorized Module Search */}
             <div className="relative hidden sm:block w-72">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search leads, bookings, travellers..."
+                placeholder="Jump to authorized module..."
                 className="w-full text-xs pl-8 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-600"
               />
+              {searchQuery.trim() !== "" && (
+                <div className="absolute left-0 right-0 mt-1.5 bg-slate-950 border border-slate-800 rounded-xl shadow-2xl overflow-hidden z-50">
+                  {searchMatchingModules.length === 0 ? (
+                    <div className="px-3 py-2.5 text-xs text-slate-400">
+                      No matching authorized modules
+                    </div>
+                  ) : (
+                    searchMatchingModules.map((mod) => (
+                      <Link
+                        key={mod.href}
+                        href={mod.href}
+                        onClick={() => setSearchQuery("")}
+                        className="flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 transition-colors"
+                      >
+                        <mod.icon className="w-3.5 h-3.5 text-gold-400" />
+                        <span>{mod.name}</span>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -253,12 +294,21 @@ export default function AdminLayoutClient({
 
                   <div className="space-y-2">
                     {initialNotifications.length === 0 ? (
-                      <p className="text-xs text-slate-400 text-center py-4">No unread notifications.</p>
+                      <p className="text-xs text-slate-400 text-center py-4">
+                        No unread notifications.
+                      </p>
                     ) : (
                       initialNotifications.map((n) => (
-                        <div key={n.id} className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1">
-                          <span className="font-semibold text-white block">{n.title}</span>
-                          <p className="text-[11px] text-slate-400 leading-tight">{n.message}</p>
+                        <div
+                          key={n.id}
+                          className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1"
+                        >
+                          <span className="font-semibold text-white block">
+                            {n.title}
+                          </span>
+                          <p className="text-[11px] text-slate-400 leading-tight">
+                            {n.message}
+                          </p>
                         </div>
                       ))
                     )}
@@ -267,15 +317,67 @@ export default function AdminLayoutClient({
               )}
             </div>
 
-            {/* Role Badge */}
+            {/* Assigned Role Badge */}
             <span className="hidden sm:inline-block text-[10px] font-extrabold uppercase bg-gold-500/20 text-gold-300 border border-gold-500/30 px-2.5 py-1 rounded-full">
-              {session.role.replace("_", " ")}
+              {displayRoleLabel}
             </span>
           </div>
         </header>
 
         {/* Page Content Body */}
-        <main className="flex-1 p-4 sm:p-8 bg-slate-900 overflow-y-auto">{children}</main>
+        <main className="flex-1 p-4 sm:p-8 bg-slate-900 overflow-y-auto">
+          {isRouteAllowed ? (
+            children
+          ) : (
+            <div className="min-h-[65vh] flex items-center justify-center p-6">
+              <div className="max-w-lg w-full bg-white rounded-3xl border border-slate-200 shadow-lg p-8 text-center text-slate-800">
+                <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto mb-5 text-rose-600">
+                  <ShieldAlert className="w-8 h-8" />
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-[11px] font-bold uppercase tracking-wider mb-3">
+                  <Lock className="w-3 h-3" /> Restricted Module
+                </div>
+                <h2 className="text-2xl font-serif font-bold text-[#0D3B2E] mb-2">
+                  Access Restricted
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed mb-6">
+                  Your account (<span className="font-semibold text-slate-900">{session.email}</span>) does not have permission to access{" "}
+                  <span className="font-semibold text-[#0D3B2E]">
+                    {currentModuleDef?.label || currentModuleKey}
+                  </span>
+                  . Only modules enabled for your role by Super Admin are accessible.
+                </p>
+
+                {authorizedNavItems.length > 0 && (
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-6 text-left">
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2.5">
+                      Your Authorized Modules ({authorizedNavItems.length})
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {authorizedNavItems.map((m) => (
+                        <Link
+                          key={m.href}
+                          href={m.href}
+                          className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#0D3B2E] hover:border-emerald-600 transition-colors"
+                        >
+                          {m.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Link
+                  href={authorizedNavItems[0]?.href || "/admin"}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0D3B2E] text-white text-sm font-bold hover:bg-[#175241] transition-colors shadow-sm"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Return to Authorized Workspace
+                </Link>
+              </div>
+            </div>
+          )}
+        </main>
       </div>
 
       {/* Mobile Drawer */}
@@ -293,24 +395,20 @@ export default function AdminLayoutClient({
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {navGroups.map((group, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                      {group.title}
-                    </span>
-                    {group.items.map((it) => (
-                      <Link
-                        key={it.href}
-                        href={it.href}
-                        onClick={() => setSidebarOpen(false)}
-                        className="flex items-center gap-2 py-2 px-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-900"
-                      >
-                        <it.icon className="w-3.5 h-3.5 text-gold-400" />
-                        <span>{it.name}</span>
-                      </Link>
-                    ))}
-                  </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500 block pb-1">
+                  Authorized Modules
+                </span>
+                {authorizedNavItems.map((it) => (
+                  <Link
+                    key={it.href}
+                    href={it.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center gap-2.5 py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-900"
+                  >
+                    <it.icon className="w-4 h-4 text-gold-400" />
+                    <span>{it.name}</span>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -328,4 +426,3 @@ export default function AdminLayoutClient({
     </div>
   );
 }
-

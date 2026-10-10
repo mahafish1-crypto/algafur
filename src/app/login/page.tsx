@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import BrandLogo from "@/components/brand/BrandLogo";
-import { Lock, Mail, ArrowRight, ShieldCheck, UserCheck, AlertCircle } from "lucide-react";
+import { Lock, Mail, ShieldCheck, UserCheck, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,8 +29,9 @@ export default function LoginPage() {
         throw new Error(data.error || "Authentication failed");
       }
 
-      // Route according to role
-      if (data.user.role === "CUSTOMER") {
+      if (data.redirectTo) {
+        router.push(data.redirectTo);
+      } else if (data.user.role === "CUSTOMER") {
         router.push("/customer/dashboard");
       } else if (data.user.role === "AGENT") {
         router.push("/agent/dashboard");
@@ -46,12 +47,6 @@ export default function LoginPage() {
     }
   };
 
-  // 1-Click Demo Fill
-  const fillCredentials = (roleEmail: string) => {
-    setEmail(roleEmail);
-    setPassword("Admin@123456");
-  };
-
   return (
     <div className="min-h-screen bg-forest-950 flex flex-col justify-center items-center p-4 sm:p-8 relative overflow-hidden">
       {/* Background Glow */}
@@ -64,7 +59,7 @@ export default function LoginPage() {
             Al-Gafur Unified Portal
           </h2>
           <p className="text-xs text-emerald-200/70">
-            Sign in to access your administrative workspace or pilgrim profile.
+            Sign in with your assigned credentials to access your authorized workspace.
           </p>
         </div>
 
@@ -122,62 +117,12 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Role Switcher */}
-          <div className="pt-4 border-t border-white/10 space-y-2">
-            <span className="text-[11px] font-bold text-gold-400 block uppercase tracking-wide">
-              Quick Demo Login:
-            </span>
-            <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-              <button
-                type="button"
-                onClick={() => fillCredentials("admin@algafurtours.com")}
-                className="p-1.5 rounded-lg bg-forest-950 text-emerald-200 hover:bg-forest-800 border border-white/5 text-left truncate"
-              >
-                👑 Super Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials("sales@algafurtours.com")}
-                className="p-1.5 rounded-lg bg-forest-950 text-emerald-200 hover:bg-forest-800 border border-white/5 text-left truncate"
-              >
-                💼 Sales Lead
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials("visa@algafurtours.com")}
-                className="p-1.5 rounded-lg bg-forest-950 text-emerald-200 hover:bg-forest-800 border border-white/5 text-left truncate"
-              >
-                🛂 Visa Desk
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials("accounts@algafurtours.com")}
-                className="p-1.5 rounded-lg bg-forest-950 text-emerald-200 hover:bg-forest-800 border border-white/5 text-left truncate"
-              >
-                💳 Accounts
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials("agent@algafurtours.com")}
-                className="p-1.5 rounded-lg bg-forest-950 text-emerald-200 hover:bg-forest-800 border border-white/5 text-left truncate"
-              >
-                🤝 Partner Agent
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials("customer@algafurtours.com")}
-                className="p-1.5 rounded-lg bg-forest-950 text-emerald-200 hover:bg-forest-800 border border-white/5 text-left truncate"
-              >
-                🕋 Pilgrim Portal
-              </button>
-            </div>
-            <p className="text-[10px] text-emerald-300/60 pt-1 text-center">
-              Password for all accounts: <code>Admin@123456</code>
-            </p>
+          <div className="pt-4 border-t border-white/10 flex items-center justify-center gap-2 text-[11px] text-emerald-200/60">
+            <ShieldCheck className="w-3.5 h-3.5 text-gold-400" />
+            <span>Staff accounts and module permissions are managed by Super Admin</span>
           </div>
         </div>
       </div>
     </div>
   );
 }
-

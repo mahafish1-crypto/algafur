@@ -1,9 +1,12 @@
 import prisma from "@/lib/db";
 import AdminDocumentsClient from "./AdminDocumentsClient";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const revalidate = 0;
 
 export default async function AdminDocumentsPage() {
+  const { allowed, session } = await verifyModuleAccess("documents");
+  if (!allowed) return <AccessDeniedView moduleKey="documents" session={session} />;
   const documents = await prisma.document.findMany({
     include: {
       customer: true,

@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(req, "manage:visas");
+    const auth = await requireAuth(req, "visas:view");
     if (!auth.authorized) return auth.response;
 
     const resolvedParams = await params;
@@ -42,7 +42,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(req, "manage:visas");
+    const auth = await requireAuth(req, ["visas:edit", "visas:approve"]);
     if (!auth.authorized) return auth.response;
     const session = auth.session;
 
@@ -111,7 +111,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(req, "manage:visas");
+    const auth = await requireAuth(req, "visas:delete");
     if (!auth.authorized) return auth.response;
     const session = auth.session;
 

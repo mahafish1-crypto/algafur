@@ -1,6 +1,7 @@
 import React from "react";
 import prisma from "@/lib/db";
 import AdminReportsClient from "./AdminReportsClient";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
   title: "Reports & Financial Analytics | AL-GAFUR Admin",
@@ -8,6 +9,8 @@ export const metadata = {
 };
 
 export default async function AdminReportsPage() {
+  const { allowed, session } = await verifyModuleAccess("reports");
+  if (!allowed) return <AccessDeniedView moduleKey="reports" session={session} />;
   const [bookings, payments, packages, leads] = await Promise.all([
     prisma.booking.findMany({
       include: {

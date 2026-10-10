@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth(req, "manage:leads");
+    const auth = await requireAuth(req, ["followups:create", "leads:create", "manage:leads"]);
     if (!auth.authorized) return auth.response;
     const session = auth.session;
 
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const auth = await requireAuth(req, "manage:leads");
+    const auth = await requireAuth(req, ["followups:edit", "leads:edit", "manage:leads"]);
     if (!auth.authorized) return auth.response;
 
     const { id, status } = await req.json();

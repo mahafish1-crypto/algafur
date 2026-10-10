@@ -8,7 +8,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAuth(req, "verify:documents");
+    const auth = await requireAuth(req, ["documents:approve", "documents:edit"]);
     if (!auth.authorized) return auth.response;
     const session = auth.session;
 

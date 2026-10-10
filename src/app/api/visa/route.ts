@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/api-auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = await requireAuth(req, "manage:visas");
+    const auth = await requireAuth(req, "visas:view");
     if (!auth.authorized) return auth.response;
 
     const searchParams = req.nextUrl.searchParams;
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth(req, "manage:visas");
+    const auth = await requireAuth(req, ["visas:create", "visas:edit"]);
     if (!auth.authorized) return auth.response;
     const session = auth.session;
 

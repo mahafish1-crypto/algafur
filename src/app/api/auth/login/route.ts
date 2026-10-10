@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { verifyPassword, setSessionCookie } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { resolveUserPermissions, getAuthorizedModules } from "@/lib/rbac";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(req: NextRequest) {
       where: { email: cleanEmail },
       include: {
         agentProfile: { select: { id: true, agentCode: true } },
+        customRole: { select: { id: true, name: true, code: true, permissions: true } },
       },
     });
 
@@ -64,12 +66,34 @@ export async function POST(req: NextRequest) {
       customerId = cust?.id || null;
     }
 
+    const resolvedPermissions = resolveUserPermissions(user);
+    const authorizedModules = getAuthorizedModules({
+      role: user.role,
+      permissions: resolvedPermissions,
+    });
+
+    // Determine best landing route
+    let redirectTo = "/admin";
+    if (user.role === "CUSTOMER") {
+      redirectTo = "/customer/dashboard";
+    } else if (user.role === "AGENT" && authorizedModules.length === 0) {
+      redirectTo = "/agent/dashboard";
+    } else if (
+      authorizedModules.length > 0 &&
+      !authorizedModules.some((m) => m.key === "dashboard")
+    ) {
+      redirectTo = authorizedModules[0].href;
+    }
+
     // Set Session Cookie
     await setSessionCookie({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
+      roleName: user.customRole?.name || user.role,
+      roleId: user.roleId,
+      permissions: resolvedPermissions,
       agentId: user.agentProfile?.id || null,
       customerId,
     });
@@ -90,11 +114,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      redirectTo,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
+        roleName: user.customRole?.name || user.role,
+        permissions: resolvedPermissions,
         agentId: user.agentProfile?.id || null,
         customerId,
       },
@@ -104,4 +131,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-
