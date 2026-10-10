@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
-import { Search, SlidersHorizontal, Scale, X, Check, CheckCircle2, Building, Clock, IndianRupee } from "lucide-react";
+import { Search, Scale, X } from "lucide-react";
 import Link from "next/link";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface PackagesClientViewProps {
   initialPackages: any[];
 }
 
 export default function PackagesClientView({ initialPackages }: PackagesClientViewProps) {
+  const { t, formatPrice } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("ALL");
   const [selectedDuration, setSelectedDuration] = useState("ALL");
@@ -18,6 +21,13 @@ export default function PackagesClientView({ initialPackages }: PackagesClientVi
   // Comparison State (Max 3 packages)
   const [compareList, setCompareList] = useState<string[]>([]);
   const [compareModalOpen, setCompareModalOpen] = useState(false);
+
+  useEffect(() => {
+    trackAnalyticsEvent({
+      eventType: "PACKAGE_LIST_VIEW",
+      sourcePage: "/packages",
+    });
+  }, []);
 
   const toggleCompare = (slug: string) => {
     if (compareList.includes(slug)) {

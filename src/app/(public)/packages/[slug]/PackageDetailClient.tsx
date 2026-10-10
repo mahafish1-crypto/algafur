@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -11,7 +11,6 @@ import {
   Plane,
   ShieldCheck,
   Utensils,
-  Bus,
   CheckCircle2,
   XCircle,
   Users,
@@ -20,14 +19,13 @@ import {
   Phone,
   ChevronRight,
   Sparkles,
-  Info,
   FileText,
-  HelpCircle,
-  Share2,
 } from "lucide-react";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface PackageDetailClientProps {
   pkg: any;
@@ -40,7 +38,21 @@ export default function PackageDetailClient({
   relatedPackages,
   settings = {},
 }: PackageDetailClientProps) {
+  const { t, formatPrice, language } = useLanguage();
   const [selectedRoom, setSelectedRoom] = useState<"QUAD" | "TRIPLE" | "DOUBLE">("QUAD");
+
+  useEffect(() => {
+    if (pkg?.id) {
+      trackAnalyticsEvent({
+        eventType: "PACKAGE_VIEW",
+        packageId: pkg.id,
+        packageSlug: pkg.slug,
+        packageTitle: pkg.name,
+        sourcePage: `/packages/${pkg.slug}`,
+        language,
+      });
+    }
+  }, [pkg?.id, pkg?.slug, pkg?.name, language]);
 
   const roomPrices = {
     QUAD: pkg.priceQuad || pkg.basePrice,
@@ -576,11 +588,25 @@ export default function PackageDetailClient({
         </div>
       </div>
 
-      {/* 4. Related Packages */}
+      {/* 4. Direct Package Inquiry Form */}
+      <LeadEnquiryForm
+        defaultPackage={pkg.name}
+        defaultPackageId={pkg.id}
+        packages={[pkg, ...relatedPackages].map((p) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          type: p.type,
+        }))}
+        settings={settings}
+        sourcePage={`/packages/${pkg.slug}`}
+      />
+
+      {/* 5. Related Packages */}
       {relatedPackages.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-8 pt-10 pb-16">
           <h2 className="text-2xl font-serif font-bold text-forest-950 mb-6">
-            Other Popular Departures
+            {t("detail_related")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {relatedPackages.map((p) => (

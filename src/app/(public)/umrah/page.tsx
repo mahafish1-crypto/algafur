@@ -1,8 +1,11 @@
 import React from "react";
-import prisma from "@/lib/db";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
 import PosterSpotlight from "@/components/home/PosterSpotlight";
+import { getPublishedPackagesCatalog } from "@/lib/packages-data";
+import { getSiteSettings } from "@/lib/settings";
+
+export const revalidate = 60;
 
 export const metadata = {
   title: "Umrah Packages 2026 / 1448 Hijri | Al-Gafur International Tours And Travels",
@@ -10,11 +13,11 @@ export const metadata = {
 };
 
 export default async function UmrahPage() {
-  const packages = await prisma.package.findMany({
-    where: { type: "UMRAH", status: "PUBLISHED" },
-    orderBy: { createdAt: "desc" },
-  });
-
+  const [allPackages, settings] = await Promise.all([
+    getPublishedPackagesCatalog().catch(() => []),
+    getSiteSettings(),
+  ]);
+  const packages = allPackages.filter((p) => p.type === "UMRAH");
   const featured = packages.find((p) => p.slug === "umrah-platinum-package-2026") || packages[0];
 
   return (
@@ -39,10 +42,16 @@ export default async function UmrahPage() {
         </div>
       </div>
 
-      <PosterSpotlight packageData={featured} />
+      <PosterSpotlight packageData={featured} settings={settings} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-8">
-        <LeadEnquiryForm defaultPackage="Umrah Platinum Package (20 Days)" />
+        <LeadEnquiryForm
+          defaultPackage={featured?.name || "Umrah Platinum Package (20 Days)"}
+          defaultPackageId={featured?.id}
+          packages={allPackages.map((p) => ({ id: p.id, name: p.name, slug: p.slug, type: p.type }))}
+          settings={settings}
+          sourcePage="/umrah"
+        />
       </div>
     </div>
   );

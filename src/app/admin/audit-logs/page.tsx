@@ -12,6 +12,9 @@ export default async function AdminAuditLogsPage() {
   const { allowed, session } = await verifyModuleAccess("audit_logs");
   if (!allowed) return <AccessDeniedView moduleKey="audit_logs" session={session} />;
   const logs = await prisma.auditLog.findMany({
+    where: {
+      entity: { not: "AnalyticsEvent" },
+    },
     include: {
       user: {
         select: {

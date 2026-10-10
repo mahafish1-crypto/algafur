@@ -1,6 +1,8 @@
 import React from "react";
-import prisma from "@/lib/db";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
+import { getPublishedTestimonials } from "@/lib/packages-data";
+
+export const revalidate = 60;
 
 export const metadata = {
   title: "Pilgrim Testimonials & Reviews | Al-Gafur International Tours And Travels",
@@ -8,9 +10,11 @@ export const metadata = {
 };
 
 export default async function TestimonialsPage() {
+  const testimonials = await getPublishedTestimonials().catch(() => []);
+
   return (
     <div className="bg-ivory-100/50 min-h-screen py-16">
-      <TestimonialsSection />
+      <TestimonialsSection testimonials={testimonials} />
     </div>
   );
 }

@@ -1,7 +1,10 @@
 import React from "react";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
-import { MapPin, Phone, MessageCircle, Mail, Clock } from "lucide-react";
+import { MapPin, Phone, MessageCircle } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
+import { getPublishedPackagesCatalog } from "@/lib/packages-data";
+
+export const revalidate = 60;
 
 export const metadata = {
   title: "Contact Us & Booking Offices | Al-Gafur International Tours And Travels",
@@ -9,7 +12,10 @@ export const metadata = {
 };
 
 export default async function ContactPage() {
-  const settings = await getSiteSettings();
+  const [settings, allPackages] = await Promise.all([
+    getSiteSettings(),
+    getPublishedPackagesCatalog().catch(() => []),
+  ]);
 
   const phone1 = settings.company_phone_1 || "+91 8793939393";
   const phone2 = settings.company_phone_2 || "+91 9890708013";
@@ -43,7 +49,7 @@ export default async function ContactPage() {
             <div className="w-12 h-12 rounded-2xl bg-forest-900 text-gold-400 flex items-center justify-center">
               <MapPin className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-serif font-bold text-forest-950">Pune Booking Office</h3>
+            <h3 className="text-lg font-serif font-bold text-forest-950">Head Office Address</h3>
             <p className="text-xs text-neutral-600 leading-relaxed">
               {address}
             </p>
@@ -106,7 +112,11 @@ export default async function ContactPage() {
         </div>
 
         {/* Lead Form directly hooked into CRM */}
-        <LeadEnquiryForm />
+        <LeadEnquiryForm
+          packages={allPackages.map((p) => ({ id: p.id, name: p.name, slug: p.slug, type: p.type }))}
+          settings={settings}
+          sourcePage="/contact"
+        />
       </div>
     </div>
   );

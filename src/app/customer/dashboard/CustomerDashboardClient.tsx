@@ -24,11 +24,13 @@ import {
 interface CustomerDashboardClientProps {
   session: any;
   customer: any;
+  leads?: any[];
 }
 
 export default function CustomerDashboardClient({
   session,
   customer,
+  leads = [],
 }: CustomerDashboardClientProps) {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
@@ -400,6 +402,74 @@ export default function CustomerDashboardClient({
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Submitted Inquiries & Leads Section */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200 shadow-sm space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-neutral-100">
+            <div>
+              <h2 className="text-lg font-serif font-bold text-forest-950">
+                Submitted Inquiries &amp; Callback Requests ({leads.length})
+              </h2>
+              <p className="text-xs text-neutral-500">
+                View your submitted package inquiries and their advisor follow-up status.
+              </p>
+            </div>
+            <Link
+              href="/contact"
+              className="text-xs font-bold text-emerald-800 hover:text-forest-950 underline"
+            >
+              + Submit New Inquiry
+            </Link>
+          </div>
+
+          {leads.length > 0 ? (
+            <div className="space-y-2.5">
+              {leads.map((lead: any) => (
+                <div
+                  key={lead.id}
+                  className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/70 flex flex-wrap items-center justify-between gap-3 text-xs"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-serif font-bold text-forest-950 text-sm">
+                        {lead.packageInterest || "General Pilgrimage Inquiry"}
+                      </span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-neutral-200 text-neutral-700">
+                        {lead.travellers || 1} Pilgrim(s)
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500">
+                      Submitted on{" "}
+                      {new Date(lead.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}{" "}
+                      • City: {lead.city || "Pune"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                        lead.status === "CONVERTED"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : lead.status === "FOLLOW_UP"
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {lead.status || "NEW"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-neutral-500">
+              No inquiries recorded under your profile yet.
+            </p>
+          )}
         </div>
       </main>
     </div>

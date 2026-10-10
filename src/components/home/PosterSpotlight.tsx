@@ -4,15 +4,14 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Calendar,
   CheckCircle2,
   Sparkles,
   Phone,
   MessageCircle,
-  Clock,
-  Compass,
   ArrowRight,
 } from "lucide-react";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface PosterSpotlightProps {
   packageData?: {
@@ -25,10 +24,14 @@ interface PosterSpotlightProps {
     returnDate: string;
     makkahHotelName: string | null;
     madinahHotelName: string | null;
+    featuredImage?: string | null;
   } | null;
+  settings?: Record<string, string>;
 }
 
-export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
+export default function PosterSpotlight({ packageData, settings = {} }: PosterSpotlightProps) {
+  const { formatPrice } = useLanguage();
+
   const pkg = packageData || {
     slug: "umrah-platinum-package-2026",
     name: "Umrah Platinum Package",
@@ -39,7 +42,15 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
     returnDate: "19 November 2026",
     makkahHotelName: "Diyafa Jamal or similar (500m)",
     madinahHotelName: "Ilaf Kuba or similar (400m)",
+    featuredImage: "/brand/poster.jpg",
   };
+
+  const whatsappNum = settings.whatsapp_number || "919890708013";
+  const phone1 = settings.company_phone_1 || "+91 8793939393";
+  const whatsappHref = buildWhatsAppLink(
+    whatsappNum,
+    `Assalamualaikum, I am interested in ${pkg.name} (${pkg.departureDate}).`
+  );
 
   return (
     <section className="py-20 bg-forest-950 text-white relative overflow-hidden border-y border-gold-500/20">
@@ -54,10 +65,10 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
             <span>Featured Signature Tour</span>
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-white">
-            Upcoming Umrah Platinum Group 2026
+            {pkg.name} ({pkg.year})
           </h2>
           <p className="text-xs sm:text-sm text-emerald-200/70 mt-2">
-            A comprehensive 20-day spiritual transformation under guided scholarship with walking distance stays.
+            A comprehensive {pkg.durationDays}-day spiritual transformation under guided scholarship with walking distance stays.
           </p>
         </div>
 
@@ -67,10 +78,11 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
           <div className="lg:col-span-5 flex justify-center">
             <div className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border-2 border-gold-400/40 group">
               <Image
-                src="/brand/poster.jpg"
-                alt="Al-Gafur Umrah Platinum Package Official Poster"
+                src={pkg.featuredImage || "/brand/poster.jpg"}
+                alt={`${pkg.name} Official Poster`}
                 width={600}
                 height={850}
+                sizes="(max-width: 768px) 100vw, 400px"
                 className="w-full h-auto object-cover group-hover:scale-102 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-forest-950/20 group-hover:bg-transparent transition-colors" />
@@ -87,12 +99,15 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
                 {pkg.durationDays} Days Tour
               </span>
               <span className="text-xs text-amber-300 font-semibold bg-amber-950/60 border border-amber-500/30 px-3 py-1 rounded-md">
-                ₹{pkg.basePrice.toLocaleString("en-IN")}/- Only
+                {formatPrice(pkg.basePrice)}/- Only
               </span>
             </div>
 
             <h3 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-              31 October – 19 November 2026
+              {pkg.departureDate}
+              {pkg.returnDate && !pkg.departureDate.includes(pkg.returnDate)
+                ? ` – ${pkg.returnDate}`
+                : ""}
             </h3>
             <p className="text-xs sm:text-sm text-emerald-100/80 leading-relaxed">
               Departing direct from Mumbai with airport bus transfers for pilgrims across Pune, Ahmednagar, and Aurangabad. Guided with continuous bayans and 5 distinct Umrah pilgrimages.
@@ -125,7 +140,7 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-white">Hafiz Asrar Sahab</div>
-                  <div className="text-[10px] text-emerald-300">International Naat Khwa & Scholar</div>
+                  <div className="text-[10px] text-emerald-300">International Naat Khwa &amp; Scholar</div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -134,7 +149,7 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-white">Hafiz Sameer Madani</div>
-                  <div className="text-[10px] text-emerald-300">Resident Guide & Madinah Specialist</div>
+                  <div className="text-[10px] text-emerald-300">Resident Guide &amp; Madinah Specialist</div>
                 </div>
               </div>
             </div>
@@ -143,11 +158,11 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-emerald-200">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
-                <span>12 Nights Makkah ({pkg.makkahHotelName || "Diyafa Jamal"})</span>
+                <span>Makkah Stay ({pkg.makkahHotelName || "Diyafa Jamal"})</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
-                <span>7 Nights Madinah ({pkg.madinahHotelName || "Ilaf Kuba"})</span>
+                <span>Madinah Stay ({pkg.madinahHotelName || "Ilaf Kuba"})</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
@@ -155,11 +170,11 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
-                <span>Luggage Kit, Cabin Bag, Tasbeeh & Ihram</span>
+                <span>Luggage Kit, Cabin Bag, Tasbeeh &amp; Ihram</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
-                <span>Full Ziyarat in Makkah, Madinah, Badr & Taif</span>
+                <span>Full Ziyarat in Makkah, Madinah, Badr &amp; Taif</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
@@ -173,11 +188,11 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
                 href={`/packages/${pkg.slug}`}
                 className="inline-flex items-center gap-2 text-xs font-bold bg-gold-400 hover:bg-gold-300 text-forest-950 px-5 py-3 rounded-xl transition-all shadow-gold"
               >
-                <span>View Full Itinerary & Book</span>
+                <span>View Full Itinerary &amp; Book</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <a
-                href="https://wa.me/919890708013?text=Assalamualaikum,%20I%20am%20interested%20in%20Umrah%20Platinum%20Package%2031%20Oct%202026."
+                href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-3 rounded-xl transition-all"
@@ -186,11 +201,11 @@ export default function PosterSpotlight({ packageData }: PosterSpotlightProps) {
                 <span>Inquire on WhatsApp</span>
               </a>
               <a
-                href="tel:+918793939393"
+                href={`tel:${phone1.replace(/\s+/g, "")}`}
                 className="inline-flex items-center gap-1.5 text-xs text-gold-300 hover:text-white transition-colors"
               >
                 <Phone className="w-3.5 h-3.5" />
-                <span>+91 8793939393</span>
+                <span>{phone1}</span>
               </a>
             </div>
           </div>

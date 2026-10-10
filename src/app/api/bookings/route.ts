@@ -198,6 +198,22 @@ export async function POST(req: NextRequest) {
       details: { bookingNumber, customer: dbCustomer.name, totalAmount, paidAmount },
     });
 
+    if (body.acceptedTerms) {
+      await logAudit({
+        userId: null,
+        action: "ACCEPT_BOOKING_AGREEMENT",
+        entity: "UserAgreement",
+        entityId: newBooking.id,
+        details: {
+          bookingNumber,
+          customerId: dbCustomer.id,
+          customerName: dbCustomer.name,
+          agreementVersion: body.agreementVersion || "v1.0",
+          acceptedAt: new Date().toISOString(),
+        },
+      });
+    }
+
     try {
       revalidateTag(PACKAGES_CACHE_TAG);
       revalidatePath("/");

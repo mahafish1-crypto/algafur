@@ -1,8 +1,8 @@
 import React from "react";
-import prisma from "@/lib/db";
 import Image from "next/image";
 import Link from "next/link";
-import { Building, MapPin, Star, CheckCircle2, Wifi, Utensils, Coffee } from "lucide-react";
+import { Star } from "lucide-react";
+import { getPublishedHotels } from "@/lib/packages-data";
 
 export const metadata = {
   title: "Hotels in Makkah & Madinah | Al-Gafur International Tours And Travels",
@@ -12,14 +12,10 @@ export const metadata = {
 export const revalidate = 60;
 
 export default async function HotelsPage() {
-  let hotels: any[] = [];
-  try {
-    hotels = await prisma.hotel.findMany({
-      orderBy: { starRating: "desc" },
-    });
-  } catch (err) {
+  const hotels = await getPublishedHotels().catch((err) => {
     console.error("Failed to query hotels:", err);
-  }
+    return [];
+  });
 
   return (
     <div className="bg-ivory-100/50 min-h-screen py-16">
@@ -51,6 +47,7 @@ export default async function HotelsPage() {
                   }
                   alt={h.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
                 <div className="absolute top-3 left-3 bg-forest-950/80 text-gold-300 text-xs font-bold px-3 py-1 rounded-md border border-gold-500/30">

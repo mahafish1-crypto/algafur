@@ -1,8 +1,11 @@
 import React from "react";
-import prisma from "@/lib/db";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
-import { Compass, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { Compass, ShieldCheck, Sparkles } from "lucide-react";
+import { getPublishedPackagesCatalog } from "@/lib/packages-data";
+import { getSiteSettings } from "@/lib/settings";
+
+export const revalidate = 60;
 
 export const metadata = {
   title: "Hajj 1448 / 2027 Registration | Al-Gafur International Tours And Travels",
@@ -10,9 +13,11 @@ export const metadata = {
 };
 
 export default async function HajjPage() {
-  const hajjPackages = await prisma.package.findMany({
-    where: { type: "HAJJ", status: "PUBLISHED" },
-  });
+  const [allPackages, settings] = await Promise.all([
+    getPublishedPackagesCatalog().catch(() => []),
+    getSiteSettings(),
+  ]);
+  const hajjPackages = allPackages.filter((p) => p.type === "HAJJ");
 
   return (
     <div className="bg-ivory-100/50 min-h-screen py-16">
@@ -78,7 +83,13 @@ export default async function HajjPage() {
         </div>
 
         {/* Lead Form */}
-        <LeadEnquiryForm defaultPackage="Executive Hajj 2027" />
+        <LeadEnquiryForm
+          defaultPackage={hajjPackages[0]?.name || "Executive Hajj 2027"}
+          defaultPackageId={hajjPackages[0]?.id}
+          packages={allPackages.map((p) => ({ id: p.id, name: p.name, slug: p.slug, type: p.type }))}
+          settings={settings}
+          sourcePage="/hajj"
+        />
       </div>
     </div>
   );

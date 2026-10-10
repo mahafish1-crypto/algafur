@@ -4,11 +4,22 @@ import React, { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
-export default function FaqSection() {
+export interface FaqItem {
+  id?: string;
+  question: string;
+  answer: string;
+  category?: string;
+}
+
+interface FaqSectionProps {
+  faqs?: FaqItem[];
+}
+
+export default function FaqSection({ faqs: dbFaqs }: FaqSectionProps) {
   const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const faqs = [
+  const defaultFaqs = [
     {
       q: "What is included in the Al-Gafur Umrah Platinum Package?",
       a: "Our Platinum Package covers direct return flights from Mumbai, official Umrah visa with medical insurance, 12 nights in Makkah Mukarrama (Diyafa Jamal or similar), 7 nights in Madinah Munawwara (Ilaf Kuba or similar), 3 times Indian buffet meals, 5 guided Umrahs, comprehensive Ziyarat in Makkah & Madinah, free 5L Zamzam, and a complete luggage & Ihram travel kit.",
@@ -35,6 +46,14 @@ export default function FaqSection() {
     },
   ];
 
+  const faqs =
+    dbFaqs && dbFaqs.length > 0
+      ? dbFaqs.map((item) => ({
+          q: item.question,
+          a: item.answer,
+        }))
+      : defaultFaqs;
+
   return (
     <section className="py-20 bg-ivory-100/40 border-b border-neutral-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-8">
@@ -60,6 +79,8 @@ export default function FaqSection() {
                 className="bg-white rounded-xl border border-neutral-200/90 overflow-hidden shadow-sm transition-all"
               >
                 <button
+                  type="button"
+                  aria-expanded={isOpen}
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
                   className="w-full text-left p-5 flex items-center justify-between gap-4 font-serif font-semibold text-sm sm:text-base text-forest-950 hover:text-emerald-900"
                 >
@@ -71,7 +92,7 @@ export default function FaqSection() {
                   />
                 </button>
                 {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-neutral-600 leading-relaxed border-t border-neutral-100 bg-neutral-50/50">
+                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-neutral-600 leading-relaxed border-t border-neutral-100 bg-neutral-50/50 animate-fadeIn">
                     {faq.a}
                   </div>
                 )}

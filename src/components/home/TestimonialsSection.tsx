@@ -5,10 +5,28 @@ import Image from "next/image";
 import { Star, Quote, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
-export default function TestimonialsSection() {
+export interface TestimonialItem {
+  id?: string;
+  pilgrimName?: string;
+  customerName?: string;
+  city: string;
+  packageTaken?: string;
+  packageTitle?: string;
+  rating: number;
+  review?: string;
+  reviewText?: string;
+  photoUrl?: string | null;
+  photo?: string | null;
+}
+
+interface TestimonialsSectionProps {
+  testimonials?: TestimonialItem[];
+}
+
+export default function TestimonialsSection({ testimonials: dbTestimonials }: TestimonialsSectionProps) {
   const { t } = useLanguage();
 
-  const reviews = [
+  const defaultReviews = [
     {
       name: "Haji Nizam Tamboli",
       city: "Camp, Pune, Maharashtra",
@@ -37,6 +55,18 @@ export default function TestimonialsSection() {
         "The Taif excursion and historical Ziyarat to Badr, Uhud, and Bir-e-Usman were explained with authentic references by Hafiz Sameer Madani. Everything promised on their poster was delivered 100%. May Allah reward the Al-Gafur team.",
     },
   ];
+
+  const reviews =
+    dbTestimonials && dbTestimonials.length > 0
+      ? dbTestimonials.map((item) => ({
+          name: item.customerName || item.pilgrimName || "Pilgrim",
+          city: item.city,
+          package: item.packageTitle || item.packageTaken || "Umrah Tour",
+          rating: item.rating || 5,
+          photo: item.photo || item.photoUrl || "/brand/img2.jpeg",
+          review: item.reviewText || item.review || "",
+        }))
+      : defaultReviews;
 
   return (
     <section className="py-20 bg-white border-b border-neutral-200">
@@ -77,7 +107,13 @@ export default function TestimonialsSection() {
 
               <div className="flex items-center gap-3 pt-4 border-t border-neutral-200/60">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden bg-forest-900 flex-shrink-0 border border-gold-400">
-                  <Image src={r.photo} alt={r.name} fill className="object-cover" />
+                  <Image
+                    src={r.photo}
+                    alt={r.name}
+                    fill
+                    sizes="40px"
+                    className="object-cover"
+                  />
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-forest-950 flex items-center gap-1">

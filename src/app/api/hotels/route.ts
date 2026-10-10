@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import prisma from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/api-auth";
+import { HOTELS_CACHE_TAG } from "@/lib/packages-data";
 
 export async function GET() {
   try {
@@ -63,6 +65,14 @@ export async function POST(req: NextRequest) {
       entityId: hotel.id,
       details: { name, city, distanceFromHaram },
     });
+
+    try {
+      revalidateTag(HOTELS_CACHE_TAG);
+      revalidatePath("/");
+      revalidatePath("/hotels");
+    } catch {
+      // ignore revalidate warnings
+    }
 
     return NextResponse.json({ success: true, hotel });
   } catch (error: unknown) {

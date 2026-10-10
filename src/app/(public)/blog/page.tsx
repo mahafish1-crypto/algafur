@@ -1,26 +1,21 @@
 import React from "react";
-import prisma from "@/lib/db";
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, Calendar, User, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
+import { getPublishedBlogPosts } from "@/lib/packages-data";
 
 export const metadata = {
   title: "Pilgrim Guidance Blog | Al-Gafur International Tours And Travels",
   description: "Educational articles, Sunnah du'as, and practical guides for Hajj & Umrah pilgrims.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function BlogPage() {
-  let posts: any[] = [];
-  try {
-    posts = await prisma.blogPost.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { createdAt: "desc" },
-    });
-  } catch (err) {
+  const posts = await getPublishedBlogPosts().catch((err) => {
     console.error("Failed to query blog posts from PostgreSQL:", err);
-  }
+    return [];
+  });
 
   return (
     <div className="bg-ivory-100/50 min-h-screen py-16">

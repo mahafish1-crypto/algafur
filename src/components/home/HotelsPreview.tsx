@@ -3,18 +3,42 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Building, MapPin, Star, Wifi, Utensils, CheckCircle2, ArrowRight } from "lucide-react";
+import { Building, Star, CheckCircle2, ArrowRight } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
-export default function HotelsPreview() {
-  const hotels = [
+export interface HotelPreviewItem {
+  id?: string;
+  name: string;
+  city: string;
+  distanceFromHaram?: string;
+  walkingTime?: string | null;
+  starRating?: number;
+  description?: string | null;
+  amenities?: string | null;
+}
+
+interface HotelsPreviewProps {
+  hotels?: HotelPreviewItem[];
+}
+
+export default function HotelsPreview({ hotels: dbHotels }: HotelsPreviewProps) {
+  const { t } = useLanguage();
+
+  const defaultHotels = [
     {
       name: "Diyafa Jamal",
       city: "Makkah Al-Mukarramah",
       distance: "500m (6 Mins Walk)",
       rating: 4,
       image: "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=800&auto=format&fit=crop",
-      description: "Our signature Makkah stay located on Ibrahim Al-Khalil Road. Level walking pathway directly to King Abdulaziz Gate of Masjid Al-Haram.",
-      features: ["500m Level Walk to Haram", "In-house Indian Chef", "Elevators & Luggage Porters", "Free Wi-Fi in all rooms"],
+      description:
+        "Our signature Makkah stay located on Ibrahim Al-Khalil Road. Level walking pathway directly to King Abdulaziz Gate of Masjid Al-Haram.",
+      features: [
+        "500m Level Walk to Haram",
+        "In-house Indian Chef",
+        "Elevators & Luggage Porters",
+        "Free Wi-Fi in all rooms",
+      ],
     },
     {
       name: "Ilaf Kuba / Dar Al Taqwa",
@@ -22,10 +46,36 @@ export default function HotelsPreview() {
       distance: "400m (5 Mins Walk)",
       rating: 4,
       image: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop",
-      description: "Serene hotel in the central northern district of Madinah, granting fast, straightforward access to both the Men's and Women's courtyards of the Prophet's Mosque.",
-      features: ["400m to Prophet's Courtyard", "Near Ladies Gate Access", "Spacious 4-Bed & 3-Bed Rooms", "24/7 Reception Desk"],
+      description:
+        "Serene hotel in the central northern district of Madinah, granting fast, straightforward access to both the Men's and Women's courtyards of the Prophet's Mosque.",
+      features: [
+        "400m to Prophet's Courtyard",
+        "Near Ladies Gate Access",
+        "Spacious 4-Bed & 3-Bed Rooms",
+        "24/7 Reception Desk",
+      ],
     },
   ];
+
+  const hotels =
+    dbHotels && dbHotels.length > 0
+      ? dbHotels.slice(0, 4).map((h) => ({
+          name: h.name,
+          city: h.city === "MAKKAH" ? "Makkah Al-Mukarramah" : "Madinah Al-Munawwarah",
+          distance: `${h.distanceFromHaram || "450m"}${h.walkingTime ? ` (${h.walkingTime})` : ""}`,
+          rating: h.starRating || 4,
+          image:
+            h.city === "MAKKAH"
+              ? "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=800&auto=format&fit=crop"
+              : "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop",
+          description:
+            h.description ||
+            "Handpicked pilgrimage accommodation within easy walking distance of the Holy Sanctuary.",
+          features: h.amenities
+            ? h.amenities.split(",").map((a) => a.trim()).filter(Boolean).slice(0, 4)
+            : ["Walking Distance to Haram", "Indian Dining", "Elevators", "Free Wi-Fi"],
+        }))
+      : defaultHotels;
 
   return (
     <section className="py-20 bg-white border-b border-neutral-200">
@@ -37,7 +87,7 @@ export default function HotelsPreview() {
               <span>Premium Holy Stays</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-forest-950">
-              Hotels Walking Distance to the Haram
+              {t("section_hotels")}
             </h2>
             <p className="text-xs sm:text-sm text-neutral-600 mt-1 max-w-xl">
               No long shuttle waits or taxi hassles. Step out of your room and reach the Holy Sanctuary in minutes.
@@ -48,7 +98,7 @@ export default function HotelsPreview() {
             href="/hotels"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-950"
           >
-            <span>Explore All Hotels & Galleries</span>
+            <span>Explore All Hotels &amp; Galleries</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -64,6 +114,7 @@ export default function HotelsPreview() {
                   src={h.image}
                   alt={h.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, 350px"
                   className="object-cover"
                 />
                 <div className="absolute top-3 left-3 bg-forest-950/80 backdrop-blur-sm text-gold-300 text-[11px] font-bold px-2.5 py-1 rounded-md border border-gold-500/30">

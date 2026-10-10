@@ -1,4 +1,3 @@
-import prisma from "@/lib/db";
 import Hero from "@/components/home/Hero";
 import SmartPackageFinder from "@/components/home/SmartPackageFinder";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
@@ -11,28 +10,36 @@ import FaqSection from "@/components/home/FaqSection";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
+import {
+  getPublishedPackagesCatalog,
+  getPublishedHotels,
+  getPublishedTestimonials,
+  getPublishedFaqs,
+} from "@/lib/packages-data";
+import { getSiteSettings } from "@/lib/settings";
 
-export const revalidate = 60; // Revalidate every 60 seconds
+export const revalidate = 60;
 
 export default async function HomePage() {
-  // Fetch real packages from database
-  let packages: any[] = [];
-  try {
-    packages = await prisma.package.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-      take: 6,
-    });
-  } catch (err) {
-    console.error("Failed to query packages in HomePage:", err);
-  }
+  const [allPackages, hotels, testimonials, faqs, settings] = await Promise.all([
+    getPublishedPackagesCatalog().catch((err) => {
+      console.error("Failed to query packages in HomePage:", err);
+      return [];
+    }),
+    getPublishedHotels().catch(() => []),
+    getPublishedTestimonials().catch(() => []),
+    getPublishedFaqs().catch(() => []),
+    getSiteSettings(),
+  ]);
 
-  const featuredPlatinum = packages.find((p) => p.slug === "umrah-platinum-package-2026") || packages[0];
+  const packages = allPackages.slice(0, 6);
+  const featuredPlatinum =
+    allPackages.find((p) => p.slug === "umrah-platinum-package-2026") || packages[0] || null;
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* 1. Hero Section */}
-      <Hero />
+      <Hero featuredPackage={featuredPlatinum} settings={settings} />
 
       {/* 2. Smart Package Finder */}
       <SmartPackageFinder />
@@ -46,7 +53,7 @@ export default async function HomePage() {
               <span>Available Departures</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-forest-950">
-              Featured Hajj & Umrah Packages
+              Featured Hajj &amp; Umrah Packages
             </h2>
             <p className="text-xs sm:text-sm text-neutral-600 mt-1 max-w-xl">
               Authentic pricing, direct flights, and guaranteed reservations backed by official agreements.
@@ -70,25 +77,31 @@ export default async function HomePage() {
       </section>
 
       {/* 4. Signature Poster Spotlight */}
-      <PosterSpotlight packageData={featuredPlatinum} />
+      <PosterSpotlight packageData={featuredPlatinum} settings={settings} />
 
       {/* 5. Trust Pillars: Why Pilgrims Choose Al-Gafur */}
       <WhyChooseUs />
 
       {/* 6. Hotels Proximity Showcase */}
-      <HotelsPreview />
+      <HotelsPreview hotels={hotels} />
 
       {/* 7. Interactive Itinerary Timeline */}
       <TimelinePreview />
 
       {/* 8. Pilgrim Testimonials */}
-      <TestimonialsSection />
+      <TestimonialsSection testimonials={testimonials} />
 
       {/* 9. Categorized FAQ */}
-      <FaqSection />
+      <FaqSection faqs={faqs} />
 
       {/* 10. Lead Enquiry Form */}
-      <LeadEnquiryForm defaultPackage={featuredPlatinum?.name} />
+      <LeadEnquiryForm
+        defaultPackage={featuredPlatinum?.name}
+        defaultPackageId={featuredPlatinum?.id}
+        packages={allPackages.map((p) => ({ id: p.id, name: p.name, slug: p.slug, type: p.type }))}
+        settings={settings}
+        sourcePage="/"
+      />
     </div>
   );
 }

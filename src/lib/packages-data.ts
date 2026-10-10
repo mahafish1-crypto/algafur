@@ -112,3 +112,93 @@ export const getPublishedPackagesForBooking = cache(async () => {
   return fetchPublishedPackagesForBooking();
 });
 
+export const HOTELS_CACHE_TAG = "hotels";
+
+const fetchPublishedHotels = unstable_cache(
+  async () => {
+    return prisma.hotel.findMany({
+      orderBy: { starRating: "desc" },
+    });
+  },
+  ["public-hotels-list"],
+  {
+    revalidate: 60,
+    tags: [HOTELS_CACHE_TAG],
+  }
+);
+
+export const getPublishedHotels = cache(async () => {
+  return fetchPublishedHotels();
+});
+
+const fetchPublishedTestimonials = unstable_cache(
+  async () => {
+    return prisma.testimonial.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { createdAt: "desc" },
+    });
+  },
+  ["public-testimonials-list"],
+  {
+    revalidate: 60,
+    tags: ["testimonials"],
+  }
+);
+
+export const getPublishedTestimonials = cache(async () => {
+  return fetchPublishedTestimonials();
+});
+
+const fetchPublishedFaqs = unstable_cache(
+  async () => {
+    return prisma.fAQ.findMany({
+      where: { isPublished: true },
+      orderBy: { sortOrder: "asc" },
+    });
+  },
+  ["public-faqs-list"],
+  {
+    revalidate: 60,
+    tags: ["faqs"],
+  }
+);
+
+export const getPublishedFaqs = cache(async () => {
+  return fetchPublishedFaqs();
+});
+
+const fetchPublishedBlogPosts = unstable_cache(
+  async () => {
+    return prisma.blogPost.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { createdAt: "desc" },
+    });
+  },
+  ["public-blog-posts"],
+  {
+    revalidate: 60,
+    tags: ["blog-posts"],
+  }
+);
+
+export const getPublishedBlogPosts = cache(async () => {
+  return fetchPublishedBlogPosts();
+});
+
+const fetchPublishedBlogPostBySlug = unstable_cache(
+  async (slug: string) => {
+    return prisma.blogPost.findUnique({
+      where: { slug },
+    });
+  },
+  ["public-blog-post-by-slug"],
+  {
+    revalidate: 60,
+    tags: ["blog-posts"],
+  }
+);
+
+export const getPublishedBlogPostBySlug = cache(async (slug: string) => {
+  return fetchPublishedBlogPostBySlug(slug);
+});
+

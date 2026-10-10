@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -20,6 +20,8 @@ import {
   FileText,
 } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
+import { useLanguage } from "@/context/LanguageContext";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 interface BookingFlowClientProps {
   packages: any[];
@@ -27,11 +29,14 @@ interface BookingFlowClientProps {
   defaultRoom?: string;
 }
 
+const DRAFT_STORAGE_KEY = "algafur_booking_draft_v1";
+
 export default function BookingFlowClient({
   packages,
   defaultSlug,
   defaultRoom,
 }: BookingFlowClientProps) {
+  const { lang } = useLanguage();
   const [step, setStep] = useState(1);
 
   // Selected package
@@ -75,6 +80,7 @@ export default function BookingFlowClient({
   const [paymentOption, setPaymentOption] = useState<"ADVANCE" | "FULL">("ADVANCE");
   const [paymentMethod, setPaymentMethod] = useState("BANK_TRANSFER");
   const [transactionId, setTransactionId] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Submission State
   const [loading, setLoading] = useState(false);
@@ -82,6 +88,45 @@ export default function BookingFlowClient({
   const [bookingResult, setBookingResult] = useState<any | null>(null);
 
   const selectedPkg = packages.find((p) => p.slug === selectedPkgSlug) || packages[0];
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.primaryCustomer?.name || parsed.primaryCustomer?.phone) {
+          setPrimaryCustomer((prev) => ({ ...prev, ...parsed.primaryCustomer }));
+        }
+        if (parsed.roomType && !defaultRoom) {
+          setRoomType(parsed.roomType);
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    if (selectedPkg) {
+      trackAnalyticsEvent({
+        eventType: "BOOKING_START",
+        packageId: selectedPkg.id,
+        packageSlug: selectedPkg.slug,
+        packageTitle: selectedPkg.name,
+        category: selectedPkg.type,
+        language: lang,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        DRAFT_STORAGE_KEY,
+        JSON.stringify({ primaryCustomer, roomType })
+      );
+    } catch {
+      // ignore storage errors
+    }
+  }, [primaryCustomer, roomType]);
 
   // Price Calculation
   const baseRate =
@@ -123,6 +168,11 @@ export default function BookingFlowClient({
   };
 
   const handleSubmitBooking = async () => {
+    if (!acceptedTerms) {
+      setError("Please read and accept the User Agreement, Privacy Policy, and Cancellation Policy before confirming your reservation.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -141,6 +191,8 @@ export default function BookingFlowClient({
         paymentOption,
         paymentMethod,
         transactionId: transactionId || `TXN-${Date.now().toString().slice(-6)}`,
+        acceptedTerms: true,
+        agreementVersion: "v1.0",
       };
 
       const res = await fetch("/api/bookings", {
@@ -153,6 +205,26 @@ export default function BookingFlowClient({
       if (!res.ok) {
         throw new Error(data.error || "Booking failed");
       }
+
+      try {
+        window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch {
+        // ignore
+      }
+
+      trackAnalyticsEvent({
+        eventType: "BOOKING_SUCCESS",
+        packageId: selectedPkg.id,
+        packageSlug: selectedPkg.slug,
+        packageTitle: selectedPkg.name,
+        category: selectedPkg.type,
+        language: lang,
+        metadata: {
+          bookingNumber: data.bookingNumber,
+          totalAmount: grandTotal,
+          paidAmount: payableNow,
+        },
+      });
 
       setBookingResult(data);
       setStep(7);
@@ -761,6 +833,44 @@ export default function BookingFlowClient({
                   placeholder="e.g. UTR1982736481 or UPI Ref"
                   className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none"
                 />
+              </div>
+
+              <div className="bg-ivory-50 p-3.5 rounded-xl border border-neutral-200">
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-neutral-300 text-forest-900 focus:ring-forest-900"
+                  />
+                  <span className="text-[11px] text-neutral-600 leading-relaxed">
+                    I have reviewed the package summary and agree to the{" "}
+                    <Link
+                      href="/user-agreement"
+                      target="_blank"
+                      className="text-forest-900 font-bold underline hover:text-emerald-700"
+                    >
+                      User Agreement
+                    </Link>
+                    ,{" "}
+                    <Link
+                      href="/privacy-policy"
+                      target="_blank"
+                      className="text-forest-900 font-bold underline hover:text-emerald-700"
+                    >
+                      Privacy Policy
+                    </Link>
+                    , and{" "}
+                    <Link
+                      href="/cancellation-policy"
+                      target="_blank"
+                      className="text-forest-900 font-bold underline hover:text-emerald-700"
+                    >
+                      Cancellation &amp; Refund Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
               </div>
 
               <div className="pt-4 flex justify-between">

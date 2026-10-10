@@ -1,7 +1,10 @@
 import React from "react";
-import prisma from "@/lib/db";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
+import { getPublishedPackagesCatalog } from "@/lib/packages-data";
+import { getSiteSettings } from "@/lib/settings";
+
+export const revalidate = 60;
 
 export const metadata = {
   title: "Ramadan Umrah 2027 / 1448 Hijri | Al-Gafur International Tours And Travels",
@@ -9,9 +12,11 @@ export const metadata = {
 };
 
 export default async function RamadanUmrahPage() {
-  const ramadanPackages = await prisma.package.findMany({
-    where: { type: "RAMADAN_UMRAH", status: "PUBLISHED" },
-  });
+  const [allPackages, settings] = await Promise.all([
+    getPublishedPackagesCatalog().catch(() => []),
+    getSiteSettings(),
+  ]);
+  const ramadanPackages = allPackages.filter((p) => p.type === "RAMADAN_UMRAH");
 
   return (
     <div className="bg-ivory-100/50 min-h-screen py-16 space-y-16">
@@ -36,7 +41,13 @@ export default async function RamadanUmrahPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-8">
-        <LeadEnquiryForm defaultPackage="Ramadan Blessed Last 15 Days" />
+        <LeadEnquiryForm
+          defaultPackage={ramadanPackages[0]?.name || "Ramadan Blessed Last 15 Days"}
+          defaultPackageId={ramadanPackages[0]?.id}
+          packages={allPackages.map((p) => ({ id: p.id, name: p.name, slug: p.slug, type: p.type }))}
+          settings={settings}
+          sourcePage="/ramadan-umrah"
+        />
       </div>
     </div>
   );

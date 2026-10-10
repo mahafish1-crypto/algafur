@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import BrandLogo from "../brand/BrandLogo";
@@ -14,8 +14,9 @@ import {
   Globe,
   ChevronDown,
   UserCheck,
-  Search,
+  UserPlus,
   Compass,
+  Check,
 } from "lucide-react";
 
 interface NavbarProps {
@@ -24,28 +25,45 @@ interface NavbarProps {
 
 export default function Navbar({ settings = {} }: NavbarProps) {
   const pathname = usePathname();
-  const { language, setLanguage, t, isRtl } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 30) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
+      setScrolled(window.scrollY > 24);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangDropdownOpen(false);
       }
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setLangDropdownOpen(false);
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   const navLinks = [
     { name: t("nav_home"), href: "/" },
     { name: t("nav_packages"), href: "/packages" },
-    { name: t("nav_hajj"), href: "/hajj" },
     { name: t("nav_umrah"), href: "/umrah" },
+    { name: t("nav_hajj"), href: "/hajj" },
     { name: t("nav_ramadan"), href: "/ramadan-umrah" },
     { name: t("nav_hotels"), href: "/hotels" },
     { name: t("nav_ziyarat"), href: "/gallery" },
@@ -56,58 +74,67 @@ export default function Navbar({ settings = {} }: NavbarProps) {
 
   const currentLangMeta = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
   const phone = settings.company_phone_1 || "+91 8793939393";
-  const whatsapp = settings.whatsapp_number || "919890708013";
-  const announcement = settings.header_announcement_text || "Umrah Platinum 20 Days Departing 31 Oct — Booking Open";
+  const whatsappRaw = (settings.whatsapp_number || "919890708013").replace(/[^0-9]/g, "");
+  const announcement =
+    settings.header_announcement_text ||
+    "Umrah Platinum 20 Days Departing 31 Oct — Booking Open";
   const showTopBar = settings.header_topbar_enabled !== "false";
   const logoUrl = settings.header_logo || settings.site_logo || "";
   const companyName = settings.company_short_name || settings.company_name || "AL-GAFUR";
 
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
-      {/* Top Announcement Bar */}
+      {/* Top Announcement & Utility Bar */}
       {showTopBar && (
         <div className="bg-forest-950 text-white text-xs border-b border-gold-500/20 py-1.5 px-4 sm:px-8">
           <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 bg-gold-600/30 text-gold-300 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-gold-500/30">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="inline-flex items-center gap-1.5 bg-gold-600/30 text-gold-300 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-gold-500/30 flex-shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />
                 1448 Hijri / 2026
               </span>
-              <span className="hidden md:inline text-emerald-100/90 font-medium truncate max-w-xl">
+              <span className="hidden md:inline text-emerald-100/90 font-medium truncate max-w-lg lg:max-w-xl">
                 {announcement}
               </span>
             </div>
 
-            <div className="flex items-center gap-4 text-[11px]">
+            <div className="flex items-center gap-3 sm:gap-4 text-[11px] ms-auto">
               <a
                 href={`tel:${phone.replace(/\s+/g, "")}`}
-                className="hidden sm:flex items-center gap-1 text-gold-300 hover:text-white transition-colors"
+                className="hidden sm:flex items-center gap-1 text-gold-300 hover:text-white transition-colors font-medium"
               >
                 <Phone className="w-3 h-3" />
-                {phone}
+                <span>{phone}</span>
               </a>
               <a
-                href={`https://wa.me/${whatsapp}?text=Assalamualaikum`}
+                href={`https://wa.me/${whatsappRaw}?text=Assalamualaikum`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-emerald-300 hover:text-white transition-colors"
+                className="flex items-center gap-1 text-emerald-300 hover:text-white transition-colors font-medium"
               >
                 <MessageCircle className="w-3 h-3" />
-                WhatsApp Support
+                <span>{t("whatsapp_us")}</span>
               </a>
               <div className="h-3 w-px bg-white/20 hidden sm:block" />
               <Link
                 href="/track-booking"
-                className="text-amber-200 hover:text-white transition-colors hidden sm:inline"
+                className="text-amber-200 hover:text-white transition-colors hidden sm:inline font-medium"
               >
                 {t("nav_track")}
               </Link>
               <Link
+                href="/signup"
+                className="hidden md:flex items-center gap-1 text-emerald-200 hover:text-gold-300 transition-colors font-medium"
+              >
+                <UserPlus className="w-3 h-3 text-gold-400" />
+                <span>{t("nav_signup")}</span>
+              </Link>
+              <Link
                 href="/login"
-                className="flex items-center gap-1 text-white hover:text-gold-300 transition-colors font-medium ml-1"
+                className="flex items-center gap-1 text-white hover:text-gold-300 transition-colors font-semibold"
               >
                 <UserCheck className="w-3 h-3 text-gold-400" />
-                Portal Login
+                <span>{t("nav_login")}</span>
               </Link>
             </div>
           </div>
@@ -119,10 +146,10 @@ export default function Navbar({ settings = {} }: NavbarProps) {
         className={`w-full transition-all duration-300 ${
           scrolled
             ? "bg-forest-950/95 backdrop-blur-md shadow-lg border-b border-gold-500/20 py-2.5"
-            : "bg-forest-900/90 backdrop-blur-sm border-b border-emerald-800/40 py-3.5"
+            : "bg-forest-900/95 backdrop-blur-sm border-b border-emerald-800/40 py-3.5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between gap-3">
           {/* Brand Logo with dynamic CMS support */}
           <BrandLogo
             variant="light"
@@ -133,17 +160,20 @@ export default function Navbar({ settings = {} }: NavbarProps) {
           />
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-5">
+          <nav className="hidden xl:flex items-center gap-4" aria-label="Main Navigation">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive =
+                link.href === "/"
+                  ? pathname === "/"
+                  : pathname === link.href || pathname.startsWith(`${link.href}/`);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-medium transition-colors hover:text-gold-300 ${
+                  className={`text-xs font-semibold transition-colors px-2 py-1.5 rounded-lg ${
                     isActive
-                      ? "text-gold-400 border-b-2 border-gold-400 pb-1"
-                      : "text-emerald-100"
+                      ? "text-gold-300 bg-forest-950/70 border border-gold-500/30"
+                      : "text-emerald-100 hover:text-gold-300 hover:bg-forest-950/40"
                   }`}
                 >
                   {link.name}
@@ -152,154 +182,193 @@ export default function Navbar({ settings = {} }: NavbarProps) {
             })}
           </nav>
 
-          {/* Right Action Buttons */}
-          <div className="hidden sm:flex items-center gap-3">
-            {/* Language Dropdown */}
-            <div className="relative">
+          {/* Right Action Controls (Desktop & Tablet) */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Language Selector Dropdown (Visible on both mobile & desktop) */}
+            <div className="relative" ref={langRef}>
               <button
-                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 text-xs text-emerald-100 hover:text-white bg-forest-950/80 border border-gold-500/30 px-2.5 py-1.5 rounded-md transition-colors"
-                aria-label="Select Language"
+                type="button"
+                onClick={() => setLangDropdownOpen((prev) => !prev)}
+                aria-expanded={langDropdownOpen}
+                aria-haspopup="listbox"
+                aria-label={t("language_label")}
+                className="flex items-center gap-1.5 text-xs text-emerald-100 hover:text-white bg-forest-950/90 border border-gold-500/35 px-2.5 py-2 rounded-lg transition-colors min-h-[38px]"
               >
-                <Globe className="w-3.5 h-3.5 text-gold-400" />
-                <span>{currentLangMeta.nativeName}</span>
-                <ChevronDown className="w-3 h-3 text-gold-400/80" />
+                <Globe className="w-3.5 h-3.5 text-gold-400 flex-shrink-0" />
+                <span className="font-medium">{currentLangMeta.nativeName}</span>
+                <ChevronDown
+                  className={`w-3 h-3 text-gold-400/80 transition-transform ${
+                    langDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
               </button>
 
               {langDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-36 bg-forest-950 border border-gold-500/30 rounded-lg shadow-xl py-1 z-50"
-                  onMouseLeave={() => setLangDropdownOpen(false)}
+                  role="listbox"
+                  aria-label={t("language_label")}
+                  className="absolute end-0 mt-2 w-44 bg-forest-950 border border-gold-500/35 rounded-xl shadow-2xl py-1.5 z-50"
                 >
-                  {LANGUAGES.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        setLanguage(lang.code);
-                        setLangDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 text-xs transition-colors flex items-center justify-between ${
-                        language === lang.code
-                          ? "bg-gold-500/20 text-gold-300 font-bold"
-                          : "text-emerald-100 hover:bg-forest-900"
-                      }`}
-                    >
-                      <span>{lang.nativeName}</span>
-                      <span className="text-[10px] text-emerald-400/60 uppercase">
-                        {lang.code}
-                      </span>
-                    </button>
-                  ))}
+                  {LANGUAGES.map((lang) => {
+                    const selected = language === lang.code;
+                    return (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        onClick={() => {
+                          setLanguage(lang.code);
+                          setLangDropdownOpen(false);
+                        }}
+                        className={`w-full text-start px-3.5 py-2 text-xs transition-colors flex items-center justify-between ${
+                          selected
+                            ? "bg-gold-500/20 text-gold-300 font-bold"
+                            : "text-emerald-100 hover:bg-forest-900"
+                        }`}
+                      >
+                        <div className="flex flex-col">
+                          <span>{lang.nativeName}</span>
+                          <span className="text-[10px] text-emerald-300/70">{lang.label}</span>
+                        </div>
+                        {selected && <Check className="w-3.5 h-3.5 text-gold-400" />}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Quick WhatsApp Chat */}
+            {/* Quick WhatsApp Chat (Desktop) */}
             <a
-              href={`https://wa.me/${whatsapp}?text=Assalamualaikum,%20I%20want%20information%20about%20Al-Gafur%20Umrah%20packages`}
+              href={`https://wa.me/${whatsappRaw}?text=Assalamualaikum,%20I%20would%20like%20information%20about%20Al-Gafur%20Hajj%20and%20Umrah%20packages`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-950 bg-emerald-300 hover:bg-emerald-400 px-3 py-2 rounded-md transition-all shadow-sm"
+              className="hidden lg:inline-flex items-center gap-1.5 text-xs font-bold text-emerald-950 bg-emerald-300 hover:bg-emerald-200 px-3.5 py-2 rounded-lg transition-all shadow-sm min-h-[38px]"
             >
               <MessageCircle className="w-3.5 h-3.5 fill-emerald-950" />
-              WhatsApp
+              <span>WhatsApp</span>
             </a>
 
-            {/* Book Now Primary Button */}
+            {/* Primary CTA Button */}
             <Link
               href={settings.header_cta_link || "/booking"}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-forest-950 bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 hover:from-gold-300 hover:to-gold-400 px-4 py-2 rounded-md transition-all shadow-gold transform hover:-translate-y-0.5"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-forest-950 bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 hover:from-gold-300 hover:to-gold-400 px-4 py-2 rounded-lg transition-all shadow-gold min-h-[38px]"
             >
               <Compass className="w-3.5 h-3.5 text-forest-950" />
-              {settings.header_cta_text || t("btn_book_now")}
+              <span>{t("btn_book_now")}</span>
             </Link>
-          </div>
 
-          {/* Mobile Menu Toggle Button */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <Link
-              href="/booking"
-              className="text-[11px] font-bold text-forest-950 bg-gold-400 hover:bg-gold-300 px-2.5 py-1.5 rounded"
-            >
-              Book
-            </Link>
+            {/* Mobile Hamburger Toggle */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-emerald-100 hover:text-white p-1 rounded-md"
-              aria-label="Toggle Menu"
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-expanded={mobileMenuOpen}
+              aria-label="Toggle navigation menu"
+              className="xl:hidden text-emerald-100 hover:text-white p-2 rounded-lg bg-forest-950/60 border border-gold-500/25 min-h-[38px] min-w-[38px] flex items-center justify-center"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile & Tablet Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-forest-950/98 border-b border-gold-500/20 px-6 py-5 text-white animate-fadeIn">
-          <nav className="flex flex-col gap-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium py-1.5 border-b border-white/5 text-emerald-100 hover:text-gold-300 transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
+        <div className="xl:hidden bg-forest-950 border-b border-gold-500/30 px-4 sm:px-6 py-5 text-white animate-fadeIn max-h-[85vh] overflow-y-auto shadow-2xl">
+          <nav className="grid grid-cols-1 sm:grid-cols-2 gap-1.5" aria-label="Mobile Navigation">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`text-sm font-medium py-2.5 px-3 rounded-xl transition-colors flex items-center justify-between ${
+                    isActive
+                      ? "bg-gold-500/20 text-gold-300 font-bold border border-gold-500/30"
+                      : "text-emerald-100 hover:bg-forest-900 hover:text-gold-300"
+                  }`}
+                >
+                  <span>{link.name}</span>
+                </Link>
+              );
+            })}
           </nav>
 
-          <div className="mt-5 pt-4 border-t border-white/10 flex flex-col gap-3">
-            <div className="flex items-center justify-between text-xs text-gold-300">
-              <span>Language:</span>
-              <div className="flex gap-2">
+          {/* Language Switcher Pills in Mobile Drawer */}
+          <div className="mt-5 pt-4 border-t border-white/10 space-y-3">
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-gold-300 block">
+                {t("language_label")}:
+              </span>
+              <div className="flex flex-wrap gap-2">
                 {LANGUAGES.map((lang) => (
                   <button
                     key={lang.code}
+                    type="button"
                     onClick={() => setLanguage(lang.code)}
-                    className={`px-2 py-0.5 rounded text-[11px] ${
+                    className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
                       language === lang.code
-                        ? "bg-gold-500 text-forest-950 font-bold"
-                        : "bg-forest-900 text-white"
+                        ? "bg-gold-500 text-forest-950 font-bold shadow-sm"
+                        : "bg-forest-900 text-emerald-100 border border-white/10 hover:border-gold-500/40"
                     }`}
                   >
-                    {lang.code.toUpperCase()}
+                    {lang.nativeName}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-2">
+            {/* Mobile Quick Portal Actions */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2">
+              <Link
+                href="/booking"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-center text-xs font-bold py-2.5 px-3 bg-gold-400 text-forest-950 rounded-xl shadow-sm"
+              >
+                {t("btn_book_now")}
+              </Link>
               <Link
                 href="/track-booking"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-center text-xs py-2 bg-forest-900 rounded border border-gold-500/30 text-amber-200"
+                className="text-center text-xs font-semibold py-2.5 px-3 bg-forest-900 rounded-xl border border-gold-500/30 text-amber-200"
               >
-                Track Booking
+                {t("nav_track")}
               </Link>
               <Link
-                href="/login"
+                href="/signup"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-center text-xs py-2 bg-forest-900 rounded border border-gold-500/30 text-white"
+                className="text-center text-xs font-semibold py-2.5 px-3 bg-forest-900 rounded-xl border border-gold-500/30 text-emerald-200"
               >
-                Portal Login
+                {t("nav_signup")}
               </Link>
             </div>
 
-            <a
-              href="https://wa.me/919890708013?text=Assalamualaikum"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 text-xs font-semibold py-2.5 bg-emerald-600 rounded text-white"
-            >
-              <MessageCircle className="w-4 h-4" />
-              Chat on WhatsApp (+91 9890708013)
-            </a>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 text-xs font-semibold py-2.5 bg-forest-900 rounded-xl border border-white/15 text-white"
+              >
+                <UserCheck className="w-4 h-4 text-gold-400" />
+                <span>{t("nav_login")}</span>
+              </Link>
+              <a
+                href={`https://wa.me/${whatsappRaw}?text=Assalamualaikum`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 text-xs font-bold py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>
+                  {t("whatsapp_us")} ({phone})
+                </span>
+              </a>
+            </div>
           </div>
         </div>
       )}
     </header>
   );
 }
-

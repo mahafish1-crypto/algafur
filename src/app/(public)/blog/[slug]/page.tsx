@@ -1,11 +1,11 @@
 import React from "react";
-import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, User, ChevronRight, Share2 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { getPublishedBlogPostBySlug } from "@/lib/packages-data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
@@ -14,9 +14,7 @@ export async function generateMetadata({
 }) {
   const resolvedParams = await params;
   try {
-    const post = await prisma.blogPost.findUnique({
-      where: { slug: resolvedParams.slug },
-    });
+    const post = await getPublishedBlogPostBySlug(resolvedParams.slug);
     if (!post) return { title: "Post Not Found" };
     return {
       title: `${post.title} | Al-Gafur Tours`,
@@ -33,14 +31,10 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
-  let post = null;
-  try {
-    post = await prisma.blogPost.findUnique({
-      where: { slug: resolvedParams.slug },
-    });
-  } catch (err) {
+  const post = await getPublishedBlogPostBySlug(resolvedParams.slug).catch((err) => {
     console.error("Failed to query blog post:", err);
-  }
+    return null;
+  });
 
   if (!post) notFound();
 

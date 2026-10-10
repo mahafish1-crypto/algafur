@@ -102,5 +102,25 @@ export default async function CustomerDashboardPage() {
     }
   }
 
-  return <CustomerDashboardClient session={session} customer={customer} />;
+  const leadFilterConditions: any[] = [];
+  if (customer?.id) {
+    leadFilterConditions.push({ customerId: customer.id });
+  }
+  if (customer?.phone) {
+    leadFilterConditions.push({ mobile: customer.phone });
+  }
+  if (session.email) {
+    leadFilterConditions.push({ email: session.email.toLowerCase() });
+  }
+
+  const leads =
+    leadFilterConditions.length > 0
+      ? await prisma.lead.findMany({
+          where: { OR: leadFilterConditions },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        })
+      : [];
+
+  return <CustomerDashboardClient session={session} customer={customer} leads={leads} />;
 }
