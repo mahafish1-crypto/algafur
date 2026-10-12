@@ -9,6 +9,7 @@
  *  - Never generates production share/canonical links using `localhost`.
  *  - Never trusts arbitrary unvalidated `Host` / `Origin` headers.
  *  - Uses relative URLs for internal navigation & API calls so sessions work independently on either domain.
+ *  - Verified across both www.algafur.com and algafur.vercel.app.
  */
 
 export const CANONICAL_DOMAIN = "www.algafur.com";
