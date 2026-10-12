@@ -10,6 +10,8 @@ const fetchPublishedPackagesCatalog = unstable_cache(
       where: { status: "PUBLISHED" },
       include: {
         inclusions: true,
+        makkahHotel: true,
+        madinahHotel: true,
       },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
     });
@@ -117,6 +119,7 @@ export const HOTELS_CACHE_TAG = "hotels";
 const fetchPublishedHotels = unstable_cache(
   async () => {
     return prisma.hotel.findMany({
+      where: { isAvailable: true },
       orderBy: { starRating: "desc" },
     });
   },
@@ -135,7 +138,7 @@ const fetchPublishedTestimonials = unstable_cache(
   async () => {
     return prisma.testimonial.findMany({
       where: { status: "PUBLISHED" },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
     });
   },
   ["public-testimonials-list"],

@@ -54,6 +54,7 @@ export default function LeadEnquiryForm({
     travelDate: "October 2026",
     adults: 2,
     children: 0,
+    roomPreference: "QUAD",
     preferredContact: "WHATSAPP",
     budget: "₹1,20,000 – ₹2,50,000",
     message: "",
@@ -404,6 +405,24 @@ export default function LeadEnquiryForm({
                     placeholder="e.g. October 2026"
                     className="w-full text-xs p-3 rounded-xl bg-forest-950/80 border border-emerald-800/60 focus:border-gold-400 focus:outline-none text-white"
                   />
+                </div>
+
+                {/* Room Preference */}
+                <div>
+                  <label htmlFor="lead-room-pref" className="block text-xs font-medium text-emerald-100 mb-1">
+                    Room Preference
+                  </label>
+                  <select
+                    id="lead-room-pref"
+                    value={formData.roomPreference}
+                    onChange={(e) => setFormData({ ...formData, roomPreference: e.target.value })}
+                    className="w-full text-xs p-3 rounded-xl bg-forest-950/80 border border-emerald-800/60 focus:border-gold-400 focus:outline-none text-white"
+                  >
+                    <option value="QUAD" className="bg-forest-950 text-white">Quad Sharing (4 Beds)</option>
+                    <option value="TRIPLE" className="bg-forest-950 text-white">Triple Sharing (3 Beds)</option>
+                    <option value="DOUBLE" className="bg-forest-950 text-white">Double Sharing (2 Beds)</option>
+                    <option value="CUSTOM" className="bg-forest-950 text-white">Custom / Family Suite</option>
+                  </select>
                 </div>
               </div>
 

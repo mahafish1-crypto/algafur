@@ -24,11 +24,11 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  // Fetch unread notifications and settings in parallel
+  // Fetch recent notifications, unread count, and settings in parallel
   const [notifications, settings] = await Promise.all([
     prisma.notification.findMany({
-      where: { userId: session.id, isRead: false },
-      take: 5,
+      where: { userId: session.id },
+      take: 8,
       orderBy: { createdAt: "desc" },
     }),
     getSiteSettings(),
@@ -36,10 +36,19 @@ export default async function AdminLayout({
 
   const siteLogo = settings.site_logo || settings.header_logo || "";
 
+  const serializedNotifications = notifications.map((n) => ({
+    id: n.id,
+    title: n.title,
+    message: n.message,
+    isRead: n.isRead,
+    link: n.link || "/admin/crm/leads",
+    createdAt: n.createdAt.toISOString(),
+  }));
+
   return (
     <AdminLayoutClient
       session={session}
-      initialNotifications={notifications}
+      initialNotifications={serializedNotifications}
       siteLogo={siteLogo}
     >
       {children}

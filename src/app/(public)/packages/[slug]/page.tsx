@@ -4,6 +4,7 @@ import {
   getPublishedPackageBySlug,
   getRelatedPublishedPackages,
 } from "@/lib/packages-data";
+import { getSpiritualGuidesForPackage } from "@/lib/team-data";
 import PackageDetailClient from "./PackageDetailClient";
 
 export const revalidate = 60;
@@ -58,11 +59,16 @@ export default async function PackageDetailPage({
     notFound();
   }
 
+  const spiritualGuides = await getSpiritualGuidesForPackage(pkg.id).catch(
+    () => []
+  );
+
   return (
     <PackageDetailClient
       pkg={pkg}
       relatedPackages={relatedPackages}
       settings={settings}
+      spiritualGuides={spiritualGuides}
     />
   );
 }

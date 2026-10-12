@@ -25,9 +25,12 @@ import MediaPickerModal from "@/components/admin/MediaPickerModal";
 
 interface Props {
   initialSettings: Record<string, string>;
+  publishedPackages?: Array<{ id: string; name: string; slug: string }>;
+  initialTab?: string;
 }
 
 type TabType =
+  | "homepage"
   | "branding"
   | "header_footer"
   | "about"
@@ -38,9 +41,57 @@ type TabType =
   | "payment"
   | "localization";
 
-export default function AdminSettingsClient({ initialSettings }: Props) {
-  const [activeTab, setActiveTab] = useState<TabType>("branding");
+export default function AdminSettingsClient({
+  initialSettings,
+  publishedPackages = [],
+  initialTab,
+}: Props) {
+  const [activeTab, setActiveTab] = useState<TabType>(
+    (initialTab as TabType) || "homepage"
+  );
   const [settings, setSettings] = useState<Record<string, string>>({
+    // Homepage Hero & Section Visibility CMS
+    hero_badge:
+      initialSettings.hero_badge || "2026 / 1448 Hijri Registrations Open",
+    hero_headline_main:
+      initialSettings.hero_headline_main || "Your Sacred Journey",
+    hero_headline_highlight:
+      initialSettings.hero_headline_highlight || "Handled With Care.",
+    hero_description:
+      initialSettings.hero_description ||
+      "Transparent pricing, direct flights from Mumbai, near-Haram hotels, Indian cuisine, and dedicated religious guidance.",
+    hero_bg_image:
+      initialSettings.hero_bg_image ||
+      "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=1920&auto=format&fit=crop",
+    hero_featured_package_slug:
+      initialSettings.hero_featured_package_slug ||
+      publishedPackages[0]?.slug ||
+      "umrah-platinum-package-2026",
+    hero_show_featured_card:
+      initialSettings.hero_show_featured_card || "true",
+    hero_cta_primary_label:
+      initialSettings.hero_cta_primary_label || "Explore 2026 Packages",
+    hero_cta_primary_href:
+      initialSettings.hero_cta_primary_href || "/packages",
+    hero_cta_secondary_label:
+      initialSettings.hero_cta_secondary_label || "Request a Callback",
+    hero_cta_secondary_href:
+      initialSettings.hero_cta_secondary_href || "#lead-form",
+    hero_stat_1_title: initialSettings.hero_stat_1_title || "100% Verified",
+    hero_stat_1_subtitle:
+      initialSettings.hero_stat_1_subtitle || "Ministry Approved Visa",
+    hero_stat_2_title: initialSettings.hero_stat_2_title || "1,500+ Pilgrims",
+    hero_stat_2_subtitle:
+      initialSettings.hero_stat_2_subtitle || "Guided Across Maharashtra",
+
+    home_show_packages: initialSettings.home_show_packages || "true",
+    home_show_journey: initialSettings.home_show_journey || "true",
+    home_show_trust: initialSettings.home_show_trust || "true",
+    home_show_testimonials: initialSettings.home_show_testimonials || "true",
+    home_show_faq: initialSettings.home_show_faq || "true",
+    home_show_blog: initialSettings.home_show_blog || "true",
+    home_show_enquiry: initialSettings.home_show_enquiry || "true",
+
     site_logo: initialSettings.site_logo || "",
     header_logo: initialSettings.header_logo || "",
     footer_logo: initialSettings.footer_logo || "",
@@ -197,7 +248,11 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
       <MediaPickerModal
         isOpen={Boolean(mediaTarget)}
         onClose={() => setMediaTarget(null)}
-        categoryFilter={mediaTarget === "about_image" ? "ALL" : "LOGO"}
+        categoryFilter={
+          mediaTarget === "about_image" || mediaTarget === "hero_bg_image"
+            ? "ALL"
+            : "LOGO"
+        }
         title={
           mediaTarget === "favicon"
             ? "Select Favicon Icon"
@@ -207,6 +262,8 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
             ? "Select Footer Logo"
             : mediaTarget === "about_image"
             ? "Select About Page Story Image"
+            : mediaTarget === "hero_bg_image"
+            ? "Select Homepage Hero Background Image"
             : "Select Site Logo"
         }
         onSelect={(url) => {
@@ -224,7 +281,7 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
             Website & System CMS Settings
           </h1>
           <p className="text-sm text-slate-600 mt-1">
-            Manage live website logos, branding, header announcements, contact information, banking remittances, and external integrations.
+            Manage homepage hero content, logos, branding, header announcements, contact information, and external integrations.
           </p>
         </div>
         <button
@@ -252,6 +309,7 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
         {/* Settings Navigation Tabs */}
         <div className="lg:col-span-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-1 h-fit">
           {[
+            { id: "homepage", label: "Homepage Content", icon: Sparkles },
             { id: "branding", label: "Logos & Branding", icon: ImageIcon },
             { id: "header_footer", label: "Header & Footer CMS", icon: LayoutTemplate },
             { id: "about", label: "About Us Page CMS", icon: FileText },
@@ -283,6 +341,326 @@ export default function AdminSettingsClient({ initialSettings }: Props) {
         {/* Settings Form Pane */}
         <div className="lg:col-span-9 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <form onSubmit={handleSave} className="space-y-6">
+            {/* 0. Homepage Content CMS Tab */}
+            {activeTab === "homepage" && (
+              <div className="space-y-6">
+                <div className="border-b pb-3 border-slate-100">
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-700" />
+                    Homepage Hero &amp; Section Visibility CMS
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Manage the homepage Hero heading, badge, description, background image, featured package card, CTA buttons, trust statistics, and homepage section visibility.
+                  </p>
+                </div>
+
+                {/* Hero Headlines & Copy */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-4">
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Hero Headlines &amp; Description
+                  </h3>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Hero Badge Text
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.hero_badge}
+                      onChange={(e) => handleChange("hero_badge", e.target.value)}
+                      placeholder="e.g. 2026 / 1448 Hijri Registrations Open"
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Main Hero Heading
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.hero_headline_main}
+                        onChange={(e) =>
+                          handleChange("hero_headline_main", e.target.value)
+                        }
+                        placeholder="Your Sacred Journey"
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Highlighted Heading Phrase (Gold Gradient)
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.hero_headline_highlight}
+                        onChange={(e) =>
+                          handleChange("hero_headline_highlight", e.target.value)
+                        }
+                        placeholder="Handled With Care."
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Hero Supporting Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={settings.hero_description}
+                      onChange={(e) =>
+                        handleChange("hero_description", e.target.value)
+                      }
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Hero Background Image
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={settings.hero_bg_image}
+                        onChange={(e) =>
+                          handleChange("hero_bg_image", e.target.value)
+                        }
+                        className="flex-1 text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setMediaTarget("hero_bg_image")}
+                        className="px-3 py-2 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-lg"
+                      >
+                        Choose / Upload Image
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Featured Package Selection & CTAs */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Featured Package Card &amp; Action Buttons
+                    </h3>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.hero_show_featured_card !== "false"}
+                        onChange={(e) =>
+                          handleChange(
+                            "hero_show_featured_card",
+                            e.target.checked ? "true" : "false"
+                          )
+                        }
+                        className="rounded text-emerald-700"
+                      />
+                      Show Featured Package Card in Hero
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Featured Package Displayed on Homepage Hero
+                    </label>
+                    <select
+                      value={settings.hero_featured_package_slug}
+                      onChange={(e) =>
+                        handleChange("hero_featured_package_slug", e.target.value)
+                      }
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                    >
+                      {publishedPackages.map((p) => (
+                        <option key={p.id} value={p.slug}>
+                          {p.name} ({p.slug})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Primary CTA Button Text
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.hero_cta_primary_label}
+                        onChange={(e) =>
+                          handleChange("hero_cta_primary_label", e.target.value)
+                        }
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Primary CTA Link
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.hero_cta_primary_href}
+                        onChange={(e) =>
+                          handleChange("hero_cta_primary_href", e.target.value)
+                        }
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Secondary CTA Button Text
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.hero_cta_secondary_label}
+                        onChange={(e) =>
+                          handleChange(
+                            "hero_cta_secondary_label",
+                            e.target.value
+                          )
+                        }
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Secondary CTA Link
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.hero_cta_secondary_href}
+                        onChange={(e) =>
+                          handleChange(
+                            "hero_cta_secondary_href",
+                            e.target.value
+                          )
+                        }
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Statistic / Trust Cards */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-4">
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Hero Trust / Statistic Badges
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                        Statistic Card 1
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Title (e.g. 100% Verified)"
+                        value={settings.hero_stat_1_title}
+                        onChange={(e) =>
+                          handleChange("hero_stat_1_title", e.target.value)
+                        }
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Subtitle (e.g. Ministry Approved Visa)"
+                        value={settings.hero_stat_1_subtitle}
+                        onChange={(e) =>
+                          handleChange("hero_stat_1_subtitle", e.target.value)
+                        }
+                        className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                        Statistic Card 2
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Title (e.g. 1,500+ Pilgrims)"
+                        value={settings.hero_stat_2_title}
+                        onChange={(e) =>
+                          handleChange("hero_stat_2_title", e.target.value)
+                        }
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Subtitle (e.g. Guided Across Maharashtra)"
+                        value={settings.hero_stat_2_subtitle}
+                        onChange={(e) =>
+                          handleChange("hero_stat_2_subtitle", e.target.value)
+                        }
+                        className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Homepage Section Visibility Toggles */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Homepage Section Visibility Controls
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      {
+                        key: "home_show_packages",
+                        label: "Featured Packages Grid",
+                      },
+                      {
+                        key: "home_show_journey",
+                        label: "Spiritual Journey / Process Section",
+                      },
+                      {
+                        key: "home_show_trust",
+                        label: "Why Choose Us / Trust Pillars",
+                      },
+                      {
+                        key: "home_show_testimonials",
+                        label: "Voices of Blessed Pilgrims (Testimonials)",
+                      },
+                      {
+                        key: "home_show_faq",
+                        label: "Frequently Asked Questions (FAQ)",
+                      },
+                      {
+                        key: "home_show_blog",
+                        label: "Pilgrimage Guides & Blog",
+                      },
+                      {
+                        key: "home_show_enquiry",
+                        label: "Homepage Lead Enquiry Form",
+                      },
+                    ].map((sec) => (
+                      <label
+                        key={sec.key}
+                        className="flex items-center gap-2.5 p-2.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-800 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={settings[sec.key] !== "false"}
+                          onChange={(e) =>
+                            handleChange(
+                              sec.key,
+                              e.target.checked ? "true" : "false"
+                            )
+                          }
+                          className="rounded text-emerald-700 w-4 h-4"
+                        />
+                        <span>{sec.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 1. Logos & Branding Tab */}
             {activeTab === "branding" && (
               <div className="space-y-6">

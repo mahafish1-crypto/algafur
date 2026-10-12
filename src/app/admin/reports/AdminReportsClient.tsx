@@ -280,6 +280,38 @@ export default function AdminReportsClient({ data }: Props) {
       .sort((a, b) => b.count - a.count);
   }, [filteredLeads]);
 
+  // Lead status breakdown
+  const leadStatusBreakdown = useMemo(() => {
+    const statuses = [
+      "NEW",
+      "CONTACTED",
+      "INTERESTED",
+      "FOLLOW_UP_REQUIRED",
+      "QUOTED",
+      "CONVERTED",
+      "CONFIRMED",
+      "CLOSED_NOT_INTERESTED",
+      "LOST",
+    ];
+    const counts = new Map<string, number>();
+    filteredLeads.forEach((l) => {
+      const st = (l.status || "NEW").toUpperCase();
+      counts.set(st, (counts.get(st) || 0) + 1);
+    });
+    const list = statuses
+      .map((status) => ({
+        status,
+        count: counts.get(status) || 0,
+      }))
+      .filter((item) => item.count > 0 || ["NEW", "CONTACTED", "FOLLOW_UP_REQUIRED", "CONFIRMED"].includes(item.status));
+    return list;
+  }, [filteredLeads]);
+
+  const newLeadsCount = useMemo(
+    () => filteredLeads.filter((l) => (l.status || "NEW").toUpperCase() === "NEW").length,
+    [filteredLeads]
+  );
+
   // Language preference breakdown from analytics events
   const languageBreakdown = useMemo(() => {
     const counts = new Map<string, number>();
@@ -431,7 +463,9 @@ export default function AdminReportsClient({ data }: Props) {
             <p className="text-xl font-bold text-amber-300 mt-1.5">
               {funnelMetrics.inquiriesSubmitted}
             </p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Recorded in Admin CRM</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              {newLeadsCount} New • Recorded in CRM
+            </p>
           </div>
 
           <div className="bg-slate-800/90 p-3.5 rounded-xl border border-slate-700">
@@ -702,6 +736,25 @@ export default function AdminReportsClient({ data }: Props) {
             ) : (
               <p className="text-xs text-slate-500">No leads in selected period.</p>
             )}
+          </div>
+
+          <div className="space-y-2 pt-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Lead Status Breakdown
+            </p>
+            {leadStatusBreakdown.map((st) => (
+              <div
+                key={st.status}
+                className="flex items-center justify-between text-xs p-2 rounded-xl bg-slate-50 border border-slate-200"
+              >
+                <span className="font-semibold text-slate-800">
+                  {st.status.replace(/_/g, " ")}
+                </span>
+                <span className="font-bold text-emerald-900 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  {st.count}
+                </span>
+              </div>
+            ))}
           </div>
 
           {languageBreakdown.length > 0 && (

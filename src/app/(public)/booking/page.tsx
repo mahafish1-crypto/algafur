@@ -1,9 +1,11 @@
 import BookingFlowClient from "./BookingFlowClient";
 import { getPublishedPackagesForBooking } from "@/lib/packages-data";
+import { getSiteSettings } from "@/lib/settings";
 
 export const metadata = {
-  title: "Online Booking | Al-Gafur International Tours And Travels",
-  description: "Seamless 7-step booking system for Hajj & Umrah pilgrimages.",
+  title: "Book Your Pilgrimage | Al-Gafur International Tours And Travels",
+  description:
+    "Submit your Hajj or Umrah booking enquiry. Our travel advisors will contact you to confirm availability and assist with your sacred journey.",
 };
 
 export default async function BookingPage({
@@ -11,23 +13,28 @@ export default async function BookingPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [resolvedParams, packages] = await Promise.all([
+  const [resolvedParams, packages, settings] = await Promise.all([
     searchParams,
     getPublishedPackagesForBooking().catch((err) => {
       console.error("Failed to query packages in BookingPage:", err);
       return [];
     }),
+    getSiteSettings().catch(() => ({})),
   ]);
 
-  const packageSlug = typeof resolvedParams.package === "string" ? resolvedParams.package : undefined;
-  const preselectedRoom = typeof resolvedParams.room === "string" ? resolvedParams.room : undefined;
+  const packageSlug =
+    typeof resolvedParams.package === "string"
+      ? resolvedParams.package
+      : undefined;
+  const preselectedRoom =
+    typeof resolvedParams.room === "string" ? resolvedParams.room : undefined;
 
   return (
     <BookingFlowClient
       packages={packages}
       defaultSlug={packageSlug}
       defaultRoom={preselectedRoom}
+      settings={settings}
     />
   );
 }
-

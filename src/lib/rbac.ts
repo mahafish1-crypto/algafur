@@ -668,6 +668,8 @@ export function getModuleForAdminPath(pathname: string): ModuleKey | null {
   if (clean.startsWith("/admin/reports")) return "reports";
   if (clean.startsWith("/admin/ai-studio")) return "ai_studio";
   if (clean.startsWith("/admin/media")) return "media";
+  if (clean.startsWith("/admin/team") || clean.startsWith("/admin/testimonials")) return "settings";
+  if (clean.startsWith("/admin/notifications")) return "dashboard";
   if (clean.startsWith("/admin/settings")) return "settings";
   if (clean.startsWith("/admin/audit-logs")) return "audit_logs";
   if (clean.startsWith("/admin/users")) return "users";

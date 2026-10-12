@@ -5,101 +5,81 @@ import Link from "next/link";
 import {
   CheckCircle2,
   Calendar,
-  Clock,
   ShieldCheck,
-  Building,
-  User,
   Users,
-  CreditCard,
-  Check,
-  ArrowRight,
-  ArrowLeft,
-  Sparkles,
-  Printer,
   MessageCircle,
-  FileText,
+  Phone,
+  Sparkles,
+  MapPin,
+  BedDouble,
+  Send,
+  ArrowLeft,
 } from "lucide-react";
-import BrandLogo from "@/components/brand/BrandLogo";
 import { useLanguage } from "@/context/LanguageContext";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 interface BookingFlowClientProps {
   packages: any[];
   defaultSlug?: string;
   defaultRoom?: string;
+  settings?: Record<string, string>;
 }
 
-const DRAFT_STORAGE_KEY = "algafur_booking_draft_v1";
+const DRAFT_STORAGE_KEY = "algafur_booking_enquiry_draft_v2";
 
 export default function BookingFlowClient({
   packages,
   defaultSlug,
   defaultRoom,
+  settings = {},
 }: BookingFlowClientProps) {
-  const { lang } = useLanguage();
-  const [step, setStep] = useState(1);
+  const { language } = useLanguage();
 
-  // Selected package
   const [selectedPkgSlug, setSelectedPkgSlug] = useState(
     defaultSlug || (packages[0]?.slug ?? "")
   );
 
-  // Traveller Details
-  const [primaryCustomer, setPrimaryCustomer] = useState({
+  const selectedPkg =
+    packages.find((p) => p.slug === selectedPkgSlug) || packages[0] || null;
+
+  const [formData, setFormData] = useState({
     name: "",
     phone: "",
-    whatsapp: "",
     email: "",
     city: "Pune",
-    address: "",
+    travelDate: selectedPkg?.departureDate || "",
+    adults: 2,
+    children: 0,
+    roomPreference:
+      defaultRoom === "TRIPLE" || defaultRoom === "DOUBLE" || defaultRoom === "QUAD"
+        ? defaultRoom
+        : "QUAD",
+    preferredContactMethod: "WHATSAPP" as "WHATSAPP" | "CALL" | "EMAIL",
+    notes: "",
+    consentAccepted: false,
   });
 
-  const [adultsCount, setAdultsCount] = useState(1);
-  const [childrenCount, setChildrenCount] = useState(0);
-
-  // Travellers list
-  const [travellers, setTravellers] = useState<
-    Array<{ fullName: string; passportNumber: string; gender: string; dob: string }>
-  >([
-    { fullName: "", passportNumber: "", gender: "MALE", dob: "" },
-  ]);
-
-  // Room type
-  const [roomType, setRoomType] = useState<"QUAD" | "TRIPLE" | "DOUBLE">(
-    (defaultRoom as any) || "QUAD"
-  );
-
-  // Add-ons
-  const [addons, setAddons] = useState({
-    wheelchair: false,
-    haramView: false,
-    extraZamzam: false,
-  });
-
-  // Payment Selection
-  const [paymentOption, setPaymentOption] = useState<"ADVANCE" | "FULL">("ADVANCE");
-  const [paymentMethod, setPaymentMethod] = useState("BANK_TRANSFER");
-  const [transactionId, setTransactionId] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-
-  // Submission State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [bookingResult, setBookingResult] = useState<any | null>(null);
-
-  const selectedPkg = packages.find((p) => p.slug === selectedPkgSlug) || packages[0];
+  const [leadResult, setLeadResult] = useState<{
+    id: string;
+    leadNumber: string;
+    packageName: string;
+  } | null>(null);
 
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(DRAFT_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.primaryCustomer?.name || parsed.primaryCustomer?.phone) {
-          setPrimaryCustomer((prev) => ({ ...prev, ...parsed.primaryCustomer }));
-        }
-        if (parsed.roomType && !defaultRoom) {
-          setRoomType(parsed.roomType);
-        }
+        setFormData((prev) => ({
+          ...prev,
+          name: parsed.name || prev.name,
+          phone: parsed.phone || prev.phone,
+          email: parsed.email || prev.email,
+          city: parsed.city || prev.city,
+        }));
       }
     } catch {
       // ignore storage errors
@@ -112,98 +92,105 @@ export default function BookingFlowClient({
         packageSlug: selectedPkg.slug,
         packageTitle: selectedPkg.name,
         category: selectedPkg.type,
-        language: lang,
+        sourcePage: "/booking",
+        language,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (selectedPkg?.departureDate) {
+      setFormData((prev) => ({
+        ...prev,
+        travelDate: prev.travelDate || selectedPkg.departureDate,
+      }));
+    }
+  }, [selectedPkgSlug, selectedPkg]);
 
   useEffect(() => {
     try {
       window.localStorage.setItem(
         DRAFT_STORAGE_KEY,
-        JSON.stringify({ primaryCustomer, roomType })
+        JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          city: formData.city,
+        })
       );
     } catch {
       // ignore storage errors
     }
-  }, [primaryCustomer, roomType]);
+  }, [formData.name, formData.phone, formData.email, formData.city]);
 
-  // Price Calculation
-  const baseRate =
-    roomType === "DOUBLE"
-      ? selectedPkg.priceDouble || selectedPkg.basePrice * 1.25
-      : roomType === "TRIPLE"
-      ? selectedPkg.priceTriple || selectedPkg.basePrice * 1.1
-      : selectedPkg.priceQuad || selectedPkg.basePrice;
+  const activeRoomPrice = selectedPkg
+    ? formData.roomPreference === "DOUBLE"
+      ? selectedPkg.priceDouble || Math.round(selectedPkg.basePrice * 1.25)
+      : formData.roomPreference === "TRIPLE"
+      ? selectedPkg.priceTriple || Math.round(selectedPkg.basePrice * 1.1)
+      : selectedPkg.priceQuad || selectedPkg.basePrice
+    : 0;
 
-  const travellersTotalCount = adultsCount + childrenCount;
-  const packageTotal = baseRate * adultsCount + (childrenCount > 0 ? baseRate * 0.7 * childrenCount : 0);
+  const totalTravellers =
+    Math.max(1, Number(formData.adults) || 1) +
+    Math.max(0, Number(formData.children) || 0);
 
-  let addonsTotal = 0;
-  if (addons.wheelchair) addonsTotal += 5000;
-  if (addons.haramView) addonsTotal += 15000;
-  if (addons.extraZamzam) addonsTotal += 2000;
+  const whatsappNum = settings.whatsapp_number || "919890708013";
+  const supportPhone = settings.company_phone_1 || "+91 8793939393";
+  const companyName =
+    settings.company_short_name || settings.company_name || "Al-Gafur Tours";
 
-  const grandTotal = Math.round(packageTotal + addonsTotal);
-  const advanceRequired = Math.round(Math.min(grandTotal, 25000 * travellersTotalCount));
-  const payableNow = paymentOption === "ADVANCE" ? advanceRequired : grandTotal;
+  const handleSubmitEnquiry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
 
-  // Handle adults count adjustment
-  const handleAdultsChange = (val: number) => {
-    setAdultsCount(val);
-    const updated = [...travellers];
-    while (updated.length < val + childrenCount) {
-      updated.push({ fullName: "", passportNumber: "", gender: "MALE", dob: "" });
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      setError("Please enter your full name and mobile / WhatsApp number.");
+      return;
     }
-    while (updated.length > val + childrenCount) {
-      updated.pop();
-    }
-    setTravellers(updated);
-  };
 
-  const handleTravellerChange = (index: number, field: string, value: string) => {
-    const updated = [...travellers];
-    updated[index] = { ...updated[index], [field]: value };
-    setTravellers(updated);
-  };
-
-  const handleSubmitBooking = async () => {
-    if (!acceptedTerms) {
-      setError("Please read and accept the User Agreement, Privacy Policy, and Cancellation Policy before confirming your reservation.");
+    if (!formData.consentAccepted) {
+      setError(
+        "Please accept the Privacy Policy and Terms to submit your booking enquiry."
+      );
       return;
     }
 
     setLoading(true);
-    setError(null);
-
     try {
       const payload = {
-        packageId: selectedPkg.id,
-        customer: primaryCustomer,
-        travellers,
-        adults: adultsCount,
-        children: childrenCount,
-        roomType,
-        addons,
-        totalAmount: grandTotal,
-        advanceAmount: advanceRequired,
-        paidAmount: payableNow,
-        paymentOption,
-        paymentMethod,
-        transactionId: transactionId || `TXN-${Date.now().toString().slice(-6)}`,
-        acceptedTerms: true,
-        agreementVersion: "v1.0",
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        whatsapp: formData.phone.trim(),
+        email: formData.email.trim() || undefined,
+        city: formData.city.trim() || "India",
+        packageId: selectedPkg?.id || undefined,
+        packageInterest: selectedPkg?.name || "Umrah / Hajj Package Enquiry",
+        category: selectedPkg?.type || "UMRAH",
+        travelMonth: formData.travelDate || selectedPkg?.departureDate || "",
+        travelDate: formData.travelDate || selectedPkg?.departureDate || "",
+        adults: Math.max(1, Number(formData.adults) || 1),
+        children: Math.max(0, Number(formData.children) || 0),
+        travellersCount: totalTravellers,
+        roomPreference: formData.roomPreference,
+        preferredContactMethod: formData.preferredContactMethod,
+        source: "BOOK_NOW_FLOW",
+        sourcePage: selectedPkg ? `/packages/${selectedPkg.slug}` : "/booking",
+        language,
+        notes: formData.notes.trim(),
+        consentAccepted: true,
       };
 
-      const res = await fetch("/api/bookings", {
+      const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Booking failed");
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Unable to submit your booking enquiry.");
       }
 
       try {
@@ -213,774 +200,503 @@ export default function BookingFlowClient({
       }
 
       trackAnalyticsEvent({
-        eventType: "BOOKING_SUCCESS",
-        packageId: selectedPkg.id,
-        packageSlug: selectedPkg.slug,
-        packageTitle: selectedPkg.name,
-        category: selectedPkg.type,
-        language: lang,
+        eventType: "INQUIRY_SUBMIT",
+        packageId: selectedPkg?.id,
+        packageSlug: selectedPkg?.slug,
+        packageTitle: selectedPkg?.name,
+        category: selectedPkg?.type || "UMRAH",
+        sourcePage: "/booking",
+        language,
         metadata: {
-          bookingNumber: data.bookingNumber,
-          totalAmount: grandTotal,
-          paidAmount: payableNow,
+          leadNumber: data.leadNumber,
+          travellersCount: totalTravellers,
+          roomPreference: formData.roomPreference,
         },
       });
 
-      setBookingResult(data);
-      setStep(7);
+      setLeadResult({
+        id: data.id,
+        leadNumber: data.leadNumber,
+        packageName: selectedPkg?.name || "Hajj & Umrah Package",
+      });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
-      setError(msg);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong while submitting your enquiry."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const stepsList = [
-    "Package",
-    "Pilgrim",
-    "Passports",
-    "Room",
-    "Add-ons",
-    "Payment",
-    "Confirmation",
-  ];
+  if (leadResult) {
+    const waFollowUpMsg = `Assalamualaikum ${companyName}, I have submitted a booking enquiry (Ref: ${leadResult.leadNumber}) for ${leadResult.packageName} (${totalTravellers} travellers, ${formData.roomPreference} room preference). Please assist with availability and confirmation.`;
+    const waUrl = buildWhatsAppLink(whatsappNum, waFollowUpMsg);
+
+    return (
+      <div className="bg-ivory-100/60 min-h-screen py-14 px-4 sm:px-8">
+        <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-gold-500/40 shadow-xl p-8 sm:p-10 text-center space-y-6">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-sm">
+            <CheckCircle2 className="w-9 h-9" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="inline-block text-[11px] font-extrabold uppercase tracking-widest text-gold-700 bg-gold-50 px-3 py-1 rounded-full border border-gold-200">
+              Enquiry Reference: {leadResult.leadNumber}
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest-950">
+              Booking Enquiry Received
+            </h1>
+            <p className="text-xs sm:text-sm text-neutral-600 max-w-lg mx-auto leading-relaxed">
+              JazakAllah Khair, <strong>{formData.name}</strong>. Your booking
+              request for <strong>{leadResult.packageName}</strong> has been
+              registered with our pilgrimage desk. Our advisor will contact you
+              shortly via{" "}
+              <strong>{formData.preferredContactMethod}</strong> to verify seat
+              availability, answer your questions, and complete your booking
+              confirmation manually.
+            </p>
+          </div>
+
+          <div className="bg-ivory-50 rounded-2xl p-5 border border-neutral-200 text-left text-xs space-y-2">
+            <div className="flex justify-between py-1 border-b border-neutral-200/70">
+              <span className="text-neutral-500">Enquiry ID:</span>
+              <span className="font-mono font-bold text-forest-950">
+                {leadResult.leadNumber}
+              </span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-neutral-200/70">
+              <span className="text-neutral-500">Selected Package:</span>
+              <span className="font-bold text-forest-950">
+                {leadResult.packageName}
+              </span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-neutral-200/70">
+              <span className="text-neutral-500">Travellers:</span>
+              <span className="font-semibold text-neutral-800">
+                {formData.adults} Adult(s)
+                {formData.children > 0
+                  ? `, ${formData.children} Child(ren)`
+                  : ""}
+              </span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-neutral-200/70">
+              <span className="text-neutral-500">Room Preference:</span>
+              <span className="font-semibold text-neutral-800">
+                {formData.roomPreference} Sharing
+              </span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-neutral-500">Booking Status:</span>
+              <span className="font-bold text-emerald-700">
+                Enquiry Logged — Awaiting Advisor Follow-up
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Chat with Advisor on WhatsApp
+            </a>
+            <a
+              href={`tel:${supportPhone.replace(/\s+/g, "")}`}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-forest-950 hover:bg-forest-900 text-gold-300 font-bold text-xs transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+              Call Desk: {supportPhone}
+            </a>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              href="/packages"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-forest-950"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Return to All Packages
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-ivory-100/50 min-h-screen py-10">
-      <div className="max-w-4xl mx-auto px-4 sm:px-8">
-        {/* Step Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-xs">
-            {stepsList.map((s, idx) => (
-              <div
-                key={idx}
-                className={`flex flex-col items-center flex-1 ${
-                  step === idx + 1
-                    ? "text-forest-950 font-bold"
-                    : step > idx + 1
-                    ? "text-emerald-700"
-                    : "text-neutral-400"
-                }`}
-              >
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mb-1 transition-all ${
-                    step === idx + 1
-                      ? "bg-gold-500 text-forest-950 shadow-md ring-2 ring-gold-300"
-                      : step > idx + 1
-                      ? "bg-emerald-600 text-white"
-                      : "bg-neutral-200 text-neutral-500"
-                  }`}
-                >
-                  {step > idx + 1 ? <Check className="w-3.5 h-3.5" /> : idx + 1}
-                </div>
-                <span className="hidden sm:inline text-[10px]">{s}</span>
-              </div>
-            ))}
-          </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 space-y-8">
+        {/* Header */}
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-gold-700 bg-gold-50 px-3 py-1 rounded-full border border-gold-200">
+            <Sparkles className="w-3.5 h-3.5" />
+            Direct Pilgrimage Registration
+          </span>
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-forest-950">
+            Submit Your Booking Enquiry
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-600">
+            No online payment or passport upload is required right now. Share
+            your package and room preferences below, and our team will contact
+            you directly to confirm seat availability.
+          </p>
         </div>
 
-        {/* Wizard Form Card */}
-        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-neutral-200 shadow-xl space-y-6">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs">
-              {error}
-            </div>
-          )}
-
-          {/* STEP 1: CHOOSE PACKAGE */}
-          {step === 1 && (
-            <div className="space-y-5 animate-fadeIn">
-              <div className="border-b border-neutral-100 pb-3">
-                <h2 className="text-xl font-serif font-bold text-forest-950">
-                  Step 1: Choose Your Umrah / Hajj Package
-                </h2>
-                <p className="text-xs text-neutral-500">
-                  Select your desired pilgrimage tour and departure schedule.
-                </p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Enquiry Form (8 Cols) */}
+          <form
+            onSubmit={handleSubmitEnquiry}
+            className="lg:col-span-8 bg-white rounded-3xl p-6 sm:p-9 border border-neutral-200 shadow-lg space-y-6"
+          >
+            {error && (
+              <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium">
+                {error}
               </div>
+            )}
 
-              <div className="space-y-3">
-                {packages.map((p) => (
-                  <div
-                    key={p.id}
-                    onClick={() => setSelectedPkgSlug(p.slug)}
-                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                      selectedPkgSlug === p.slug
-                        ? "border-forest-900 bg-emerald-50/40 ring-2 ring-forest-900/10"
-                        : "border-neutral-200 hover:border-neutral-300"
-                    }`}
+            {/* 1. Package & Room Selection */}
+            <div className="space-y-4">
+              <h2 className="text-base font-serif font-bold text-forest-950 border-b border-neutral-100 pb-2">
+                1. Package &amp; Room Preference
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Selected Package *
+                  </label>
+                  <select
+                    value={selectedPkgSlug}
+                    onChange={(e) => setSelectedPkgSlug(e.target.value)}
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-forest-900"
                   >
-                    <div>
-                      <h3 className="text-sm font-serif font-bold text-forest-950">{p.name}</h3>
-                      <p className="text-xs text-neutral-500 mt-0.5">
-                        Departure: <strong>{p.departureDate}</strong> • {p.durationDays} Days • {p.departureCity} Flight
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-sm font-bold text-forest-950 block">
-                        ₹{p.basePrice.toLocaleString("en-IN")}
-                      </span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">
-                        {p.totalSeats - p.bookedSeats} seats open
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    {packages.map((p) => (
+                      <option key={p.id} value={p.slug}>
+                        {p.name} ({p.departureDate} • {p.durationDays} Days — From ₹
+                        {(p.priceQuad || p.basePrice).toLocaleString("en-IN")})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="pt-4 flex justify-end">
-                <button
-                  onClick={() => setStep(2)}
-                  className="inline-flex items-center gap-2 bg-forest-900 hover:bg-forest-950 text-gold-300 font-bold px-6 py-3 rounded-xl text-xs shadow-md"
-                >
-                  <span>Continue to Pilgrim Details</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Preferred Travel Date / Departure
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.travelDate}
+                    onChange={(e) =>
+                      setFormData({ ...formData, travelDate: e.target.value })
+                    }
+                    placeholder="e.g. October 2026 / Ramadan"
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Room Sharing Preference
+                  </label>
+                  <select
+                    value={formData.roomPreference}
+                    onChange={(e) =>
+                      setFormData({ ...formData, roomPreference: e.target.value })
+                    }
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
+                  >
+                    <option value="QUAD">Quad Sharing (4 Beds)</option>
+                    <option value="TRIPLE">Triple Sharing (3 Beds)</option>
+                    <option value="DOUBLE">Double Sharing (2 Beds)</option>
+                    <option value="CUSTOM">Custom / Family Suite</option>
+                  </select>
+                </div>
               </div>
             </div>
-          )}
 
-          {/* STEP 2: TRAVELLER DETAILS */}
-          {step === 2 && (
-            <div className="space-y-5 animate-fadeIn">
-              <div className="border-b border-neutral-100 pb-3">
-                <h2 className="text-xl font-serif font-bold text-forest-950">
-                  Step 2: Primary Contact & Pilgrim Counts
-                </h2>
-                <p className="text-xs text-neutral-500">
-                  Enter the primary family coordinator details.
-                </p>
-              </div>
+            {/* 2. Pilgrim Contact Information */}
+            <div className="space-y-4">
+              <h2 className="text-base font-serif font-bold text-forest-950 border-b border-neutral-100 pb-2">
+                2. Your Contact Details
+              </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Primary Pilgrim Name *
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Full Name *
                   </label>
                   <input
                     type="text"
                     required
-                    value={primaryCustomer.name}
+                    value={formData.name}
                     onChange={(e) =>
-                      setPrimaryCustomer({ ...primaryCustomer, name: e.target.value })
+                      setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="e.g. Haji Nizam Tamboli"
-                    className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none"
+                    placeholder="Enter your full name"
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Phone / Mobile Number *
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Mobile / WhatsApp Number *
                   </label>
                   <input
                     type="tel"
                     required
-                    value={primaryCustomer.phone}
+                    value={formData.phone}
                     onChange={(e) =>
-                      setPrimaryCustomer({ ...primaryCustomer, phone: e.target.value })
+                      setFormData({ ...formData, phone: e.target.value })
                     }
-                    placeholder="e.g. +91 8888890830"
-                    className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none"
+                    placeholder="+91 98XXXXXXXX"
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    WhatsApp Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={primaryCustomer.whatsapp}
-                    onChange={(e) =>
-                      setPrimaryCustomer({ ...primaryCustomer, whatsapp: e.target.value })
-                    }
-                    placeholder="Same as mobile or different"
-                    className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Email Address
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Email Address (Optional)
                   </label>
                   <input
                     type="email"
-                    value={primaryCustomer.email}
+                    value={formData.email}
                     onChange={(e) =>
-                      setPrimaryCustomer({ ...primaryCustomer, email: e.target.value })
+                      setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder="name@gmail.com"
-                    className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none"
+                    placeholder="you@example.com"
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    City / Town
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    City / Location
                   </label>
                   <input
                     type="text"
-                    value={primaryCustomer.city}
+                    value={formData.city}
                     onChange={(e) =>
-                      setPrimaryCustomer({ ...primaryCustomer, city: e.target.value })
+                      setFormData({ ...formData, city: e.target.value })
                     }
-                    placeholder="Pune, Maharashtra"
-                    className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none"
+                    placeholder="e.g. Pune, Mumbai, Solapur"
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Travellers & Contact Preference */}
+            <div className="space-y-4">
+              <h2 className="text-base font-serif font-bold text-forest-950 border-b border-neutral-100 pb-2">
+                3. Number of Travellers &amp; Special Requests
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Adults (12+ Yrs)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={formData.adults}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        adults: Math.max(1, parseInt(e.target.value) || 1),
+                      })
+                    }
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Number of Adults (12+ Yrs)
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Children (Under 12 Yrs)
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    max="20"
-                    value={adultsCount}
-                    onChange={(e) => handleAdultsChange(parseInt(e.target.value) || 1)}
-                    className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none"
+                    min={0}
+                    max={30}
+                    value={formData.children}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        children: Math.max(0, parseInt(e.target.value) || 0),
+                      })
+                    }
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
                   />
                 </div>
-              </div>
 
-              <div className="pt-4 flex justify-between">
-                <button
-                  onClick={() => setStep(1)}
-                  className="inline-flex items-center gap-1.5 text-xs text-neutral-600 hover:text-neutral-900"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back
-                </button>
-                <button
-                  onClick={() => {
-                    if (!primaryCustomer.name || !primaryCustomer.phone) {
-                      setError("Please provide at least your full name and phone number.");
-                      return;
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Preferred Contact Method
+                  </label>
+                  <select
+                    value={formData.preferredContactMethod}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        preferredContactMethod: e.target.value as
+                          | "WHATSAPP"
+                          | "CALL"
+                          | "EMAIL",
+                      })
                     }
-                    setError(null);
-                    setStep(3);
-                  }}
-                  className="inline-flex items-center gap-2 bg-forest-900 hover:bg-forest-950 text-gold-300 font-bold px-6 py-3 rounded-xl text-xs shadow-md"
-                >
-                  <span>Continue to Passport Details</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: PASSPORT DETAILS */}
-          {step === 3 && (
-            <div className="space-y-5 animate-fadeIn">
-              <div className="border-b border-neutral-100 pb-3">
-                <h2 className="text-xl font-serif font-bold text-forest-950">
-                  Step 3: Pilgrim & Passport Information
-                </h2>
-                <p className="text-xs text-neutral-500">
-                  Enter passport numbers as printed in your passports. You can also upload copies after booking.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {travellers.map((traveller, idx) => (
-                  <div key={idx} className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/60 space-y-3">
-                    <h4 className="text-xs font-bold text-forest-950 uppercase tracking-wide">
-                      Pilgrim #{idx + 1} {idx === 0 && "(Primary Lead)"}
-                    </h4>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-semibold text-neutral-600 mb-1">
-                          Full Name (As on Passport) *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={traveller.fullName || (idx === 0 ? primaryCustomer.name : "")}
-                          onChange={(e) =>
-                            handleTravellerChange(idx, "fullName", e.target.value)
-                          }
-                          placeholder="e.g. MOHAMMED FARHAN"
-                          className="w-full text-xs p-2.5 rounded-lg border border-neutral-200 bg-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-semibold text-neutral-600 mb-1">
-                          Passport Number
-                        </label>
-                        <input
-                          type="text"
-                          value={traveller.passportNumber}
-                          onChange={(e) =>
-                            handleTravellerChange(idx, "passportNumber", e.target.value.toUpperCase())
-                          }
-                          placeholder="e.g. Z1892345"
-                          className="w-full text-xs p-2.5 rounded-lg border border-neutral-200 bg-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-semibold text-neutral-600 mb-1">
-                          Gender
-                        </label>
-                        <select
-                          value={traveller.gender}
-                          onChange={(e) => handleTravellerChange(idx, "gender", e.target.value)}
-                          className="w-full text-xs p-2.5 rounded-lg border border-neutral-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700"
-                        >
-                          <option value="MALE">Male</option>
-                          <option value="FEMALE">Female</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4 flex justify-between">
-                <button
-                  onClick={() => setStep(2)}
-                  className="inline-flex items-center gap-1.5 text-xs text-neutral-600 hover:text-neutral-900"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back
-                </button>
-                <button
-                  onClick={() => setStep(4)}
-                  className="inline-flex items-center gap-2 bg-forest-900 hover:bg-forest-950 text-gold-300 font-bold px-6 py-3 rounded-xl text-xs shadow-md"
-                >
-                  <span>Continue to Room Selection</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: ROOM SELECTION */}
-          {step === 4 && (
-            <div className="space-y-5 animate-fadeIn">
-              <div className="border-b border-neutral-100 pb-3">
-                <h2 className="text-xl font-serif font-bold text-forest-950">
-                  Step 4: Select Room Configuration
-                </h2>
-                <p className="text-xs text-neutral-500">
-                  Choose your room sharing preference in Makkah and Madinah hotels.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {(["QUAD", "TRIPLE", "DOUBLE"] as const).map((r) => {
-                  const rate =
-                    r === "DOUBLE"
-                      ? selectedPkg.priceDouble || selectedPkg.basePrice * 1.25
-                      : r === "TRIPLE"
-                      ? selectedPkg.priceTriple || selectedPkg.basePrice * 1.1
-                      : selectedPkg.priceQuad || selectedPkg.basePrice;
-
-                  return (
-                    <div
-                      key={r}
-                      onClick={() => setRoomType(r)}
-                      className={`p-5 rounded-2xl border cursor-pointer transition-all space-y-2 ${
-                        roomType === r
-                          ? "border-forest-900 bg-emerald-50/50 ring-2 ring-forest-900/10"
-                          : "border-neutral-200 hover:border-neutral-300"
-                      }`}
-                    >
-                      <h4 className="text-sm font-serif font-bold text-forest-950">
-                        {r === "QUAD" ? "Quad Sharing (4 Beds)" : r === "TRIPLE" ? "Triple Sharing (3 Beds)" : "Double Sharing (2 Beds)"}
-                      </h4>
-                      <p className="text-xs text-neutral-500">
-                        {r === "QUAD" ? "Most popular family & group choice" : r === "TRIPLE" ? "Comfortable 3-person private room" : "Private double room for couple / 2 persons"}
-                      </p>
-                      <div className="pt-2">
-                        <span className="text-lg font-bold text-emerald-800">
-                          ₹{rate.toLocaleString("en-IN")}
-                        </span>
-                        <span className="text-[10px] text-neutral-400"> / person</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="pt-4 flex justify-between">
-                <button
-                  onClick={() => setStep(3)}
-                  className="inline-flex items-center gap-1.5 text-xs text-neutral-600 hover:text-neutral-900"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back
-                </button>
-                <button
-                  onClick={() => setStep(5)}
-                  className="inline-flex items-center gap-2 bg-forest-900 hover:bg-forest-950 text-gold-300 font-bold px-6 py-3 rounded-xl text-xs shadow-md"
-                >
-                  <span>Continue to Add-ons</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: ADD-ONS */}
-          {step === 5 && (
-            <div className="space-y-5 animate-fadeIn">
-              <div className="border-b border-neutral-100 pb-3">
-                <h2 className="text-xl font-serif font-bold text-forest-950">
-                  Step 5: Optional Travel Enhancements
-                </h2>
-                <p className="text-xs text-neutral-500">
-                  Tailor your pilgrimage with specialized elder assistance or room upgrades.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="p-4 rounded-2xl border border-neutral-200 flex items-center justify-between cursor-pointer hover:bg-neutral-50">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={addons.wheelchair}
-                      onChange={(e) => setAddons({ ...addons, wheelchair: e.target.checked })}
-                      className="w-4 h-4 text-forest-900 rounded"
-                    />
-                    <div>
-                      <h4 className="text-xs font-bold text-forest-950">
-                        Elderly Wheelchair Assistance at Airports & Haram
-                      </h4>
-                      <p className="text-[11px] text-neutral-500">
-                        Dedicated assistant for airport transits and Tawaf circuits.
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-neutral-800">+₹5,000</span>
-                </label>
-
-                <label className="p-4 rounded-2xl border border-neutral-200 flex items-center justify-between cursor-pointer hover:bg-neutral-50">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={addons.haramView}
-                      onChange={(e) => setAddons({ ...addons, haramView: e.target.checked })}
-                      className="w-4 h-4 text-forest-900 rounded"
-                    />
-                    <div>
-                      <h4 className="text-xs font-bold text-forest-950">
-                        Haram View Room Upgrade Guarantee
-                      </h4>
-                      <p className="text-[11px] text-neutral-500">
-                        Direct view of the holy mosque from your hotel room window.
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-neutral-800">+₹15,000</span>
-                </label>
-
-                <label className="p-4 rounded-2xl border border-neutral-200 flex items-center justify-between cursor-pointer hover:bg-neutral-50">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={addons.extraZamzam}
-                      onChange={(e) => setAddons({ ...addons, extraZamzam: e.target.checked })}
-                      className="w-4 h-4 text-forest-900 rounded"
-                    />
-                    <div>
-                      <h4 className="text-xs font-bold text-forest-950">
-                        Additional 5-Litre Blessed Zamzam Cans (Pack of 2)
-                      </h4>
-                      <p className="text-[11px] text-neutral-500">
-                        Extra sealed blessed Zamzam for family distribution.
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-neutral-800">+₹2,000</span>
-                </label>
-              </div>
-
-              <div className="pt-4 flex justify-between">
-                <button
-                  onClick={() => setStep(4)}
-                  className="inline-flex items-center gap-1.5 text-xs text-neutral-600 hover:text-neutral-900"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back
-                </button>
-                <button
-                  onClick={() => setStep(6)}
-                  className="inline-flex items-center gap-2 bg-forest-900 hover:bg-forest-950 text-gold-300 font-bold px-6 py-3 rounded-xl text-xs shadow-md"
-                >
-                  <span>Continue to Payment Selection</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 6: PAYMENT */}
-          {step === 6 && (
-            <div className="space-y-5 animate-fadeIn">
-              <div className="border-b border-neutral-100 pb-3">
-                <h2 className="text-xl font-serif font-bold text-forest-950">
-                  Step 6: Review Summary & Secure Reservation
-                </h2>
-                <p className="text-xs text-neutral-500">
-                  Choose between advance token payment or full settlement.
-                </p>
-              </div>
-
-              {/* Cost Summary Box */}
-              <div className="bg-ivory-100/70 p-5 rounded-2xl border border-neutral-200 space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-neutral-600">Selected Package:</span>
-                  <span className="font-semibold text-neutral-900">{selectedPkg.name}</span>
+                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
+                  >
+                    <option value="WHATSAPP">WhatsApp Message / Call</option>
+                    <option value="CALL">Direct Phone Call</option>
+                    <option value="EMAIL">Email</option>
+                  </select>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-600">Room Sharing:</span>
-                  <span className="font-semibold text-neutral-900">{roomType}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-600">Total Pilgrims:</span>
-                  <span className="font-semibold text-neutral-900">{travellersTotalCount} person(s)</span>
-                </div>
-                {addonsTotal > 0 && (
-                  <div className="flex justify-between text-neutral-600">
-                    <span>Add-ons Total:</span>
-                    <span>+₹{addonsTotal.toLocaleString("en-IN")}</span>
-                  </div>
-                )}
-                <div className="pt-2 border-t border-neutral-200 flex justify-between text-sm font-bold text-forest-950">
-                  <span>Grand Total Package Price:</span>
-                  <span className="text-emerald-800">₹{grandTotal.toLocaleString("en-IN")}</span>
-                </div>
-              </div>
-
-              {/* Payment Type Switcher */}
-              <div className="grid grid-cols-2 gap-3">
-                <div
-                  onClick={() => setPaymentOption("ADVANCE")}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                    paymentOption === "ADVANCE"
-                      ? "border-forest-900 bg-emerald-50/50 ring-2 ring-forest-900/10"
-                      : "border-neutral-200"
-                  }`}
-                >
-                  <h4 className="text-xs font-bold text-forest-950">Pay Booking Token Advance</h4>
-                  <p className="text-[11px] text-neutral-500">₹25,000 per pilgrim to lock seats</p>
-                  <div className="text-base font-bold text-forest-950 mt-1">
-                    ₹{advanceRequired.toLocaleString("en-IN")}
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => setPaymentOption("FULL")}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                    paymentOption === "FULL"
-                      ? "border-forest-900 bg-emerald-50/50 ring-2 ring-forest-900/10"
-                      : "border-neutral-200"
-                  }`}
-                >
-                  <h4 className="text-xs font-bold text-forest-950">Pay Full Amount</h4>
-                  <p className="text-[11px] text-neutral-500">Complete payment now</p>
-                  <div className="text-base font-bold text-forest-950 mt-1">
-                    ₹{grandTotal.toLocaleString("en-IN")}
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Method Selector */}
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-2">
-                  Payment Method
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "BANK_TRANSFER", label: "Bank Transfer (NEFT/RTGS)" },
-                    { id: "UPI", label: "UPI / QR Code" },
-                    { id: "CASH", label: "Office Cash / Cheque" },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setPaymentMethod(m.id)}
-                      className={`p-3 rounded-xl border text-xs font-semibold transition-all ${
-                        paymentMethod === m.id
-                          ? "bg-forest-900 text-gold-300 border-forest-900"
-                          : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Banking Details Banner */}
-              <div className="bg-forest-950 text-white p-4 rounded-2xl text-xs space-y-1 border border-gold-500/20">
-                <p className="text-gold-300 font-bold">Official Al-Gafur Account Details:</p>
-                <p>Account Name: AL-GAFUR INTERNATIONAL TOURS AND TRAVELS</p>
-                <p>Bank: HDFC Bank | A/C: 50200012345678 | IFSC: HDFC0001234</p>
-                <p>UPI ID: algafurtours@hdfcbank</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                  Transaction / UTR Reference (If already transferred)
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Special Requirements / Message (Optional)
                 </label>
-                <input
-                  type="text"
-                  value={transactionId}
-                  onChange={(e) => setTransactionId(e.target.value)}
-                  placeholder="e.g. UTR1982736481 or UPI Ref"
-                  className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none"
+                <textarea
+                  rows={3}
+                  value={formData.notes}
+                  onChange={(e) =>
+                    setFormData({ ...formData, notes: e.target.value })
+                  }
+                  placeholder="Share any questions, wheelchair assistance needs, or preferred departure dates..."
+                  className="w-full text-xs sm:text-sm p-3 rounded-xl border border-neutral-200 bg-neutral-50 text-slate-900 focus:bg-white focus:outline-none"
                 />
               </div>
-
-              <div className="bg-ivory-50 p-3.5 rounded-xl border border-neutral-200">
-                <label className="flex items-start gap-2.5 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={acceptedTerms}
-                    onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded border-neutral-300 text-forest-900 focus:ring-forest-900"
-                  />
-                  <span className="text-[11px] text-neutral-600 leading-relaxed">
-                    I have reviewed the package summary and agree to the{" "}
-                    <Link
-                      href="/user-agreement"
-                      target="_blank"
-                      className="text-forest-900 font-bold underline hover:text-emerald-700"
-                    >
-                      User Agreement
-                    </Link>
-                    ,{" "}
-                    <Link
-                      href="/privacy-policy"
-                      target="_blank"
-                      className="text-forest-900 font-bold underline hover:text-emerald-700"
-                    >
-                      Privacy Policy
-                    </Link>
-                    , and{" "}
-                    <Link
-                      href="/cancellation-policy"
-                      target="_blank"
-                      className="text-forest-900 font-bold underline hover:text-emerald-700"
-                    >
-                      Cancellation &amp; Refund Policy
-                    </Link>
-                    .
-                  </span>
-                </label>
-              </div>
-
-              <div className="pt-4 flex justify-between">
-                <button
-                  onClick={() => setStep(5)}
-                  className="inline-flex items-center gap-1.5 text-xs text-neutral-600 hover:text-neutral-900"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back
-                </button>
-                <button
-                  onClick={handleSubmitBooking}
-                  disabled={loading}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 hover:from-gold-300 hover:to-gold-400 text-forest-950 font-bold px-8 py-3.5 rounded-xl text-sm shadow-gold transition-all disabled:opacity-50"
-                >
-                  <Sparkles className="w-4 h-4 text-forest-950" />
-                  <span>
-                    {loading ? "Confirming Booking..." : `Confirm Booking (Pay ₹${payableNow.toLocaleString("en-IN")})`}
-                  </span>
-                </button>
-              </div>
             </div>
-          )}
 
-          {/* STEP 7: CONFIRMATION & RECEIPT */}
-          {step === 7 && bookingResult && (
-            <div className="space-y-6 text-center animate-scaleUp py-6">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                <CheckCircle2 className="w-10 h-10" />
-              </div>
-
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                  Booking Confirmed
+            {/* Consent & Submit */}
+            <div className="space-y-4 pt-2 border-t border-neutral-100">
+              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-neutral-600">
+                <input
+                  type="checkbox"
+                  checked={formData.consentAccepted}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      consentAccepted: e.target.checked,
+                    })
+                  }
+                  className="mt-0.5 w-4 h-4 rounded text-forest-900"
+                />
+                <span>
+                  I agree to receive pilgrimage package details and callback
+                  assistance from Al-Gafur Tours in accordance with the{" "}
+                  <Link
+                    href="/privacy-policy"
+                    className="text-emerald-700 font-semibold underline"
+                  >
+                    Privacy Policy
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/user-agreement"
+                    className="text-emerald-700 font-semibold underline"
+                  >
+                    User Agreement
+                  </Link>
+                  .
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-forest-950 mt-3">
-                  Mubarak! Your Pilgrimage is Reserved.
-                </h2>
-                <p className="text-xs sm:text-sm text-neutral-600 mt-2 max-w-md mx-auto">
-                  A confirmation SMS &amp; WhatsApp has been prepared. Your customer portal account has been generated.
-                </p>
-              </div>
+              </label>
 
-              {/* Receipt Summary Card */}
-              <div className="bg-ivory-50 p-6 rounded-3xl border border-gold-500/30 text-left max-w-md mx-auto space-y-3 text-xs">
-                <div className="flex justify-between items-center pb-2 border-b border-neutral-200">
-                  <BrandLogo size="sm" />
-                  <span className="font-mono font-bold text-forest-950 text-sm">
-                    {bookingResult.bookingNumber}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">Lead Pilgrim:</span>
-                  <span className="font-bold text-neutral-900">{primaryCustomer.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">Package:</span>
-                  <span className="font-bold text-neutral-900">{selectedPkg.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">Receipt No:</span>
-                  <span className="font-mono text-emerald-800 font-bold">{bookingResult.receiptNumber}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">Paid Amount:</span>
-                  <span className="font-bold text-forest-950 text-sm">
-                    ₹{payableNow.toLocaleString("en-IN")}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">Balance Outstanding:</span>
-                  <span className="font-bold text-amber-800">
-                    ₹{(grandTotal - payableNow).toLocaleString("en-IN")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-2 flex flex-wrap justify-center gap-3">
-                <Link
-                  href={`/customer/dashboard`}
-                  className="inline-flex items-center gap-2 bg-forest-900 hover:bg-forest-950 text-gold-300 font-bold py-3 px-6 rounded-xl text-xs shadow-md"
-                >
-                  <User className="w-4 h-4" />
-                  Go to Customer Portal
-                </Link>
-
-                <a
-                  href={`https://wa.me/919890708013?text=Assalamualaikum,%20my%20booking%20reference%20is%20${bookingResult.bookingNumber}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-5 rounded-xl text-xs"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Share on WhatsApp
-                </a>
-
-                <button
-                  onClick={() => window.print()}
-                  className="inline-flex items-center gap-2 border border-neutral-300 hover:bg-neutral-50 text-neutral-800 font-semibold py-3 px-4 rounded-xl text-xs"
-                >
-                  <Printer className="w-4 h-4" />
-                  Print Receipt
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 hover:from-gold-300 hover:to-gold-400 text-forest-950 font-bold text-sm shadow-gold transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <Send className="w-4 h-4" />
+                {loading
+                  ? "Submitting Booking Enquiry..."
+                  : "Submit Booking Enquiry"}
+              </button>
             </div>
-          )}
+          </form>
+
+          {/* Right Column: Selected Package Summary (4 Cols) */}
+          <div className="lg:col-span-4 space-y-5 sticky top-28">
+            {selectedPkg && (
+              <div className="bg-white rounded-3xl p-6 border border-gold-500/40 shadow-md space-y-4">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-gold-700 bg-gold-50 px-2.5 py-1 rounded-full border border-gold-200">
+                    Selected Package
+                  </span>
+                  <h3 className="text-lg font-serif font-bold text-forest-950 mt-2">
+                    {selectedPkg.name}
+                  </h3>
+                </div>
+
+                <div className="space-y-2 text-xs text-neutral-600 border-t border-b border-neutral-100 py-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gold-600 shrink-0" />
+                    <span>
+                      Departure: <strong>{selectedPkg.departureDate}</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-gold-600 shrink-0" />
+                    <span>
+                      Duration: <strong>{selectedPkg.durationDays} Days</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gold-600 shrink-0" />
+                    <span>
+                      Travellers:{" "}
+                      <strong>
+                        {totalTravellers} Pilgrim
+                        {totalTravellers > 1 ? "s" : ""}
+                      </strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <BedDouble className="w-4 h-4 text-gold-600 shrink-0" />
+                    <span>
+                      Room Preference:{" "}
+                      <strong>{formData.roomPreference}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {activeRoomPrice > 0 && (
+                  <div className="bg-ivory-50 p-3.5 rounded-2xl border border-neutral-200">
+                    <span className="text-[10px] font-bold uppercase text-neutral-400 block">
+                      Indicative Package Rate ({formData.roomPreference})
+                    </span>
+                    <div className="text-xl font-serif font-bold text-forest-950 mt-0.5">
+                      ₹{activeRoomPrice.toLocaleString("en-IN")}{" "}
+                      <span className="text-xs font-normal text-neutral-500">
+                        / person
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2 text-[11px] text-neutral-600">
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                    <span>
+                      <strong>How Confirmation Works:</strong> Submitting this
+                      form logs your enquiry directly with our advisors. Our
+                      team will call or message you to confirm seat availability
+                      and guide you through documentation.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

@@ -37,6 +37,10 @@ import {
   ArrowLeft,
   Receipt,
   FileSpreadsheet,
+  MessageSquareQuote,
+  Award,
+  Globe,
+  CheckCheck,
 } from "lucide-react";
 
 interface AdminLayoutClientProps {
@@ -53,6 +57,9 @@ interface AdminLayoutClientProps {
     id: string;
     title: string;
     message: string;
+    isRead?: boolean;
+    link?: string;
+    createdAt?: string;
   }>;
   siteLogo?: string;
 }
@@ -75,7 +82,43 @@ export default function AdminLayoutClient({
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState(initialNotifications);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const unreadNotificationsCount = notifications.filter(
+    (n) => !n.isRead
+  ).length;
+
+  const handleMarkNotificationRead = async (
+    notif: { id: string; isRead?: boolean; link?: string },
+    navigate = true
+  ) => {
+    if (!notif.isRead) {
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === notif.id ? { ...item, isRead: true } : item
+        )
+      );
+      fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: notif.id, isRead: true }),
+      }).catch(() => {});
+    }
+    if (navigate) {
+      setNotificationsOpen(false);
+      router.push(notif.link || "/admin/crm/leads");
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ markAllRead: true }),
+    }).catch(() => {});
+  };
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -86,6 +129,7 @@ export default function AdminLayoutClient({
   const allNavItems: NavItem[] = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard, moduleKey: "dashboard" },
     { name: "Leads (CRM)", href: "/admin/crm/leads", icon: Users, moduleKey: "leads" },
+    { name: "Notifications", href: "/admin/notifications", icon: Bell, moduleKey: "dashboard" },
     { name: "Customers", href: "/admin/customers", icon: UserCheck, moduleKey: "customers" },
     { name: "Follow-Ups", href: "/admin/crm/followups", icon: Calendar, moduleKey: "followups" },
     { name: "Bookings", href: "/admin/bookings", icon: Compass, moduleKey: "bookings" },
@@ -93,6 +137,9 @@ export default function AdminLayoutClient({
     { name: "Packages", href: "/admin/packages", icon: FileText, moduleKey: "packages" },
     { name: "Hotels", href: "/admin/travel/hotels", icon: Building, moduleKey: "hotels" },
     { name: "Flights", href: "/admin/travel/flights", icon: Plane, moduleKey: "flights" },
+    { name: "Homepage & Website CMS", href: "/admin/settings?tab=homepage", icon: Globe, moduleKey: "settings" },
+    { name: "Spiritual Guides & Team", href: "/admin/team", icon: Award, moduleKey: "settings" },
+    { name: "Testimonials", href: "/admin/testimonials", icon: MessageSquareQuote, moduleKey: "settings" },
     { name: "Document KYC", href: "/admin/documents", icon: FileCheck, moduleKey: "documents" },
     { name: "Visa Processing", href: "/admin/visa", icon: ShieldCheck, moduleKey: "visas" },
     { name: "Payments", href: "/admin/payments", icon: CreditCard, moduleKey: "payments" },
@@ -165,26 +212,38 @@ export default function AdminLayoutClient({
 
           {authorizedNavItems.map((item) => {
             const Icon = item.icon;
+            const cleanItemHref = item.href.split("?")[0];
             const isActive =
               item.href === "/admin"
                 ? pathname === "/admin"
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                : item.href.includes("?")
+                  ? false
+                  : pathname === cleanItemHref ||
+                    pathname.startsWith(`${cleanItemHref}/`);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive
                     ? "bg-emerald-800 text-gold-300 font-bold border border-gold-500/30 shadow-sm"
                     : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
                 }`}
               >
-                <Icon
-                  className={`w-4 h-4 shrink-0 ${
-                    isActive ? "text-gold-400" : "text-slate-400"
-                  }`}
-                />
-                <span className="truncate">{item.name}</span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Icon
+                    className={`w-4 h-4 shrink-0 ${
+                      isActive ? "text-gold-400" : "text-slate-400"
+                    }`}
+                  />
+                  <span className="truncate">{item.name}</span>
+                </div>
+                {item.href === "/admin/notifications" &&
+                  unreadNotificationsCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-extrabold shrink-0">
+                      {unreadNotificationsCount}
+                    </span>
+                  )}
               </Link>
             );
           })}
@@ -278,40 +337,93 @@ export default function AdminLayoutClient({
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
-                {initialNotifications.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                {unreadNotificationsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center animate-pulse">
+                    {unreadNotificationsCount}
+                  </span>
                 )}
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl p-4 z-50 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h4 className="text-xs font-bold text-white">Notifications</h4>
-                    <span className="text-[10px] text-gold-400 font-semibold">
-                      {initialNotifications.length} New
-                    </span>
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl p-4 z-50 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-bold text-white">
+                        Lead Notifications
+                      </h4>
+                      <span className="text-[10px] text-gold-400 font-semibold px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800">
+                        {unreadNotificationsCount} Unread
+                      </span>
+                    </div>
+                    {unreadNotificationsCount > 0 && (
+                      <button
+                        onClick={handleMarkAllRead}
+                        className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 hover:text-emerald-300"
+                      >
+                        <CheckCheck className="w-3 h-3" />
+                        Mark all read
+                      </button>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    {initialNotifications.length === 0 ? (
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {notifications.length === 0 ? (
                       <p className="text-xs text-slate-400 text-center py-4">
-                        No unread notifications.
+                        No notifications yet.
                       </p>
                     ) : (
-                      initialNotifications.map((n) => (
-                        <div
+                      notifications.map((n) => (
+                        <button
                           key={n.id}
-                          className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1"
+                          type="button"
+                          onClick={() => handleMarkNotificationRead(n, true)}
+                          className={`w-full text-left p-3 rounded-xl border text-xs space-y-1 transition-all ${
+                            !n.isRead
+                              ? "bg-slate-900 border-gold-500/40 hover:border-gold-400"
+                              : "bg-slate-900/50 border-slate-800/80 hover:border-slate-700 opacity-80"
+                          }`}
                         >
-                          <span className="font-semibold text-white block">
-                            {n.title}
-                          </span>
-                          <p className="text-[11px] text-slate-400 leading-tight">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-white truncate">
+                              {n.title}
+                            </span>
+                            {!n.isRead && (
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-300 leading-snug line-clamp-2">
                             {n.message}
                           </p>
-                        </div>
+                          {n.createdAt && (
+                            <span className="block text-[10px] text-slate-500 pt-0.5">
+                              {new Date(n.createdAt).toLocaleString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          )}
+                        </button>
                       ))
                     )}
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <Link
+                      href="/admin/notifications"
+                      onClick={() => setNotificationsOpen(false)}
+                      className="text-xs font-bold text-gold-400 hover:text-gold-300"
+                    >
+                      Open Notification Center →
+                    </Link>
+                    <Link
+                      href="/admin/crm/leads"
+                      onClick={() => setNotificationsOpen(false)}
+                      className="text-xs font-semibold text-slate-400 hover:text-white"
+                    >
+                      All Leads
+                    </Link>
                   </div>
                 </div>
               )}

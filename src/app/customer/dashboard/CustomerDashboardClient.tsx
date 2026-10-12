@@ -33,10 +33,6 @@ export default function CustomerDashboardClient({
   leads = [],
 }: CustomerDashboardClientProps) {
   const router = useRouter();
-  const [uploading, setUploading] = useState(false);
-  const [docType, setDocType] = useState("PASSPORT");
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-
   const activeBooking = customer?.bookings?.[0];
 
   const handleLogout = async () => {
@@ -45,40 +41,15 @@ export default function CustomerDashboardClient({
     router.refresh();
   };
 
-  const handleDocumentUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setUploading(true);
-    try {
-      const res = await fetch("/api/documents", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId: customer.id,
-          bookingId: activeBooking?.id,
-          type: docType,
-          fileName: `${docType}_uploaded_${Date.now()}.pdf`,
-          fileUrl: "/uploads/sample-doc.pdf",
-        }),
-      });
-      if (res.ok) {
-        setUploadSuccess(true);
-        setTimeout(() => setUploadSuccess(false), 4000);
-        router.refresh();
-      }
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const journeySteps = [
     { title: "Enquiry", done: true },
-    { title: "Booking", done: Boolean(activeBooking) },
-    { title: "Payment", done: activeBooking?.paidAmount > 0 },
+    { title: "Advisor Review", done: leads.some((l: any) => l.status !== "NEW") || Boolean(activeBooking) },
+    { title: "Booking Confirmed", done: Boolean(activeBooking) },
     { title: "Documents", done: customer?.documents?.some((d: any) => d.status === "VERIFIED") },
     { title: "Visa", done: activeBooking?.visaApplications?.some((v: any) => v.status === "APPROVED") },
-    { title: "Flight", done: true },
-    { title: "Hotel", done: true },
-    { title: "Ready to Travel", done: activeBooking?.paymentStatus === "PAID" },
+    { title: "Flight", done: Boolean(activeBooking) },
+    { title: "Hotel", done: Boolean(activeBooking) },
+    { title: "Ready to Travel", done: activeBooking?.bookingStatus === "CONFIRMED" },
   ];
 
   return (
@@ -218,9 +189,6 @@ export default function CustomerDashboardClient({
                         <User className="w-4 h-4 text-neutral-400" />
                         <div>
                           <span className="font-semibold text-neutral-900">{traveller.fullName}</span>
-                          <span className="text-[10px] text-neutral-500 ml-2">
-                            Passport: {traveller.passportNumber || "Pending"}
-                          </span>
                         </div>
                       </div>
                       <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
@@ -232,61 +200,24 @@ export default function CustomerDashboardClient({
               </div>
             </div>
 
-            {/* Financial Overview & Receipts (1 Col) */}
+            {/* Booking Coordination & Support (1 Col) */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200 shadow-sm space-y-6">
               <h3 className="text-base font-serif font-bold text-forest-950">
-                Payment &amp; Invoices
+                Booking Status &amp; Support
               </h3>
 
               <div className="space-y-3 text-xs bg-ivory-50 p-4 rounded-2xl border border-neutral-200">
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Total Amount:</span>
-                  <span className="font-bold text-neutral-900">
-                    ₹{activeBooking.totalAmount.toLocaleString("en-IN")}
+                  <span className="text-neutral-500">Booking Status:</span>
+                  <span className="font-bold text-emerald-800">
+                    {activeBooking.bookingStatus}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Paid Amount:</span>
-                  <span className="font-bold text-emerald-800">
-                    ₹{activeBooking.paidAmount.toLocaleString("en-IN")}
+                  <span className="text-neutral-500">Room Preference:</span>
+                  <span className="font-bold text-neutral-900">
+                    {activeBooking.roomType}
                   </span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-neutral-200 font-bold text-forest-950">
-                  <span>Balance Due:</span>
-                  <span className="text-amber-800">
-                    ₹{activeBooking.outstandingAmount.toLocaleString("en-IN")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Payment Receipts List */}
-              <div>
-                <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">
-                  Issued Receipts:
-                </h4>
-                <div className="space-y-2">
-                  {activeBooking.payments.map((p: any) => (
-                    <div
-                      key={p.id}
-                      className="p-3 rounded-xl border border-neutral-200 bg-neutral-50 flex items-center justify-between text-xs"
-                    >
-                      <div>
-                        <span className="font-mono font-bold text-emerald-800 block">
-                          {p.receiptNumber}
-                        </span>
-                        <span className="text-[10px] text-neutral-500">
-                          {p.paymentMethod} • ₹{p.amount.toLocaleString("en-IN")}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => window.print()}
-                        className="p-1.5 text-neutral-600 hover:text-forest-950 rounded hover:bg-neutral-200"
-                        title="Print Receipt"
-                      >
-                        <Printer className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
                 </div>
               </div>
 
@@ -309,99 +240,36 @@ export default function CustomerDashboardClient({
             <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
               <Calendar className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-serif font-bold text-forest-950">No Active Bookings Found</h3>
+            <h3 className="text-xl font-serif font-bold text-forest-950">No Confirmed Bookings Yet</h3>
             <p className="text-xs sm:text-sm text-neutral-500 max-w-md mx-auto">
-              You do not have any active or confirmed pilgrimage bookings under this account yet. Select a package to reserve your place.
+              Submit a package enquiry and our travel advisors will contact you directly to confirm availability and finalize your reservation.
             </p>
             <Link
               href="/packages"
               className="inline-flex items-center gap-2 bg-forest-900 hover:bg-forest-950 text-gold-300 font-bold text-xs py-3 px-6 rounded-xl transition-all shadow-md mt-2"
             >
-              Explore 2026 Umrah &amp; Hajj Packages ↗
+              Explore Umrah &amp; Hajj Packages ↗
             </Link>
           </div>
         )}
 
-        {/* Documents Management Section (Part 23) */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200 shadow-sm space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-neutral-100">
-            <div>
-              <h2 className="text-lg font-serif font-bold text-forest-950">
-                Pilgrim Documents &amp; Visa Uploads
-              </h2>
-              <p className="text-xs text-neutral-500">
-                Securely upload passport scans, white-background photos, and vaccination certificates.
-              </p>
-            </div>
+        {/* Visa & Travel Documentation Advisory */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-serif font-bold text-forest-950 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-700" />
+              Travel Documentation &amp; Visa Assistance
+            </h2>
+            <p className="text-xs text-neutral-600 max-w-2xl">
+              For your security and privacy, travel documents are collected directly by our verified Visa &amp; Operations Desk after your booking enquiry is confirmed by an advisor.
+            </p>
           </div>
-
-          {/* Upload Form */}
-          <form onSubmit={handleDocumentUpload} className="bg-ivory-50 p-4 rounded-2xl border border-neutral-200 flex flex-wrap items-center gap-3">
-            <select
-              value={docType}
-              onChange={(e) => setDocType(e.target.value)}
-              className="text-xs p-2.5 rounded-xl border border-neutral-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700"
-            >
-              <option value="PASSPORT">Passport Scan (Front & Back)</option>
-              <option value="PASSPORT_PHOTO">White Background Photograph</option>
-              <option value="AADHAAR">Aadhaar Card Copy</option>
-              <option value="PAN">PAN Card Copy</option>
-              <option value="VACCINATION">Vaccination Certificate</option>
-            </select>
-
-            <input
-              type="file"
-              className="text-xs text-neutral-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-forest-900 file:text-gold-300 hover:file:bg-forest-950"
-            />
-
-            <button
-              type="submit"
-              disabled={uploading}
-              className="inline-flex items-center gap-1.5 bg-forest-900 hover:bg-forest-950 text-gold-300 font-bold text-xs py-2.5 px-4 rounded-xl ml-auto disabled:opacity-50"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span>{uploading ? "Uploading..." : "Upload Document"}</span>
-            </button>
-          </form>
-
-          {uploadSuccess && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              <span>Document uploaded successfully! It is now under review by our visa team.</span>
-            </div>
-          )}
-
-          {/* Uploaded Documents Table */}
-          <div className="space-y-2">
-            {customer?.documents?.map((doc: any) => (
-              <div
-                key={doc.id}
-                className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50 flex items-center justify-between text-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-emerald-700" />
-                  <div>
-                    <span className="font-semibold text-neutral-900">{doc.fileName}</span>
-                    <span className="text-[10px] text-neutral-400 block uppercase font-bold">{doc.type}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
-                      doc.status === "VERIFIED"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : doc.status === "REJECTED"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-amber-100 text-amber-800"
-                    }`}
-                  >
-                    {doc.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <Link
+            href="/booking"
+            className="shrink-0 bg-gold-400 hover:bg-gold-300 text-forest-950 font-bold text-xs px-5 py-2.5 rounded-xl transition-colors"
+          >
+            Submit Booking Enquiry
+          </Link>
         </div>
 
         {/* Submitted Inquiries & Leads Section */}
