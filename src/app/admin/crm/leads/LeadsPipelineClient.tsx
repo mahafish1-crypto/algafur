@@ -19,6 +19,7 @@ interface LeadsPipelineClientProps {
   initialLeads: any[];
   users: any[];
   packages?: any[];
+  includeYouTubeLeads?: boolean;
 }
 
 const STAGES = [
@@ -37,6 +38,7 @@ export default function LeadsPipelineClient({
   initialLeads,
   users,
   packages = [],
+  includeYouTubeLeads = false,
 }: LeadsPipelineClientProps) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"TABLE" | "KANBAN">("TABLE");
@@ -201,7 +203,24 @@ export default function LeadsPipelineClient({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href={
+              includeYouTubeLeads
+                ? "/admin/crm/leads"
+                : "/admin/crm/leads?view=all"
+            }
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
+              includeYouTubeLeads
+                ? "bg-red-50 text-red-800 border-red-200 hover:bg-red-100"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            {includeYouTubeLeads
+              ? "Showing All Leads (Click for Website Enquiries Only)"
+              : "Include YouTube Campaign Leads"}
+          </Link>
+
           {/* View Mode Toggle */}
           <div className="bg-white p-1 rounded-xl border border-slate-200 flex shadow-2xs">
             <button
@@ -352,7 +371,9 @@ export default function LeadsPipelineClient({
                     >
                       <td className="py-3.5 px-3 whitespace-nowrap">
                         <Link
-                          href={`/admin/crm/leads/${l.id}`}
+                          href={
+                            l.youtubeDetailHref || `/admin/crm/leads/${l.id}`
+                          }
                           className="font-mono font-bold text-emerald-800 hover:underline block"
                         >
                           {l.leadNumber}
@@ -364,7 +385,9 @@ export default function LeadsPipelineClient({
 
                       <td className="py-3.5 px-3">
                         <Link
-                          href={`/admin/crm/leads/${l.id}`}
+                          href={
+                            l.youtubeDetailHref || `/admin/crm/leads/${l.id}`
+                          }
                           className="font-bold text-slate-900 hover:text-emerald-800 block"
                         >
                           {l.name}
@@ -489,7 +512,9 @@ export default function LeadsPipelineClient({
                             </a>
                           )}
                           <Link
-                            href={`/admin/crm/leads/${l.id}`}
+                            href={
+                              l.youtubeDetailHref || `/admin/crm/leads/${l.id}`
+                            }
                             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-[11px]"
                           >
                             Details

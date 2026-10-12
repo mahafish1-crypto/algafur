@@ -30,9 +30,23 @@ export default async function AdminNotificationsPage() {
     )
   );
 
-  const leads =
+  // Extract YouTube submission IDs from notification links (/admin/youtube-leads/responses/<id>)
+  const ytSubmissionIds = Array.from(
+    new Set(
+      notifications
+        .map((n) => {
+          const match = n.link?.match(
+            /\/admin\/youtube-leads\/responses\/([a-zA-Z0-9_-]+)/
+          );
+          return match ? match[1] : null;
+        })
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+
+  const [leads, ytSubmissions] = await Promise.all([
     leadIds.length > 0
-      ? await prisma.lead.findMany({
+      ? prisma.lead.findMany({
           where: { id: { in: leadIds } },
           select: {
             id: true,
@@ -46,14 +60,39 @@ export default async function AdminNotificationsPage() {
             createdAt: true,
           },
         })
-      : [];
+      : Promise.resolve([]),
+    ytSubmissionIds.length > 0
+      ? prisma.leadFormSubmission.findMany({
+          where: { id: { in: ytSubmissionIds } },
+          select: {
+            id: true,
+            submissionCode: true,
+            name: true,
+            phone: true,
+            email: true,
+            interestedIn: true,
+            formTitle: true,
+            status: true,
+            leadSource: true,
+            createdAt: true,
+          },
+        })
+      : Promise.resolve([]),
+  ]);
 
   const leadMap = new Map(leads.map((l) => [l.id, l]));
+  const ytMap = new Map(ytSubmissions.map((s) => [s.id, s]));
 
   const serializedNotifications = notifications.map((n) => {
-    const match = n.link?.match(/\/admin\/crm\/leads\/([a-zA-Z0-9_-]+)/);
-    const leadId = match ? match[1] : null;
+    const matchCrm = n.link?.match(/\/admin\/crm\/leads\/([a-zA-Z0-9_-]+)/);
+    const leadId = matchCrm ? matchCrm[1] : null;
     const lead = leadId ? leadMap.get(leadId) : null;
+
+    const matchYt = n.link?.match(
+      /\/admin\/youtube-leads\/responses\/([a-zA-Z0-9_-]+)/
+    );
+    const ytId = matchYt ? matchYt[1] : null;
+    const ytSub = ytId ? ytMap.get(ytId) : null;
 
     return {
       id: n.id,
@@ -61,9 +100,27 @@ export default async function AdminNotificationsPage() {
       message: n.message,
       type: n.type,
       isRead: n.isRead,
-      link: n.link || (lead ? `/admin/crm/leads/${lead.id}` : "/admin/crm/leads"),
+      link:
+        n.link ||
+        (ytSub
+          ? `/admin/youtube-leads/responses/${ytSub.id}`
+          : lead
+          ? `/admin/crm/leads/${lead.id}`
+          : "/admin/crm/leads"),
       createdAt: n.createdAt.toISOString(),
-      lead: lead
+      lead: ytSub
+        ? {
+            id: ytSub.id,
+            leadCode: ytSub.submissionCode,
+            name: ytSub.name,
+            phone: ytSub.phone,
+            email: ytSub.email || "",
+            packageInterest:
+              ytSub.interestedIn || ytSub.formTitle || "YouTube Lead",
+            status: ytSub.status,
+            source: ytSub.leadSource,
+          }
+        : lead
         ? {
             id: lead.id,
             leadCode: lead.leadNumber,

@@ -14,6 +14,7 @@ export type Role =
 export type ModuleKey =
   | "dashboard"
   | "leads"
+  | "youtube_leads"
   | "customers"
   | "followups"
   | "bookings"
@@ -46,6 +47,8 @@ export type LegacyPermission =
   | "view:dashboard"
   | "manage:leads"
   | "view:leads"
+  | "manage:youtube_leads"
+  | "view:youtube_leads"
   | "manage:customers"
   | "view:customers"
   | "manage:bookings"
@@ -101,6 +104,14 @@ export const MODULES_CONFIG: ModuleDefinition[] = [
     href: "/admin/crm/leads",
     iconName: "Target",
     actions: ["view", "create", "edit", "delete", "export"],
+  },
+  {
+    key: "youtube_leads",
+    label: "YouTube Leads",
+    description: "YouTube campaign lead forms, Google Forms builder, and responses",
+    href: "/admin/youtube-leads",
+    iconName: "Youtube",
+    actions: ["view", "create", "edit", "delete", "export", "manage"],
   },
   {
     key: "customers",
@@ -263,6 +274,10 @@ export const DEFAULT_ROLE_GRANULAR_PERMISSIONS: Record<string, string[]> = {
     "leads:create",
     "leads:edit",
     "leads:export",
+    "youtube_leads:view",
+    "youtube_leads:create",
+    "youtube_leads:edit",
+    "youtube_leads:export",
     "customers:view",
     "customers:create",
     "customers:edit",
@@ -296,6 +311,9 @@ export const DEFAULT_ROLE_GRANULAR_PERMISSIONS: Record<string, string[]> = {
     "leads:view",
     "leads:create",
     "leads:edit",
+    "youtube_leads:view",
+    "youtube_leads:create",
+    "youtube_leads:edit",
     "customers:view",
     "customers:create",
     "customers:edit",
@@ -360,6 +378,10 @@ export const DEFAULT_ROLE_GRANULAR_PERMISSIONS: Record<string, string[]> = {
     "leads:view",
     "leads:create",
     "leads:edit",
+    "youtube_leads:view",
+    "youtube_leads:create",
+    "youtube_leads:edit",
+    "youtube_leads:manage",
     "packages:view",
     "ai_studio:view",
     "ai_studio:create",
@@ -652,6 +674,7 @@ export function getAuthorizedModules(user: {
 export function getModuleForAdminPath(pathname: string): ModuleKey | null {
   const clean = pathname.split("?")[0].replace(/\/+$/, "") || "/admin";
   if (clean === "/admin") return "dashboard";
+  if (clean.startsWith("/admin/youtube-leads")) return "youtube_leads";
   if (clean.startsWith("/admin/crm/leads") || clean.startsWith("/admin/leads")) return "leads";
   if (clean.startsWith("/admin/customers")) return "customers";
   if (clean.startsWith("/admin/crm/followups") || clean.startsWith("/admin/followups")) return "followups";

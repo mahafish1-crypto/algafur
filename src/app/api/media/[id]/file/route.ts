@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { getValidatedRequestOrigin } from "@/lib/site-url";
 
 export async function GET(
   req: NextRequest,
@@ -49,7 +50,8 @@ export async function GET(
 
     // If external or static URL, redirect (guarding against self-redirect loop)
     if (media.url && !media.url.endsWith(`/api/media/${id}/file`)) {
-      return NextResponse.redirect(new URL(media.url, req.url));
+      const safeOrigin = getValidatedRequestOrigin(req.headers);
+      return NextResponse.redirect(new URL(media.url, safeOrigin));
     }
 
     return new NextResponse("File Content Unavailable", { status: 404 });

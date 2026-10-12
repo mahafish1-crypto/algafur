@@ -7,6 +7,8 @@ import {
 import { getSpiritualGuidesForPackage } from "@/lib/team-data";
 import PackageDetailClient from "./PackageDetailClient";
 
+import { buildCanonicalUrl } from "@/lib/site-url";
+
 export const revalidate = 60;
 
 export async function generateMetadata({
@@ -20,14 +22,19 @@ export async function generateMetadata({
 
     if (!pkg) return { title: "Package Not Found" };
 
+    const canonicalPath = `/packages/${pkg.slug}`;
     return {
       title: `${pkg.name} | Al-Gafur International Tours And Travels`,
       description:
         pkg.overview ||
         "Premium Umrah package with scholarly guidance, direct flights and walking distance hotels.",
+      alternates: {
+        canonical: canonicalPath,
+      },
       openGraph: {
         title: pkg.name,
         description: pkg.overview || "Al-Gafur Tours",
+        url: buildCanonicalUrl(canonicalPath),
         images: [pkg.featuredImage || "/brand/poster.jpg"],
       },
     };

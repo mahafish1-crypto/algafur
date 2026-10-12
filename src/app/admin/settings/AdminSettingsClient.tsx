@@ -1679,7 +1679,7 @@ export default function AdminSettingsClient({
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-1 text-slate-600">
                   <p className="font-bold text-slate-800">Direct Webhook Endpoint:</p>
                   <p className="font-mono text-emerald-800">
-                    https://algafurtours.com/api/webhooks/whatsapp
+                    https://www.algafur.com/api/webhooks/whatsapp
                   </p>
                 </div>
               </div>

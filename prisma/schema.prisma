@@ -35,7 +35,8 @@ model User {
   createdBookings   Booking[]
   createdPayments   Payment[]
   verifiedDocuments Document[]
-  visaApplications  VisaApplication[]  @relation("AssignedVisaTeam")
+  visaApplications  VisaApplication[]    @relation("AssignedVisaTeam")
+  youtubeLeads      LeadFormSubmission[] @relation("AssignedYouTubeLeads")
 }
 
 model Customer {
@@ -123,8 +124,9 @@ model Lead {
   assignedTo      User?          @relation("AssignedLeads", fields: [assignedToId], references: [id])
   customer        Customer?      @relation(fields: [customerId], references: [id])
   activities      LeadActivity[]
-  followUps       FollowUp[]
-  quotations      Quotation[]
+  followUps         FollowUp[]
+  quotations        Quotation[]
+  youtubeSubmission LeadFormSubmission?
 
   @@index([mobile])
   @@index([status])
@@ -787,3 +789,87 @@ model CustomRole {
 
   users       User[]
 }
+
+model LeadForm {
+  id               String               @id @default(uuid())
+  slug             String               @unique
+  title            String
+  description      String?
+  campaignName     String?
+  packageId        String?
+  packageName      String?
+  successTitle     String               @default("Jazakallah Khair! Your Enquiry Has Been Received.")
+  successMessage   String               @default("Our Hajj & Umrah advisor will contact you shortly on your mobile/WhatsApp number.")
+  submitButtonText String               @default("Submit Enquiry")
+  showLogo         Boolean              @default(true)
+  status           String               @default("PUBLISHED") // PUBLISHED, DRAFT, ARCHIVED
+  isActive         Boolean              @default(true)
+  isDefault        Boolean              @default(false)
+  version          Int                  @default(1)
+  questionsJson    String               // JSON array of FormQuestion definitions
+  settingsJson     String?              // Optional JSON for form-level settings
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  submissions      LeadFormSubmission[]
+
+  @@index([slug])
+  @@index([status, isActive])
+}
+
+model LeadFormSubmission {
+  id               String    @id @default(uuid())
+  submissionCode   String    @unique // YTL-2026-0001
+  formId           String
+  formSlug         String
+  formTitle        String
+  formVersion      Int       @default(1)
+  leadId           String?   @unique
+
+  name             String
+  phone            String
+  whatsapp         String?
+  email            String?
+  city             String?
+  interestedIn     String?
+  travelMonth      String?
+  travellersCount  Int       @default(1)
+  notes            String?
+  internalNotes    String?
+
+  campaignName     String?
+  leadSource       String    @default("Direct")
+  videoId          String?
+  videoUrl         String?
+  utmSource        String?
+  utmMedium        String?
+  utmCampaign      String?
+  utmContent       String?
+  utmTerm          String?
+  landingPage      String?
+  referrer         String?
+  ipAddress        String?
+  submissionToken  String?   @unique
+
+  answersJson      String    // JSON array of { questionId, label, type, required, value }
+
+  status           String    @default("NEW") // NEW, CONTACTED, FOLLOW_UP, INTERESTED, CONVERTED, CLOSED
+  assignedToId     String?
+  followUpDate     String?   // YYYY-MM-DD
+  followUpNotes    String?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  form             LeadForm  @relation(fields: [formId], references: [id], onDelete: Restrict)
+  lead             Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  assignedTo       User?     @relation("AssignedYouTubeLeads", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([formId])
+  @@index([status])
+  @@index([campaignName])
+  @@index([leadSource])
+  @@index([assignedToId])
+  @@index([createdAt])
+}
+

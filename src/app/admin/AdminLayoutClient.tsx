@@ -154,6 +154,35 @@ export default function AdminLayoutClient({
     { name: "User & Role Access", href: "/admin/users", icon: UserCheck, moduleKey: "users" },
   ];
 
+  const youtubeNavItems: NavItem[] = [
+    {
+      name: "Overview",
+      href: "/admin/youtube-leads",
+      icon: BarChart3,
+      moduleKey: "youtube_leads",
+    },
+    {
+      name: "Lead Form Builder",
+      href: "/admin/youtube-leads/forms",
+      icon: FileSpreadsheet,
+      moduleKey: "youtube_leads",
+    },
+    {
+      name: "Lead Responses",
+      href: "/admin/youtube-leads/responses",
+      icon: Users,
+      moduleKey: "youtube_leads",
+    },
+    {
+      name: "Form Settings",
+      href: "/admin/youtube-leads/settings",
+      icon: Settings,
+      moduleKey: "youtube_leads",
+    },
+  ];
+
+  const canViewYouTubeLeads = hasUserPermission(session, "youtube_leads:view");
+
   // Filter items strictly by the user's live resolved module permissions
   const authorizedNavItems = allNavItems.filter((item) => {
     if (item.moduleKey === "users") {
@@ -165,9 +194,19 @@ export default function AdminLayoutClient({
     return hasUserPermission(session, `${item.moduleKey}:view`);
   });
 
+  const searchableItems = canViewYouTubeLeads
+    ? [
+        ...authorizedNavItems,
+        ...youtubeNavItems.map((y) => ({
+          ...y,
+          name: `YouTube Leads: ${y.name}`,
+        })),
+      ]
+    : authorizedNavItems;
+
   // Search filtering over authorized modules
   const searchMatchingModules = searchQuery.trim()
-    ? authorizedNavItems.filter((it) =>
+    ? searchableItems.filter((it) =>
         it.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
       )
     : [];
@@ -201,6 +240,46 @@ export default function AdminLayoutClient({
 
         {/* Authorized Navigation Items (No Fixed Department Roles) */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+          {canViewYouTubeLeads && (
+            <div className="mb-4 pb-3 border-b border-slate-800/80 space-y-1">
+              <div className="px-3 pb-1.5 flex items-center justify-between">
+                <span className="text-[10px] uppercase font-extrabold tracking-wider text-rose-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  YouTube Leads
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-950/60 text-rose-300 border border-rose-800/50">
+                  Campaigns
+                </span>
+              </div>
+              {youtubeNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  item.href === "/admin/youtube-leads"
+                    ? pathname === "/admin/youtube-leads"
+                    : pathname === item.href ||
+                      pathname.startsWith(`${item.href}/`);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      isActive
+                        ? "bg-emerald-800 text-gold-300 font-bold border border-gold-500/30 shadow-sm"
+                        : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                    }`}
+                  >
+                    <Icon
+                      className={`w-4 h-4 shrink-0 ${
+                        isActive ? "text-gold-400" : "text-rose-400"
+                      }`}
+                    />
+                    <span className="truncate">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
           <div className="px-3 pb-2 flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
               Authorized Modules
@@ -506,6 +585,25 @@ export default function AdminLayoutClient({
                   <X className="w-5 h-5" />
                 </button>
               </div>
+
+              {canViewYouTubeLeads && (
+                <div className="space-y-1 mb-4 pb-3 border-b border-slate-800">
+                  <span className="text-[10px] uppercase font-bold text-rose-400 block pb-1">
+                    YouTube Leads
+                  </span>
+                  {youtubeNavItems.map((it) => (
+                    <Link
+                      key={it.href}
+                      href={it.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-900"
+                    >
+                      <it.icon className="w-4 h-4 text-rose-400" />
+                      <span>{it.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
 
               <div className="space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-500 block pb-1">

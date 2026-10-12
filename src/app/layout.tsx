@@ -2,9 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { getSiteSettings } from "@/lib/settings";
+import { CANONICAL_SITE_URL } from "@/lib/site-url";
 
 export const metadata: Metadata = {
-  title: "Al-Gafur International Tours And Travels | Premium Hajj & Umrah Operating System",
+  metadataBase: new URL(CANONICAL_SITE_URL),
+  title: {
+    default:
+      "Al-Gafur International Tours And Travels | Premium Hajj & Umrah Packages",
+    template: "%s | Al-Gafur International Tours And Travels",
+  },
   description:
     "Official website of Al-Gafur International Tours And Travels. Premium Hajj & Umrah packages with scholarly guidance, walking distance hotels in Makkah & Madinah, direct flights, and complete pilgrim care.",
   keywords: [
@@ -18,13 +24,23 @@ export const metadata: Metadata = {
     "Direct Flight Umrah",
   ],
   authors: [{ name: "Al-Gafur International Tours And Travels" }],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Al-Gafur International Tours And Travels",
-    description: "Your Sacred Journey, Handled With Care. Premium Hajj & Umrah Packages.",
-    url: "https://algafurtours.com",
+    description:
+      "Your Sacred Journey, Handled With Care. Premium Hajj & Umrah Packages.",
+    url: CANONICAL_SITE_URL,
     siteName: "Al-Gafur Tours",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: "/brand/poster.jpg",
+        alt: "Al-Gafur International Tours And Travels",
+      },
+    ],
   },
 };
 
@@ -35,7 +51,8 @@ export default async function RootLayout({
 }) {
   const settings = await getSiteSettings();
   const faviconUrl = settings.favicon || "/favicon.ico";
-  const companyTitle = settings.company_name || "Al-Gafur International Tours And Travels";
+  const companyTitle =
+    settings.company_name || "Al-Gafur International Tours And Travels";
   const phone = settings.company_phone_1 || "+91-8793939393";
   const email = settings.company_email || "contact@algafurtours.com";
 
@@ -43,12 +60,15 @@ export default async function RootLayout({
     "@context": "https://schema.org",
     "@type": "TravelAgency",
     name: companyTitle,
-    image: "https://algafurtours.com/brand/poster.jpg",
+    url: CANONICAL_SITE_URL,
+    image: `${CANONICAL_SITE_URL}/brand/poster.jpg`,
     telephone: phone,
     email: email,
     address: {
       "@type": "PostalAddress",
-      streetAddress: settings.company_address || "183, M.G. Road, 15 August Chowk, Khadda Market, Camp",
+      streetAddress:
+        settings.company_address ||
+        "183, M.G. Road, 15 August Chowk, Khadda Market, Camp",
       addressLocality: settings.company_city || "Pune",
       addressRegion: settings.company_state || "Maharashtra",
       postalCode: "411001",
@@ -68,11 +88,8 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased selection:bg-gold-500/20 selection:text-gold-900">
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   );
 }
-

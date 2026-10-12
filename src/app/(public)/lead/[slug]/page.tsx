@@ -1,0 +1,97 @@
+import React, { Suspense } from "react";
+import { notFound } from "next/navigation";
+import prisma from "@/lib/db";
+import { getSiteSettings } from "@/lib/settings";
+import {
+  ensureDefaultYouTubeForm,
+  parseFormQuestions,
+} from "@/lib/youtube-leads";
+import PublicLeadFormClient from "@/components/lead/PublicLeadFormClient";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  await ensureDefaultYouTubeForm();
+  const form = await prisma.leadForm.findUnique({
+    where: { slug },
+  });
+
+  if (!form) {
+    return {
+      title: "Enquiry Form | Al-Gafur Hajj & Umrah",
+    };
+  }
+
+  return {
+    title: `${form.title} | Al-Gafur Hajj & Umrah`,
+    description:
+      form.description ||
+      "Submit your Hajj & Umrah enquiry to receive package details and a personal callback.",
+    alternates: {
+      canonical: slug === "youtube-lead" ? "/youtube-lead" : `/lead/${slug}`,
+    },
+  };
+}
+
+export default async function DynamicLeadFormPublicPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  await ensureDefaultYouTubeForm();
+
+  const [form, settings] = await Promise.all([
+    prisma.leadForm.findUnique({
+      where: { slug },
+    }),
+    getSiteSettings(),
+  ]);
+
+  if (!form) {
+    notFound();
+  }
+
+  const serializedForm = {
+    id: form.id,
+    slug: form.slug,
+    title: form.title,
+    description: form.description,
+    campaignName: form.campaignName,
+    packageId: form.packageId,
+    packageName: form.packageName,
+    successTitle: form.successTitle,
+    successMessage: form.successMessage,
+    submitButtonText: form.submitButtonText,
+    showLogo: form.showLogo,
+    status: form.status,
+    isActive: form.isActive,
+    version: form.version,
+    questions: parseFormQuestions(form.questionsJson),
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F9F6F0] py-6 sm:py-10">
+      <Suspense
+        fallback={
+          <div className="max-w-2xl mx-auto p-8 text-center text-sm text-neutral-500">
+            Loading enquiry form...
+          </div>
+        }
+      >
+        <PublicLeadFormClient
+          form={serializedForm}
+          siteLogo={settings.site_logo || settings.header_logo || ""}
+          supportPhone={settings.phone_1 || "+91 8793939393"}
+          whatsappNumber={settings.whatsapp_number || "919890708013"}
+        />
+      </Suspense>
+    </div>
+  );
+}
+
