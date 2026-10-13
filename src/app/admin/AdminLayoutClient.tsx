@@ -41,6 +41,7 @@ import {
   Award,
   Globe,
   CheckCheck,
+  Youtube,
 } from "lucide-react";
 
 interface AdminLayoutClientProps {
@@ -128,7 +129,7 @@ export default function AdminLayoutClient({
 
   const allNavItems: NavItem[] = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard, moduleKey: "dashboard" },
-    { name: "Leads (CRM)", href: "/admin/crm/leads", icon: Users, moduleKey: "leads" },
+    { name: "Leads & Enquiries (CRM)", href: "/admin/crm/leads", icon: Users, moduleKey: "leads" },
     { name: "Notifications", href: "/admin/notifications", icon: Bell, moduleKey: "dashboard" },
     { name: "Customers", href: "/admin/customers", icon: UserCheck, moduleKey: "customers" },
     { name: "Follow-Ups", href: "/admin/crm/followups", icon: Calendar, moduleKey: "followups" },
@@ -137,12 +138,10 @@ export default function AdminLayoutClient({
     { name: "Packages", href: "/admin/packages", icon: FileText, moduleKey: "packages" },
     { name: "Hotels", href: "/admin/travel/hotels", icon: Building, moduleKey: "hotels" },
     { name: "Flights", href: "/admin/travel/flights", icon: Plane, moduleKey: "flights" },
-    { name: "Homepage & Website CMS", href: "/admin/settings?tab=homepage", icon: Globe, moduleKey: "settings" },
-    { name: "Spiritual Guides & Team", href: "/admin/team", icon: Award, moduleKey: "settings" },
+    { name: "Homepage Content", href: "/admin/settings?tab=homepage", icon: Globe, moduleKey: "settings" },
+    { name: "Team & Guides", href: "/admin/team", icon: Award, moduleKey: "settings" },
     { name: "Testimonials", href: "/admin/testimonials", icon: MessageSquareQuote, moduleKey: "settings" },
-    { name: "Document KYC", href: "/admin/documents", icon: FileCheck, moduleKey: "documents" },
-    { name: "Visa Processing", href: "/admin/visa", icon: ShieldCheck, moduleKey: "visas" },
-    { name: "Payments", href: "/admin/payments", icon: CreditCard, moduleKey: "payments" },
+    { name: "Payments (Ledger)", href: "/admin/payments", icon: CreditCard, moduleKey: "payments" },
     { name: "Quotations", href: "/admin/quotations", icon: FileSpreadsheet, moduleKey: "quotations" },
     { name: "Invoices", href: "/admin/invoices", icon: Receipt, moduleKey: "invoices" },
     { name: "Reports", href: "/admin/reports", icon: BarChart3, moduleKey: "reports" },
@@ -181,7 +180,11 @@ export default function AdminLayoutClient({
     },
   ];
 
-  const canViewYouTubeLeads = hasUserPermission(session, "youtube_leads:view");
+  const canViewYouTubeLeads =
+    session.role === "SUPER_ADMIN" ||
+    session.role === "ADMIN" ||
+    hasUserPermission(session, "youtube_leads:view") ||
+    hasUserPermission(session, "leads:view");
 
   // Filter items strictly by the user's live resolved module permissions
   const authorizedNavItems = allNavItems.filter((item) => {
@@ -218,6 +221,8 @@ export default function AdminLayoutClient({
     currentModuleKey === "dashboard" ||
     (currentModuleKey === "users"
       ? session.role === "SUPER_ADMIN" || hasUserPermission(session, "users:view")
+      : currentModuleKey === "youtube_leads"
+      ? canViewYouTubeLeads
       : hasUserPermission(session, `${currentModuleKey}:view`));
 
   const currentModuleDef = currentModuleKey
@@ -244,11 +249,11 @@ export default function AdminLayoutClient({
             <div className="mb-4 pb-3 border-b border-slate-800/80 space-y-1">
               <div className="px-3 pb-1.5 flex items-center justify-between">
                 <span className="text-[10px] uppercase font-extrabold tracking-wider text-rose-400 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  <Youtube className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
                   YouTube Leads
                 </span>
                 <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-950/60 text-rose-300 border border-rose-800/50">
-                  Campaigns
+                  Form Builder
                 </span>
               </div>
               {youtubeNavItems.map((item) => {
@@ -588,7 +593,8 @@ export default function AdminLayoutClient({
 
               {canViewYouTubeLeads && (
                 <div className="space-y-1 mb-4 pb-3 border-b border-slate-800">
-                  <span className="text-[10px] uppercase font-bold text-rose-400 block pb-1">
+                  <span className="text-[10px] uppercase font-bold text-rose-400 pb-1 flex items-center gap-1.5">
+                    <Youtube className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
                     YouTube Leads
                   </span>
                   {youtubeNavItems.map((it) => (

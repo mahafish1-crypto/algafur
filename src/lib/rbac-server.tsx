@@ -77,6 +77,11 @@ export async function verifyModuleAccess(moduleKey: ModuleKey): Promise<{
   const allowed =
     moduleKey === "users"
       ? session.role === "SUPER_ADMIN" || hasUserPermission(session, "users:view")
+      : moduleKey === "youtube_leads"
+      ? session.role === "SUPER_ADMIN" ||
+        session.role === "ADMIN" ||
+        hasUserPermission(session, "youtube_leads:view") ||
+        hasUserPermission(session, "leads:view")
       : hasUserPermission(session, `${moduleKey}:view`);
   return { allowed, session };
 }

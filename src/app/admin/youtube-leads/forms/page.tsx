@@ -4,6 +4,7 @@ import {
   ensureDefaultYouTubeForm,
   parseFormQuestions,
 } from "@/lib/youtube-leads";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 import FormBuilderClient from "./FormBuilderClient";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,11 @@ export default async function YouTubeLeadFormBuilderPage({
 }: {
   searchParams: Promise<{ formId?: string }>;
 }) {
+  const { allowed, session } = await verifyModuleAccess("youtube_leads");
+  if (!allowed) {
+    return <AccessDeniedView moduleKey="youtube_leads" session={session} />;
+  }
+
   await ensureDefaultYouTubeForm();
   const resolvedSearch = await searchParams;
 

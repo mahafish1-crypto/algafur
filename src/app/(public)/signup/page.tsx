@@ -303,11 +303,11 @@ export default function SignupPage() {
           <div className="grid grid-cols-2 gap-2 pt-2 text-[11px] text-emerald-200/80">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-gold-400 flex-shrink-0" />
-              <span>Track Visa &amp; PNR Status</span>
+              <span>Track Enquiry &amp; Booking</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-gold-400 flex-shrink-0" />
-              <span>Download Receipts &amp; Vouchers</span>
+              <span>View Tour Details &amp; Vouchers</span>
             </div>
           </div>
 

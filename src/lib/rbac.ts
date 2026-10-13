@@ -531,38 +531,62 @@ export function checkPermissionInList(
   grantedPermissions: string[],
   requiredPermission: Permission
 ): boolean {
-  if (!grantedPermissions || grantedPermissions.length === 0) return false;
-  if (grantedPermissions.includes("*")) return true;
-  if (grantedPermissions.includes(requiredPermission)) return true;
+  if (!grantedPermissions) return false;
+  const list = Array.isArray(grantedPermissions)
+    ? grantedPermissions
+    : typeof grantedPermissions === "string"
+    ? [grantedPermissions]
+    : [];
+  if (list.length === 0) return false;
+  if (list.includes("*")) return true;
+  if (list.includes(requiredPermission)) return true;
 
   const parsed = parsePermissionKey(requiredPermission);
   if (!parsed) return false;
   const { module, action } = parsed;
 
   if (
-    grantedPermissions.includes(`${module}:${action}`) ||
-    grantedPermissions.includes(`${action}:${module}`) ||
-    grantedPermissions.includes(`${module}:*`) ||
-    grantedPermissions.includes(`${module}:manage`) ||
-    grantedPermissions.includes(`manage:${module}`)
+    list.includes(`${module}:${action}`) ||
+    list.includes(`${action}:${module}`) ||
+    list.includes(`${module}:*`) ||
+    list.includes(`${module}:manage`) ||
+    list.includes(`manage:${module}`)
   ) {
     return true;
   }
 
   // If checking `view`, having any action on the module allows viewing it
   if (action === "view") {
-    return grantedPermissions.some((gp) => {
+    const hasView = list.some((gp) => {
       const gpParsed = parsePermissionKey(gp);
       return gpParsed?.module === module;
     });
+    if (hasView) return true;
+  }
+
+  // Cross-module inheritance: if checking youtube_leads, users with leads permission also qualify
+  if (module === "youtube_leads") {
+    if (
+      list.includes(`leads:${action}`) ||
+      list.includes(`${action}:leads`) ||
+      list.includes(`leads:manage`) ||
+      list.includes(`manage:leads`) ||
+      list.includes(`leads:*`) ||
+      (action === "view" && list.some((gp) => {
+        const gpParsed = parsePermissionKey(gp);
+        return gpParsed?.module === "leads";
+      }))
+    ) {
+      return true;
+    }
   }
 
   // If a legacy caller asks for `manage:<module>`, allow if user has create, edit, or approve on that module
   if (action === "manage") {
     return (
-      grantedPermissions.includes(`${module}:create`) ||
-      grantedPermissions.includes(`${module}:edit`) ||
-      grantedPermissions.includes(`${module}:approve`)
+      list.includes(`${module}:create`) ||
+      list.includes(`${module}:edit`) ||
+      list.includes(`${module}:approve`)
     );
   }
 

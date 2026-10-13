@@ -1,11 +1,17 @@
 import React from "react";
 import prisma from "@/lib/db";
 import { ensureDefaultYouTubeForm } from "@/lib/youtube-leads";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 import YouTubeLeadsOverviewClient from "./YouTubeLeadsOverviewClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function YouTubeLeadsOverviewPage() {
+  const { allowed, session } = await verifyModuleAccess("youtube_leads");
+  if (!allowed) {
+    return <AccessDeniedView moduleKey="youtube_leads" session={session} />;
+  }
+
   await ensureDefaultYouTubeForm();
 
   const [forms, submissions] = await Promise.all([

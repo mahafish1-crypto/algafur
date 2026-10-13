@@ -47,26 +47,26 @@ export default function TrackBookingPage() {
   };
 
   const stages = [
-    { name: "Booking Confirmed", icon: CheckCircle2, done: true },
+    { name: "Enquiry Registered", icon: CheckCircle2, done: true },
     {
-      name: "Payment Verified",
+      name: "Advisor Review",
       icon: ShieldCheck,
-      done: result?.paymentStatus === "PAID" || result?.paymentStatus === "PARTIALLY_PAID",
+      done: Boolean(result),
     },
     {
-      name: "Documents Verified",
+      name: "Package Assigned",
+      icon: Building,
+      done: Boolean(result),
+    },
+    {
+      name: "Hotel & Itinerary Ready",
       icon: FileCheck,
-      done: result?.documentsVerified,
-    },
-    {
-      name: "Visa Issued",
-      icon: ShieldCheck,
-      done: result?.visaApproved,
+      done: Boolean(result),
     },
     {
       name: "Ready to Travel",
       icon: Plane,
-      done: result?.readyToTravel,
+      done: result?.readyToTravel || result?.bookingStatus === "CONFIRMED",
     },
   ];
 
@@ -189,14 +189,14 @@ export default function TrackBookingPage() {
                 <span className="font-semibold text-neutral-900">{result.adults} Adults, {result.children} Children</span>
               </div>
               <div>
-                <span className="text-neutral-500 block text-[10px] uppercase font-bold">Payment Status</span>
-                <span className="font-semibold text-emerald-800">{result.paymentStatus}</span>
+                <span className="text-neutral-500 block text-[10px] uppercase font-bold">Booking Status</span>
+                <span className="font-semibold text-emerald-800">{result.bookingStatus || "CONFIRMED"}</span>
               </div>
             </div>
 
             <div className="pt-2 flex flex-wrap justify-between items-center gap-3">
               <span className="text-xs text-neutral-500">
-                For detailed e-Visa and passport uploads, access the customer portal.
+                For personalized pilgrimage support and advisor assistance, please contact our travel desk.
               </span>
               <Link
                 href="/login"

@@ -4,11 +4,17 @@ import {
   ensureDefaultYouTubeForm,
   parseSubmittedAnswers,
 } from "@/lib/youtube-leads";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 import LeadResponsesClient from "./LeadResponsesClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function YouTubeLeadResponsesPage() {
+  const { allowed, session } = await verifyModuleAccess("youtube_leads");
+  if (!allowed) {
+    return <AccessDeniedView moduleKey="youtube_leads" session={session} />;
+  }
+
   await ensureDefaultYouTubeForm();
 
   const [forms, submissions, staffUsers] = await Promise.all([

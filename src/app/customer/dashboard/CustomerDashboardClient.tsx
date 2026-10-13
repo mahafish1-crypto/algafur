@@ -42,13 +42,11 @@ export default function CustomerDashboardClient({
   };
 
   const journeySteps = [
-    { title: "Enquiry", done: true },
+    { title: "Enquiry Submitted", done: true },
     { title: "Advisor Review", done: leads.some((l: any) => l.status !== "NEW") || Boolean(activeBooking) },
     { title: "Booking Confirmed", done: Boolean(activeBooking) },
-    { title: "Documents", done: customer?.documents?.some((d: any) => d.status === "VERIFIED") },
-    { title: "Visa", done: activeBooking?.visaApplications?.some((v: any) => v.status === "APPROVED") },
-    { title: "Flight", done: Boolean(activeBooking) },
-    { title: "Hotel", done: Boolean(activeBooking) },
+    { title: "Flight Allocated", done: Boolean(activeBooking) },
+    { title: "Hotel Allocated", done: Boolean(activeBooking) },
     { title: "Ready to Travel", done: activeBooking?.bookingStatus === "CONFIRMED" },
   ];
 
@@ -85,7 +83,7 @@ export default function CustomerDashboardClient({
               Assalamualaikum, {customer?.name || session.name || "Respected Pilgrim"}!
             </h1>
             <p className="text-xs sm:text-sm text-emerald-200/80 max-w-xl">
-              Track your pilgrimage milestones, download payment vouchers, and review your hotel allocations in Makkah &amp; Madinah.
+              Track your pilgrimage milestones, advisor follow-up status, and review your hotel allocations in Makkah &amp; Madinah.
             </p>
           </div>
         </div>
@@ -253,15 +251,15 @@ export default function CustomerDashboardClient({
           </div>
         )}
 
-        {/* Visa & Travel Documentation Advisory */}
+        {/* Dedicated Pilgrimage Guidance & Support Desk */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-lg font-serif font-bold text-forest-950 flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-emerald-700" />
-              Travel Documentation &amp; Visa Assistance
+              Dedicated Pilgrimage Guidance &amp; Support
             </h2>
             <p className="text-xs text-neutral-600 max-w-2xl">
-              For your security and privacy, travel documents are collected directly by our verified Visa &amp; Operations Desk after your booking enquiry is confirmed by an advisor.
+              Our travel desk coordinates all departure preparations, hotel allocations, and itinerary guidance directly with you once your package enquiry is confirmed.
             </p>
           </div>
           <Link

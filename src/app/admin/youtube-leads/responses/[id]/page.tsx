@@ -2,6 +2,7 @@ import React from "react";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/db";
 import { parseSubmittedAnswers } from "@/lib/youtube-leads";
+import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 import YouTubeLeadDetailClient from "./YouTubeLeadDetailClient";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,11 @@ export default async function YouTubeLeadDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { allowed, session } = await verifyModuleAccess("youtube_leads");
+  if (!allowed) {
+    return <AccessDeniedView moduleKey="youtube_leads" session={session} />;
+  }
+
   const { id } = await params;
 
   const [submission, staffUsers, activityLogs] = await Promise.all([

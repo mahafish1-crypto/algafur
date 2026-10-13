@@ -1,22 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import BrandLogo from "../brand/BrandLogo";
 import { useLanguage } from "@/context/LanguageContext";
-import { LANGUAGES } from "@/lib/i18n";
 import {
   Phone,
   MessageCircle,
   Menu,
   X,
-  Globe,
-  ChevronDown,
   UserCheck,
   UserPlus,
   Compass,
-  Check,
 } from "lucide-react";
 
 interface NavbarProps {
@@ -25,11 +21,9 @@ interface NavbarProps {
 
 export default function Navbar({ settings = {} }: NavbarProps) {
   const pathname = usePathname();
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,21 +34,13 @@ export default function Navbar({ settings = {} }: NavbarProps) {
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (langRef.current && !langRef.current.contains(e.target as Node)) {
-        setLangDropdownOpen(false);
-      }
-    };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setLangDropdownOpen(false);
         setMobileMenuOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
@@ -72,7 +58,6 @@ export default function Navbar({ settings = {} }: NavbarProps) {
     { name: t("nav_contact"), href: "/contact" },
   ];
 
-  const currentLangMeta = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
   const phone = settings.company_phone_1 || "+91 8793939393";
   const whatsappRaw = (settings.whatsapp_number || "919890708013").replace(/[^0-9]/g, "");
   const announcement =
@@ -184,61 +169,6 @@ export default function Navbar({ settings = {} }: NavbarProps) {
 
           {/* Right Action Controls (Desktop & Tablet) */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Language Selector Dropdown (Visible on both mobile & desktop) */}
-            <div className="relative" ref={langRef}>
-              <button
-                type="button"
-                onClick={() => setLangDropdownOpen((prev) => !prev)}
-                aria-expanded={langDropdownOpen}
-                aria-haspopup="listbox"
-                aria-label={t("language_label")}
-                className="flex items-center gap-1.5 text-xs text-emerald-100 hover:text-white bg-forest-950/90 border border-gold-500/35 px-2.5 py-2 rounded-lg transition-colors min-h-[38px]"
-              >
-                <Globe className="w-3.5 h-3.5 text-gold-400 flex-shrink-0" />
-                <span className="font-medium">{currentLangMeta.nativeName}</span>
-                <ChevronDown
-                  className={`w-3 h-3 text-gold-400/80 transition-transform ${
-                    langDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {langDropdownOpen && (
-                <div
-                  role="listbox"
-                  aria-label={t("language_label")}
-                  className="absolute end-0 mt-2 w-44 bg-forest-950 border border-gold-500/35 rounded-xl shadow-2xl py-1.5 z-50"
-                >
-                  {LANGUAGES.map((lang) => {
-                    const selected = language === lang.code;
-                    return (
-                      <button
-                        key={lang.code}
-                        type="button"
-                        role="option"
-                        aria-selected={selected}
-                        onClick={() => {
-                          setLanguage(lang.code);
-                          setLangDropdownOpen(false);
-                        }}
-                        className={`w-full text-start px-3.5 py-2 text-xs transition-colors flex items-center justify-between ${
-                          selected
-                            ? "bg-gold-500/20 text-gold-300 font-bold"
-                            : "text-emerald-100 hover:bg-forest-900"
-                        }`}
-                      >
-                        <div className="flex flex-col">
-                          <span>{lang.nativeName}</span>
-                          <span className="text-[10px] text-emerald-300/70">{lang.label}</span>
-                        </div>
-                        {selected && <Check className="w-3.5 h-3.5 text-gold-400" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
             {/* Quick WhatsApp Chat (Desktop) */}
             <a
               href={`https://wa.me/${whatsappRaw}?text=Assalamualaikum,%20I%20would%20like%20information%20about%20Al-Gafur%20Hajj%20and%20Umrah%20packages`}
@@ -296,31 +226,8 @@ export default function Navbar({ settings = {} }: NavbarProps) {
             })}
           </nav>
 
-          {/* Language Switcher Pills in Mobile Drawer */}
+          {/* Mobile Quick Portal Actions */}
           <div className="mt-5 pt-4 border-t border-white/10 space-y-3">
-            <div className="space-y-2">
-              <span className="text-xs font-semibold text-gold-300 block">
-                {t("language_label")}:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {LANGUAGES.map((lang) => (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => setLanguage(lang.code)}
-                    className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
-                      language === lang.code
-                        ? "bg-gold-500 text-forest-950 font-bold shadow-sm"
-                        : "bg-forest-900 text-emerald-100 border border-white/10 hover:border-gold-500/40"
-                    }`}
-                  >
-                    {lang.nativeName}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Mobile Quick Portal Actions */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2">
               <Link
                 href="/booking"
