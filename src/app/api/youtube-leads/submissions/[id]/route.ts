@@ -164,6 +164,34 @@ export async function PATCH(
       updateData.followUpNotes = cleanFollowUpNotes;
     }
 
+    if (body.priorityOverride !== undefined) {
+      const cleanOverride = body.priorityOverride
+        ? sanitizeTextValue(body.priorityOverride, 20).toUpperCase()
+        : null;
+      const cleanReason = body.priorityOverrideReason
+        ? sanitizeTextValue(body.priorityOverrideReason, 500)
+        : null;
+
+      if (cleanOverride !== existing.priorityOverride) {
+        updateData.priorityOverride = cleanOverride;
+        updateData.priorityOverrideReason = cleanReason;
+        updateData.priorityOverriddenBy = auth.session.name || "Admin";
+        updateData.priorityOverriddenAt = new Date();
+        if (cleanOverride) {
+          updateData.priority = cleanOverride;
+          activityNotes.push(
+            `Priority manually updated to ${cleanOverride}${
+              cleanReason ? ` (Reason: ${cleanReason})` : ""
+            }`
+          );
+        } else {
+          activityNotes.push(
+            "Cleared manual priority override; restored automatic scoring."
+          );
+        }
+      }
+    }
+
     if (body.internalNotes !== undefined) {
       const cleanInternalNotes =
         sanitizeTextValue(body.internalNotes, 2000) || null;

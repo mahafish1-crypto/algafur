@@ -100,9 +100,22 @@ model Lead {
   whatsapp        String?
   email           String?
   city            String?
+  address         String?
+  state           String?
+  postalCode      String?
+  country         String?        @default("India")
+  latitude        Float?
+  longitude       Float?
+  locationSource  String?        // GPS, MANUAL
   journeyType     String         @default("UMRAH") // HAJJ, UMRAH, RAMADAN_UMRAH, GROUP, PRIVATE
   packageInterest String?
   travelDate      String?
+  travelTimeline  String?        // Immediately, Within 1 month, Within 3 months, etc.
+  leadScore       Int            @default(50)
+  priority        String         @default("WARM") // HOT, WARM, COLD
+  scoreExplanation String?
+  priorityOverride String?
+  priorityOverrideReason String?
   adults          Int            @default(1)
   children        Int            @default(0)
   budget          String?
@@ -130,6 +143,8 @@ model Lead {
 
   @@index([mobile])
   @@index([status])
+  @@index([priority])
+  @@index([leadScore])
   @@index([createdAt])
 }
 
@@ -831,11 +846,30 @@ model LeadFormSubmission {
   whatsapp         String?
   email            String?
   city             String?
+  district         String?
+  state            String?
+  postalCode       String?
+  country          String?   @default("India")
+  address          String?
+  latitude         Float?
+  longitude        Float?
+  locationSource   String?   // GPS, MANUAL
   interestedIn     String?
   travelMonth      String?
+  travelTimeline   String?   // Immediately, Within 1 month, Within 3 months, Within 6 months, Within 1 year, Flexible
+  approxDepartureDate String? // Target follow-up window
   travellersCount  Int       @default(1)
   notes            String?
   internalNotes    String?
+
+  leadScore        Int       @default(50)
+  priority         String    @default("WARM") // HOT, WARM, COLD
+  scoreExplanation String?
+  priorityOverride String?
+  priorityOverrideReason String?
+  priorityOverriddenBy String?
+  priorityOverriddenAt DateTime?
+  scoredAt         DateTime?
 
   campaignName     String?
   leadSource       String    @default("Direct")
@@ -867,6 +901,9 @@ model LeadFormSubmission {
 
   @@index([formId])
   @@index([status])
+  @@index([priority])
+  @@index([leadScore])
+  @@index([travelTimeline])
   @@index([campaignName])
   @@index([leadSource])
   @@index([assignedToId])

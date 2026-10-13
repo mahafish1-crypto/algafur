@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import BrandLogo from "@/components/brand/BrandLogo";
 import type { FormQuestion } from "@/lib/youtube-leads";
+import LocationInputModule from "./LocationInputModule";
 import {
   CheckCircle2,
   AlertCircle,
@@ -58,6 +59,8 @@ export default function PublicLeadFormClient({
         init[q.id] = [];
       } else if (q.type === "CONSENT") {
         init[q.id] = false;
+      } else if (q.type === "LOCATION") {
+        init[q.id] = { locationSource: "MANUAL" };
       } else {
         init[q.id] = "";
       }
@@ -137,6 +140,18 @@ export default function PublicLeadFormClient({
         const arr = Array.isArray(val) ? val : [];
         if (q.required && arr.length === 0) {
           nextErrors[q.id] = "Please select at least one option.";
+        }
+        continue;
+      }
+      if (q.type === "LOCATION") {
+        let city = "";
+        if (typeof val === "object" && val !== null) {
+          city = String(val.city || val.address || val.state || "").trim();
+        } else if (typeof val === "string") {
+          city = val.trim();
+        }
+        if (q.required && !city) {
+          nextErrors[q.id] = `"${q.label}" is required. Please detect your location or enter your city.`;
         }
         continue;
       }
@@ -461,7 +476,24 @@ export default function PublicLeadFormClient({
                   : "border-neutral-200 focus-within:border-[#0D3B2E]"
               }`}
             >
-              {q.type !== "CONSENT" && (
+              {/* LOCATION */}
+              {q.type === "LOCATION" && (
+                <LocationInputModule
+                  id={inputId}
+                  label={q.label}
+                  required={q.required}
+                  helperText={q.helperText}
+                  placeholder={
+                    q.placeholder ||
+                    "Click 'Detect My Location' or type city/district"
+                  }
+                  value={answers[q.id]}
+                  onChange={(val) => handleValueChange(q.id, val)}
+                  error={errorMsg}
+                />
+              )}
+
+              {q.type !== "CONSENT" && q.type !== "LOCATION" && (
                 <div>
                   <label
                     htmlFor={inputId}
@@ -715,17 +747,17 @@ export default function PublicLeadFormClient({
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-[#0D3B2E] hover:bg-[#155240] disabled:opacity-60 text-white text-sm font-bold transition-all shadow-md shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-[#0D3B2E] hover:bg-[#155240] disabled:opacity-60 text-white text-sm font-bold transition-all shadow-md shrink-0 cursor-pointer disabled:cursor-not-allowed"
           >
             {submitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Submitting...
+                <Loader2 className="w-4 h-4 animate-spin text-[#C8A45D]" />
+                <span>Submitting enquiry…</span>
               </>
             ) : (
               <>
                 <Send className="w-4 h-4 text-[#C8A45D]" />
-                {form.submitButtonText || "Submit Enquiry"}
+                <span>{form.submitButtonText || "Submit Enquiry"}</span>
               </>
             )}
           </button>

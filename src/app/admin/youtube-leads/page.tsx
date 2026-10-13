@@ -60,6 +60,14 @@ export default async function YouTubeLeadsOverviewPage() {
     status: s.status,
     assignedToName: s.assignedTo?.name || null,
     followUpDate: s.followUpDate || null,
+    leadScore: s.leadScore ?? 50,
+    priority: s.priority || "WARM",
+    scoreExplanation: s.scoreExplanation || "",
+    travelTimeline: s.travelTimeline || "",
+    address: s.address || "",
+    locationSource: s.locationSource || "MANUAL",
+    priorityOverride: s.priorityOverride || null,
+    priorityOverrideReason: s.priorityOverrideReason || null,
     createdAt: s.createdAt.toISOString(),
   }));
 

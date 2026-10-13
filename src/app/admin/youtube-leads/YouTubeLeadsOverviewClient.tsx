@@ -20,6 +20,11 @@ import {
   FileSpreadsheet,
   Phone,
   Link2,
+  Flame,
+  Sun,
+  Snowflake,
+  MapPin,
+  AlertTriangle,
 } from "lucide-react";
 
 interface OverviewFormItem {
@@ -52,6 +57,13 @@ interface OverviewSubmissionItem {
   assignedToName: string | null;
   followUpDate: string | null;
   createdAt: string;
+  leadScore?: number;
+  priority?: string;
+  scoreExplanation?: string;
+  priorityOverride?: string | null;
+  travelTimeline?: string;
+  address?: string;
+  locationSource?: string;
 }
 
 type DateRangePreset = "ALL" | "TODAY" | "7D" | "30D" | "CUSTOM";
@@ -140,6 +152,15 @@ export default function YouTubeLeadsOverviewClient({
     const closed = filteredSubmissions.filter(
       (s) => s.status === "CLOSED"
     ).length;
+    const hot = filteredSubmissions.filter(
+      (s) => (s.priority || "WARM").toUpperCase() === "HOT"
+    ).length;
+    const warm = filteredSubmissions.filter(
+      (s) => (s.priority || "WARM").toUpperCase() === "WARM"
+    ).length;
+    const cold = filteredSubmissions.filter(
+      (s) => (s.priority || "WARM").toUpperCase() === "COLD"
+    ).length;
 
     return {
       total,
@@ -148,6 +169,9 @@ export default function YouTubeLeadsOverviewClient({
       followUpsPending,
       converted,
       closed,
+      hot,
+      warm,
+      cold,
     };
   }, [filteredSubmissions, submissions]);
 
@@ -372,6 +396,72 @@ export default function YouTubeLeadsOverviewClient({
             </span>
           </p>
           <p className="text-xs text-slate-500 mt-1">Confirmed bookings</p>
+        </div>
+      </div>
+
+      {/* Lead Priority & Quality Tiers Banner */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-50 to-white border border-rose-200 flex items-center justify-between shadow-xs">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-rose-700">
+              <Flame className="w-4 h-4 text-rose-600" />
+              Hot Leads (1st Priority)
+            </div>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">
+              {metrics.hot}
+            </p>
+            <p className="text-[11px] text-slate-500">
+              Score 70–100 • Call within 15 mins
+            </p>
+          </div>
+          <Link
+            href="/admin/youtube-leads/responses"
+            className="px-3 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold transition-all"
+          >
+            Inspect Hot
+          </Link>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-white border border-amber-200 flex items-center justify-between shadow-xs">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
+              <Sun className="w-4 h-4 text-amber-600" />
+              Warm Leads (2nd Priority)
+            </div>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">
+              {metrics.warm}
+            </p>
+            <p className="text-[11px] text-slate-500">
+              Score 40–69 • Moderate urgency
+            </p>
+          </div>
+          <Link
+            href="/admin/youtube-leads/responses"
+            className="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold transition-all"
+          >
+            Inspect Warm
+          </Link>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-50 to-white border border-sky-200 flex items-center justify-between shadow-xs">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-sky-700">
+              <Snowflake className="w-4 h-4 text-sky-600" />
+              Cold Leads (Lower Priority)
+            </div>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1">
+              {metrics.cold}
+            </p>
+            <p className="text-[11px] text-slate-500">
+              Score 0–39 • Flexible timeline
+            </p>
+          </div>
+          <Link
+            href="/admin/youtube-leads/responses"
+            className="px-3 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-800 text-xs font-bold transition-all"
+          >
+            Inspect Cold
+          </Link>
         </div>
       </div>
 
@@ -650,13 +740,14 @@ export default function YouTubeLeadsOverviewClient({
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   <th className="py-3 px-4">Lead ID</th>
+                  <th className="py-3 px-4">Priority & Score</th>
                   <th className="py-3 px-4">Pilgrim Name</th>
+                  <th className="py-3 px-4">Travel Urgency</th>
                   <th className="py-3 px-4">Phone</th>
                   <th className="py-3 px-4">Form</th>
-                  <th className="py-3 px-4">Campaign / Source</th>
+                  <th className="py-3 px-4">Campaign</th>
                   <th className="py-3 px-4">Submitted</th>
                   <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Assigned</th>
                   <th className="py-3 px-4 text-right">Action</th>
                 </tr>
               </thead>
@@ -666,15 +757,55 @@ export default function YouTubeLeadsOverviewClient({
                     key={sub.id}
                     className="hover:bg-slate-50/80 transition-colors"
                   >
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-700 whitespace-nowrap">
                       {sub.submissionCode}
                     </td>
+
+                    {/* Priority & Score */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        {sub.priority === "HOT" ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                            <Flame className="w-3 h-3 text-rose-600" /> Hot
+                          </span>
+                        ) : sub.priority === "COLD" ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-50 text-sky-700 border border-sky-200">
+                            <Snowflake className="w-3 h-3 text-sky-600" /> Cold
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200">
+                            <Sun className="w-3 h-3 text-amber-600" /> Warm
+                          </span>
+                        )}
+                        <span className="font-mono text-xs font-bold text-slate-700">
+                          {sub.leadScore ?? 50}/100
+                        </span>
+                      </div>
+                    </td>
+
                     <td className="py-3.5 px-4">
                       <p className="font-bold text-slate-900">{sub.fullName}</p>
-                      {sub.city && (
-                        <p className="text-[11px] text-slate-500">{sub.city}</p>
+                      <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+                        <span>{sub.city || "—"}</span>
+                        {sub.locationSource === "GPS" && (
+                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold">
+                            <MapPin className="w-2.5 h-2.5" /> GPS
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Travel Urgency / Timeline */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {sub.travelTimeline ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                          {sub.travelTimeline}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">—</span>
                       )}
                     </td>
+
                     <td className="py-3.5 px-4">
                       {sub.phone ? (
                         <a
@@ -697,30 +828,23 @@ export default function YouTubeLeadsOverviewClient({
                       </p>
                       <p className="text-[11px] text-slate-500">
                         {sub.leadSource}
-                        {sub.videoId ? ` • Video: ${sub.videoId}` : ""}
                       </p>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500">
+                    <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
                       {new Date(sub.createdAt).toLocaleString("en-IN", {
                         day: "2-digit",
                         month: "short",
-                        year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
                     </td>
                     <td className="py-3.5 px-4">{getStatusBadge(sub.status)}</td>
-                    <td className="py-3.5 px-4 text-slate-600">
-                      {sub.assignedToName || (
-                        <span className="text-slate-400">Unassigned</span>
-                      )}
-                    </td>
                     <td className="py-3.5 px-4 text-right">
                       <Link
                         href={`/admin/youtube-leads/responses/${sub.id}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold transition-all"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold transition-all text-xs"
                       >
-                        View Details
+                        Details
                       </Link>
                     </td>
                   </tr>

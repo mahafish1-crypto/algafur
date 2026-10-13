@@ -22,6 +22,14 @@ import {
   CheckCircle2,
   Download,
   RotateCcw,
+  Flame,
+  Sun,
+  Snowflake,
+  MapPin,
+  ArrowUpDown,
+  SlidersHorizontal,
+  AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 
 export interface SubmissionRecord {
@@ -38,9 +46,24 @@ export interface SubmissionRecord {
   whatsapp: string;
   email: string;
   city: string;
+  district?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  address?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationSource?: string;
   interestedIn: string;
   travelMonth: string;
+  travelTimeline?: string;
+  approxDepartureDate?: string;
   travellersCount: number | null;
+  leadScore: number;
+  priority: string;
+  scoreExplanation?: string;
+  priorityOverride?: string | null;
+  priorityOverrideReason?: string | null;
   message: string;
   consent: boolean;
   answers: SubmittedAnswerSnapshot[];
@@ -105,6 +128,16 @@ export default function LeadResponsesClient({
   const [selectedSource, setSelectedSource] = useState("ALL");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
   const [selectedStaffId, setSelectedStaffId] = useState("ALL");
+  const [selectedPriority, setSelectedPriority] = useState("ALL");
+  const [selectedTimeline, setSelectedTimeline] = useState("ALL");
+  const [sortBy, setSortBy] = useState<
+    | "RECENT_DESC"
+    | "SCORE_DESC"
+    | "PRIORITY_DESC"
+    | "OLDEST_UNCONTACTED"
+    | "TIMELINE_EARLIEST"
+    | "OVERDUE_FIRST"
+  >("RECENT_DESC");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -115,6 +148,8 @@ export default function LeadResponsesClient({
   const [modalAssignedId, setModalAssignedId] = useState("");
   const [modalFollowUpDate, setModalFollowUpDate] = useState("");
   const [modalNotes, setModalNotes] = useState("");
+  const [modalPriorityOverride, setModalPriorityOverride] = useState("");
+  const [modalOverrideReason, setModalOverrideReason] = useState("");
   const [modalSaving, setModalSaving] = useState(false);
   const [modalSavedToast, setModalSavedToast] = useState(false);
   const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>([]);
@@ -138,11 +173,58 @@ export default function LeadResponsesClient({
     return Array.from(set).sort();
   }, [submissions]);
 
-  // Filtered submissions
+  // Summary Counters: Hot, Warm, Cold, New, Due Today, Overdue
+  const summaryMetrics = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    let hot = 0;
+    let warm = 0;
+    let cold = 0;
+    let newLeads = 0;
+    let dueToday = 0;
+    let overdue = 0;
+
+    for (const s of submissions) {
+      const p = (s.priority || "WARM").toUpperCase();
+      if (p === "HOT") hot++;
+      else if (p === "WARM") warm++;
+      else if (p === "COLD") cold++;
+
+      if (s.status === "NEW") newLeads++;
+
+      if (s.followUpDate) {
+        if (
+          s.followUpDate === today &&
+          s.status !== "CONVERTED" &&
+          s.status !== "CLOSED"
+        ) {
+          dueToday++;
+        } else if (
+          s.followUpDate < today &&
+          s.status !== "CONVERTED" &&
+          s.status !== "CLOSED"
+        ) {
+          overdue++;
+        }
+      }
+    }
+
+    return {
+      hot,
+      warm,
+      cold,
+      newLeads,
+      dueToday,
+      overdue,
+      total: submissions.length,
+    };
+  }, [submissions]);
+
+  // Filtered & Sorted Submissions
   const filteredSubmissions = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
+    const today = new Date().toISOString().split("T")[0];
 
-    return submissions.filter((sub) => {
+    const filtered = submissions.filter((sub) => {
       if (selectedFormId !== "ALL" && sub.formId !== selectedFormId) {
         return false;
       }
@@ -155,6 +237,13 @@ export default function LeadResponsesClient({
       }
       if (selectedStatus !== "ALL" && sub.status !== selectedStatus) {
         return false;
+      }
+      if (selectedPriority !== "ALL" && sub.priority !== selectedPriority) {
+        return false;
+      }
+      if (selectedTimeline !== "ALL") {
+        const tl = (sub.travelTimeline || "").toLowerCase();
+        if (!tl.includes(selectedTimeline.toLowerCase())) return false;
       }
       if (selectedStaffId !== "ALL") {
         if (selectedStaffId === "UNASSIGNED") {
@@ -187,13 +276,69 @@ export default function LeadResponsesClient({
           sub.whatsapp.toLowerCase().includes(q) ||
           sub.email.toLowerCase().includes(q) ||
           sub.city.toLowerCase().includes(q) ||
+          (sub.address && sub.address.toLowerCase().includes(q)) ||
           sub.interestedIn.toLowerCase().includes(q) ||
           sub.campaignName.toLowerCase().includes(q) ||
+          (sub.travelTimeline && sub.travelTimeline.toLowerCase().includes(q)) ||
           inAnswers;
         if (!matches) return false;
       }
 
       return true;
+    });
+
+    const priorityWeight: Record<string, number> = { HOT: 3, WARM: 2, COLD: 1 };
+
+    return filtered.sort((a, b) => {
+      if (sortBy === "SCORE_DESC") {
+        return (b.leadScore ?? 0) - (a.leadScore ?? 0);
+      }
+      if (sortBy === "PRIORITY_DESC") {
+        const pDiff =
+          (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2);
+        if (pDiff !== 0) return pDiff;
+        return (b.leadScore ?? 0) - (a.leadScore ?? 0);
+      }
+      if (sortBy === "OLDEST_UNCONTACTED") {
+        const aIsUncontacted = a.status === "NEW" ? 1 : 0;
+        const bIsUncontacted = b.status === "NEW" ? 1 : 0;
+        if (aIsUncontacted !== bIsUncontacted) {
+          return bIsUncontacted - aIsUncontacted;
+        }
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      if (sortBy === "TIMELINE_EARLIEST") {
+        const timelineUrgency = (tl?: string) => {
+          const t = (tl || "").toLowerCase();
+          if (t.includes("immediately") || t.includes("asap")) return 1;
+          if (t.includes("1 month")) return 2;
+          if (t.includes("3 months")) return 3;
+          if (t.includes("6 months")) return 4;
+          if (t.includes("1 year")) return 5;
+          return 6;
+        };
+        return timelineUrgency(a.travelTimeline) - timelineUrgency(b.travelTimeline);
+      }
+      if (sortBy === "OVERDUE_FIRST") {
+        const aOverdue =
+          a.followUpDate &&
+          a.followUpDate < today &&
+          a.status !== "CONVERTED" &&
+          a.status !== "CLOSED"
+            ? 1
+            : 0;
+        const bOverdue =
+          b.followUpDate &&
+          b.followUpDate < today &&
+          b.status !== "CONVERTED" &&
+          b.status !== "CLOSED"
+            ? 1
+            : 0;
+        if (aOverdue !== bOverdue) return bOverdue - aOverdue;
+        return (b.leadScore ?? 0) - (a.leadScore ?? 0);
+      }
+      // Default: RECENT_DESC
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [
     submissions,
@@ -202,7 +347,10 @@ export default function LeadResponsesClient({
     selectedCampaign,
     selectedSource,
     selectedStatus,
+    selectedPriority,
+    selectedTimeline,
     selectedStaffId,
+    sortBy,
     dateFrom,
     dateTo,
   ]);
@@ -213,7 +361,10 @@ export default function LeadResponsesClient({
     setSelectedCampaign("ALL");
     setSelectedSource("ALL");
     setSelectedStatus("ALL");
+    setSelectedPriority("ALL");
+    setSelectedTimeline("ALL");
     setSelectedStaffId("ALL");
+    setSortBy("RECENT_DESC");
     setDateFrom("");
     setDateTo("");
   };
@@ -226,6 +377,8 @@ export default function LeadResponsesClient({
       sub.followUpDate ? sub.followUpDate.slice(0, 10) : ""
     );
     setModalNotes(sub.internalNotes || "");
+    setModalPriorityOverride(sub.priorityOverride || "");
+    setModalOverrideReason(sub.priorityOverrideReason || "");
     setModalSavedToast(false);
     setLoadingActivity(true);
 
@@ -259,6 +412,8 @@ export default function LeadResponsesClient({
             assignedToId: modalAssignedId || null,
             followUpDate: modalFollowUpDate || null,
             internalNotes: modalNotes,
+            priorityOverride: modalPriorityOverride || null,
+            priorityOverrideReason: modalOverrideReason || null,
           }),
         }
       );
@@ -277,6 +432,9 @@ export default function LeadResponsesClient({
           assignedToName: staffMember?.name || null,
           followUpDate: updated.followUpDate || "",
           internalNotes: updated.internalNotes || "",
+          priority: updated.priority || activeSubmission.priority,
+          priorityOverride: updated.priorityOverride || null,
+          priorityOverrideReason: updated.priorityOverrideReason || null,
           updatedAt: updated.updatedAt,
         };
 
@@ -394,6 +552,169 @@ export default function LeadResponsesClient({
         }
       />
 
+      {/* 6 Top Metric Summary Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {/* Hot Leads */}
+        <button
+          type="button"
+          onClick={() =>
+            setSelectedPriority(selectedPriority === "HOT" ? "ALL" : "HOT")
+          }
+          className={`p-4 rounded-2xl border text-left transition-all ${
+            selectedPriority === "HOT"
+              ? "bg-rose-50 border-rose-400 ring-2 ring-rose-300 shadow-sm"
+              : "bg-white border-slate-200 hover:border-rose-300 hover:bg-rose-50/30 shadow-xs"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700">
+              Hot Leads
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center">
+              <Flame className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-rose-700 mt-2">
+            {summaryMetrics.hot}
+          </p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            1st Priority • Score 70–100
+          </p>
+        </button>
+
+        {/* Warm Leads */}
+        <button
+          type="button"
+          onClick={() =>
+            setSelectedPriority(selectedPriority === "WARM" ? "ALL" : "WARM")
+          }
+          className={`p-4 rounded-2xl border text-left transition-all ${
+            selectedPriority === "WARM"
+              ? "bg-amber-50 border-amber-400 ring-2 ring-amber-300 shadow-sm"
+              : "bg-white border-slate-200 hover:border-amber-300 hover:bg-amber-50/30 shadow-xs"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700">
+              Warm Leads
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
+              <Sun className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-amber-700 mt-2">
+            {summaryMetrics.warm}
+          </p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            2nd Priority • Score 40–69
+          </p>
+        </button>
+
+        {/* Cold Leads */}
+        <button
+          type="button"
+          onClick={() =>
+            setSelectedPriority(selectedPriority === "COLD" ? "ALL" : "COLD")
+          }
+          className={`p-4 rounded-2xl border text-left transition-all ${
+            selectedPriority === "COLD"
+              ? "bg-sky-50 border-sky-400 ring-2 ring-sky-300 shadow-sm"
+              : "bg-white border-slate-200 hover:border-sky-300 hover:bg-sky-50/30 shadow-xs"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-sky-700">
+              Cold Leads
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center">
+              <Snowflake className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-sky-700 mt-2">
+            {summaryMetrics.cold}
+          </p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            3rd Priority • Score 0–39
+          </p>
+        </button>
+
+        {/* New Leads */}
+        <button
+          type="button"
+          onClick={() =>
+            setSelectedStatus(selectedStatus === "NEW" ? "ALL" : "NEW")
+          }
+          className={`p-4 rounded-2xl border text-left transition-all ${
+            selectedStatus === "NEW"
+              ? "bg-blue-50 border-blue-400 ring-2 ring-blue-300 shadow-sm"
+              : "bg-white border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 shadow-xs"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700">
+              New Leads
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-blue-700 mt-2">
+            {summaryMetrics.newLeads}
+          </p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            Awaiting first contact
+          </p>
+        </button>
+
+        {/* Due Today */}
+        <div className="p-4 rounded-2xl border border-slate-200 bg-white text-left shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+              Due Today
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <Calendar className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-emerald-700 mt-2">
+            {summaryMetrics.dueToday}
+          </p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            Follow-up scheduled today
+          </p>
+        </div>
+
+        {/* Overdue Follow-ups */}
+        <button
+          type="button"
+          onClick={() =>
+            setSortBy(
+              sortBy === "OVERDUE_FIRST" ? "RECENT_DESC" : "OVERDUE_FIRST"
+            )
+          }
+          className={`p-4 rounded-2xl border text-left transition-all ${
+            sortBy === "OVERDUE_FIRST"
+              ? "bg-red-50 border-red-400 ring-2 ring-red-300 shadow-sm"
+              : "bg-white border-red-200 hover:border-red-300 hover:bg-red-50/30 shadow-xs"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-red-700">
+              Overdue
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-red-100 text-red-700 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-extrabold text-red-700 mt-2">
+            {summaryMetrics.overdue}
+          </p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            Follow-up deadline passed
+          </p>
+        </button>
+      </div>
+
       {/* Comprehensive Filters Card */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
         <div className="flex items-center justify-between gap-2">
@@ -419,9 +740,40 @@ export default function LeadResponsesClient({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, phone, email, city, Lead ID, or any submitted answer..."
+              placeholder="Search by name, phone, email, city, Lead ID, or any answer..."
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
             />
+          </div>
+
+          {/* Priority Filter */}
+          <div>
+            <select
+              value={selectedPriority}
+              onChange={(e) => setSelectedPriority(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white"
+            >
+              <option value="ALL">All Priorities</option>
+              <option value="HOT">🔥 Hot Lead (1st Priority • 70-100)</option>
+              <option value="WARM">☀️ Warm Lead (2nd Priority • 40-69)</option>
+              <option value="COLD">❄️ Cold Lead (3rd Priority • 0-39)</option>
+            </select>
+          </div>
+
+          {/* Travel Urgency / Timeline Filter */}
+          <div>
+            <select
+              value={selectedTimeline}
+              onChange={(e) => setSelectedTimeline(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white"
+            >
+              <option value="ALL">All Travel Timelines</option>
+              <option value="Immediately">Immediately / ASAP</option>
+              <option value="1 month">Within 1 month</option>
+              <option value="3 months">Within 3 months</option>
+              <option value="6 months">Within 6 months</option>
+              <option value="1 year">Within 1 year</option>
+              <option value="Flexible">Flexible / Not decided</option>
+            </select>
           </div>
 
           {/* Form Filter */}
@@ -472,22 +824,6 @@ export default function LeadResponsesClient({
             </select>
           </div>
 
-          {/* Lead Source Filter */}
-          <div>
-            <select
-              value={selectedSource}
-              onChange={(e) => setSelectedSource(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 bg-white"
-            >
-              <option value="ALL">All Lead Sources</option>
-              {sourceOptions.map((src) => (
-                <option key={src} value={src}>
-                  Source: {src}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Assigned Staff Filter */}
           <div>
             <select
@@ -505,8 +841,53 @@ export default function LeadResponsesClient({
             </select>
           </div>
 
+          {/* Sort By Filter */}
+          <div className="sm:col-span-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+                <ArrowUpDown className="w-3.5 h-3.5 inline mr-1 text-emerald-700" />
+                Sort:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) =>
+                  setSortBy(
+                    e.target.value as
+                      | "RECENT_DESC"
+                      | "SCORE_DESC"
+                      | "PRIORITY_DESC"
+                      | "OLDEST_UNCONTACTED"
+                      | "TIMELINE_EARLIEST"
+                      | "OVERDUE_FIRST"
+                  )
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl border border-emerald-300 text-xs font-bold text-slate-900 bg-emerald-50/50"
+              >
+                <option value="RECENT_DESC">Most Recent Submission</option>
+                <option value="SCORE_DESC">
+                  Highest Lead Score (100 → 0)
+                </option>
+                <option value="PRIORITY_DESC">
+                  Highest Priority (Hot → Warm → Cold)
+                </option>
+                <option value="TIMELINE_EARLIEST">
+                  Earliest Travel Urgency (ASAP first)
+                </option>
+                <option value="OVERDUE_FIRST">
+                  Overdue Follow-ups First ⚠️
+                </option>
+                <option value="OLDEST_UNCONTACTED">
+                  Oldest Uncontacted Leads
+                </option>
+              </select>
+            </div>
+          </div>
+
           {/* Date Range Filter */}
-          <div className="flex items-center gap-1.5">
+          <div className="sm:col-span-2 flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+              Date:
+            </span>
             <input
               type="date"
               value={dateFrom}
@@ -514,6 +895,7 @@ export default function LeadResponsesClient({
               title="From Date"
               className="w-1/2 px-2.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800"
             />
+            <span className="text-xs text-slate-400">to</span>
             <input
               type="date"
               value={dateTo}
@@ -553,14 +935,14 @@ export default function LeadResponsesClient({
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   <th className="py-3.5 px-4">Lead ID</th>
-                  <th className="py-3.5 px-4">Name</th>
-                  <th className="py-3.5 px-4">Phone</th>
-                  <th className="py-3.5 px-4">Form Name</th>
+                  <th className="py-3.5 px-4">Priority & Score</th>
+                  <th className="py-3.5 px-4">Pilgrim & Location</th>
+                  <th className="py-3.5 px-4">Travel Urgency</th>
+                  <th className="py-3.5 px-4">Phone / WhatsApp</th>
                   <th className="py-3.5 px-4">Campaign</th>
-                  <th className="py-3.5 px-4">Source</th>
-                  <th className="py-3.5 px-4">Submission Date</th>
+                  <th className="py-3.5 px-4">Submitted & Follow-up</th>
                   <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Assigned Staff</th>
+                  <th className="py-3.5 px-4">Assigned</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -570,25 +952,117 @@ export default function LeadResponsesClient({
                   const waPhone = cleanPhoneForWhatsApp(
                     sub.whatsapp || sub.phone
                   );
+                  const today = new Date().toISOString().split("T")[0];
+                  const isOverdue =
+                    sub.followUpDate &&
+                    sub.followUpDate < today &&
+                    sub.status !== "CONVERTED" &&
+                    sub.status !== "CLOSED";
+                  const isDueToday =
+                    sub.followUpDate &&
+                    sub.followUpDate === today &&
+                    sub.status !== "CONVERTED" &&
+                    sub.status !== "CLOSED";
 
                   return (
                     <tr
                       key={sub.id}
                       onClick={() => openDetailModal(sub)}
-                      className="hover:bg-emerald-50/40 cursor-pointer transition-colors"
+                      className={`hover:bg-emerald-50/40 cursor-pointer transition-colors ${
+                        isOverdue ? "bg-red-50/20" : ""
+                      }`}
                     >
                       <td className="py-3.5 px-4 font-mono font-bold text-slate-800 whitespace-nowrap">
                         {sub.submissionCode}
                       </td>
+
+                      {/* Priority & Score */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          {sub.priority === "HOT" ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                              <Flame className="w-3 h-3 text-rose-600 shrink-0" />
+                              Hot
+                            </span>
+                          ) : sub.priority === "COLD" ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-50 text-sky-700 border border-sky-200">
+                              <Snowflake className="w-3 h-3 text-sky-600 shrink-0" />
+                              Cold
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200">
+                              <Sun className="w-3 h-3 text-amber-600 shrink-0" />
+                              Warm
+                            </span>
+                          )}
+                          <span className="font-mono text-xs font-extrabold text-slate-700">
+                            {sub.leadScore ?? 50}/100
+                          </span>
+                        </div>
+                        {sub.priorityOverride && (
+                          <p className="text-[10px] text-purple-700 font-semibold mt-0.5">
+                            Override: {sub.priorityOverride}
+                          </p>
+                        )}
+                      </td>
+
+                      {/* Pilgrim & Location */}
                       <td className="py-3.5 px-4">
                         <p className="font-bold text-slate-900">
                           {sub.fullName}
                         </p>
-                        <p className="text-[11px] text-slate-500">
-                          {[sub.city, sub.interestedIn]
-                            .filter(Boolean)
-                            .join(" • ")}
-                        </p>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5 flex-wrap">
+                          <span>
+                            {[sub.district || sub.city, sub.state]
+                              .filter(Boolean)
+                              .join(", ") ||
+                              sub.city ||
+                              "—"}
+                          </span>
+                          {sub.locationSource === "GPS" ? (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                              <MapPin className="w-2.5 h-2.5" /> GPS
+                            </span>
+                          ) : sub.locationSource === "MANUAL" ? (
+                            <span className="text-[10px] text-slate-400">
+                              Manual
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
+
+                      {/* Travel Urgency / Timeline */}
+                      <td className="py-3.5 px-4">
+                        {sub.travelTimeline ? (
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold border ${
+                              sub.travelTimeline
+                                .toLowerCase()
+                                .includes("immediately") ||
+                              sub.travelTimeline
+                                .toLowerCase()
+                                .includes("1 month")
+                                ? "bg-rose-50 text-rose-700 border-rose-200"
+                                : sub.travelTimeline
+                                    .toLowerCase()
+                                    .includes("3 month") ||
+                                  sub.travelTimeline
+                                    .toLowerCase()
+                                    .includes("6 month")
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-slate-50 text-slate-700 border-slate-200"
+                            }`}
+                          >
+                            {sub.travelTimeline}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 text-xs">—</span>
+                        )}
+                        {sub.approxDepartureDate && (
+                          <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            Target: {sub.approxDepartureDate}
+                          </p>
+                        )}
                       </td>
                       <td
                         className="py-3.5 px-4 whitespace-nowrap"
@@ -639,13 +1113,25 @@ export default function LeadResponsesClient({
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
-                        {new Date(sub.createdAt).toLocaleString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        <p className="font-medium text-slate-700">
+                          {new Date(sub.createdAt).toLocaleString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        {isOverdue && (
+                          <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-red-700 bg-red-100/80 border border-red-200 px-1.5 py-0.5 rounded">
+                            <AlertTriangle className="w-2.5 h-2.5" /> Overdue: {sub.followUpDate}
+                          </span>
+                        )}
+                        {isDueToday && (
+                          <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-100/80 border border-emerald-200 px-1.5 py-0.5 rounded">
+                            <Calendar className="w-2.5 h-2.5" /> Due Today
+                          </span>
+                        )}
                       </td>
                       <td className="py-3.5 px-4">
                         {getStatusBadge(sub.status)}
@@ -781,6 +1267,202 @@ export default function LeadResponsesClient({
                 )}
               </div>
 
+              {/* Lead Quality & Priority Scoring Breakdown Card */}
+              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Lead Quality & Priority Scoring Engine
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-500 font-bold">
+                    Score: {activeSubmission.leadScore ?? 50}/100
+                  </span>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Calculated Quality Score
+                      </span>
+                      <div className="flex items-baseline gap-2 mt-1">
+                        <span className="text-3xl font-extrabold text-slate-900">
+                          {activeSubmission.leadScore ?? 50}
+                        </span>
+                        <span className="text-xs text-slate-400 font-bold">
+                          / 100
+                        </span>
+                      </div>
+                      <div className="w-40 h-2 bg-slate-200 rounded-full mt-2 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            (activeSubmission.leadScore ?? 50) >= 70
+                              ? "bg-rose-500"
+                              : (activeSubmission.leadScore ?? 50) >= 40
+                              ? "bg-amber-500"
+                              : "bg-sky-500"
+                          }`}
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              Math.max(5, activeSubmission.leadScore ?? 50)
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                        Priority Level
+                      </span>
+                      {activeSubmission.priority === "HOT" ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-extrabold text-xs">
+                          <Flame className="w-4 h-4 text-rose-600" /> Hot Lead —
+                          1st Priority
+                        </span>
+                      ) : activeSubmission.priority === "COLD" ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-700 font-extrabold text-xs">
+                          <Snowflake className="w-4 h-4 text-sky-600" /> Cold Lead —
+                          3rd Priority
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 font-extrabold text-xs">
+                          <Sun className="w-4 h-4 text-amber-600" /> Warm Lead —
+                          2nd Priority
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {activeSubmission.scoreExplanation && (
+                    <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-xs">
+                      <span className="font-bold text-emerald-900 block mb-1 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                        Scoring Factors & Explanation
+                      </span>
+                      <p className="text-emerald-950 font-medium leading-relaxed">
+                        {activeSubmission.scoreExplanation}
+                      </p>
+                    </div>
+                  )}
+
+                  {activeSubmission.priorityOverride && (
+                    <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs">
+                      <span className="font-bold text-purple-900 block">
+                        Manual Priority Override Active: {activeSubmission.priorityOverride}
+                      </span>
+                      {activeSubmission.priorityOverrideReason && (
+                        <p className="text-purple-800 text-[11px] mt-0.5">
+                          Reason: {activeSubmission.priorityOverrideReason}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Location & GPS Geolocation Card */}
+              {(activeSubmission.address ||
+                activeSubmission.latitude ||
+                activeSubmission.district ||
+                activeSubmission.state ||
+                activeSubmission.city) && (
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                  <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-emerald-700" />
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Pilgrim Location & GPS Coordinates
+                      </h3>
+                    </div>
+                    <span
+                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                        activeSubmission.locationSource === "GPS"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : "bg-slate-100 text-slate-600 border-slate-200"
+                      }`}
+                    >
+                      {activeSubmission.locationSource === "GPS"
+                        ? "📍 GPS Geocoded"
+                        : "✏️ Manual Address Entry"}
+                    </span>
+                  </div>
+                  <div className="p-5 space-y-3 text-xs">
+                    {activeSubmission.address && (
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-slate-400 block">
+                          Full Detected Address
+                        </span>
+                        <p className="font-semibold text-slate-900 mt-0.5">
+                          {activeSubmission.address}
+                        </p>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block font-bold uppercase">
+                          City / District
+                        </span>
+                        <span className="font-bold text-slate-800">
+                          {activeSubmission.district ||
+                            activeSubmission.city ||
+                            "—"}
+                        </span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block font-bold uppercase">
+                          State
+                        </span>
+                        <span className="font-bold text-slate-800">
+                          {activeSubmission.state || "—"}
+                        </span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block font-bold uppercase">
+                          Postal Code
+                        </span>
+                        <span className="font-bold text-slate-800">
+                          {activeSubmission.postalCode || "—"}
+                        </span>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block font-bold uppercase">
+                          Country
+                        </span>
+                        <span className="font-bold text-slate-800">
+                          {activeSubmission.country || "India"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {activeSubmission.latitude &&
+                      activeSubmission.longitude && (
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                          <div>
+                            <span className="text-[10px] text-slate-400 block font-bold uppercase">
+                              GPS Coordinates
+                            </span>
+                            <span className="font-mono text-xs font-bold text-slate-800">
+                              {activeSubmission.latitude.toFixed(6)},{" "}
+                              {activeSubmission.longitude.toFixed(6)}
+                            </span>
+                          </div>
+                          <a
+                            href={`https://www.google.com/maps?q=${activeSubmission.latitude},${activeSubmission.longitude}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Open in
+                            Google Maps
+                          </a>
+                        </div>
+                      )}
+                  </div>
+                </div>
+              )}
+
               {/* Section 1: Every Question and Submitted Answer (Historical Snapshot) */}
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
@@ -900,10 +1582,10 @@ export default function LeadResponsesClient({
                 </div>
               </div>
 
-              {/* Section 3: Lead Management Form (Status, Staff Assignment, Follow-Up Date, Internal Notes) */}
+              {/* Section 3: Lead Management Form (Status, Staff Assignment, Follow-Up Date, Manual Priority Override, Notes) */}
               <form
                 onSubmit={handleSaveLeadUpdate}
-                className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"
+                className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -967,6 +1649,47 @@ export default function LeadResponsesClient({
                         value={modalFollowUpDate}
                         onChange={(e) => setModalFollowUpDate(e.target.value)}
                         className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Manual Priority Override Controls */}
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">
+                      Manual Priority Override (Optional)
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      Overrides automatic 0–100 score priority
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Override Priority Level
+                      </label>
+                      <select
+                        value={modalPriorityOverride}
+                        onChange={(e) => setModalPriorityOverride(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 bg-white"
+                      >
+                        <option value="">— No Override (Use Calculated) —</option>
+                        <option value="HOT">🔥 HOT (First Priority)</option>
+                        <option value="WARM">☀️ WARM (Second Priority)</option>
+                        <option value="COLD">❄️ COLD (Lower Priority)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Reason for Manual Override
+                      </label>
+                      <input
+                        type="text"
+                        value={modalOverrideReason}
+                        onChange={(e) => setModalOverrideReason(e.target.value)}
+                        placeholder="e.g. VIP client referral, ready to pay token today..."
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900"
                       />
                     </div>
                   </div>

@@ -11,7 +11,8 @@ export type FormFieldType =
   | "DATE"
   | "NUMBER"
   | "YES_NO"
-  | "CONSENT";
+  | "CONSENT"
+  | "LOCATION";
 
 export type QuestionFieldRole =
   | "name"
@@ -19,8 +20,13 @@ export type QuestionFieldRole =
   | "whatsapp"
   | "email"
   | "city"
+  | "location"
+  | "address"
+  | "state"
+  | "postalCode"
   | "interestedIn"
   | "travelMonth"
+  | "travelTimeline"
   | "travellersCount"
   | "notes"
   | "consent"
@@ -53,7 +59,7 @@ export interface SubmittedAnswerSnapshot {
   type: FormFieldType;
   required: boolean;
   fieldRole?: QuestionFieldRole;
-  value: string | string[] | boolean | number | null;
+  value: string | string[] | boolean | number | Record<string, unknown> | null;
   displayValue: string;
 }
 
@@ -179,6 +185,12 @@ export const FIELD_TYPE_META: Array<{
     description: "Agreement checkbox for callback / WhatsApp communication",
     hasOptions: false,
   },
+  {
+    type: "LOCATION",
+    label: "GPS & Address Location",
+    description: "One-click 'Detect My Location' with address breakdown and manual editing",
+    hasOptions: false,
+  },
 ];
 
 export const DEFAULT_YOUTUBE_FORM_QUESTIONS: FormQuestion[] = [
@@ -220,14 +232,13 @@ export const DEFAULT_YOUTUBE_FORM_QUESTIONS: FormQuestion[] = [
     fieldRole: "email",
   },
   {
-    id: "q_city",
-    label: "City",
-    type: "SHORT_TEXT",
+    id: "q_location",
+    label: "Your City / Current Location",
+    type: "LOCATION",
     required: true,
-    placeholder: "e.g. Pune, Mumbai, Nashik, Aurangabad",
-    helperText: "Your current city or district",
-    fieldRole: "city",
-    validation: { minLength: 2, maxLength: 80 },
+    placeholder: "Click 'Detect My Location' or type your city/district",
+    helperText: "Helps us arrange nearest airport departure & regional guidance",
+    fieldRole: "location",
   },
   {
     id: "q_interested_in",
@@ -239,12 +250,28 @@ export const DEFAULT_YOUTUBE_FORM_QUESTIONS: FormQuestion[] = [
     fieldRole: "interestedIn",
   },
   {
+    id: "q_travel_timeline",
+    label: "Preferred Travel Timeline",
+    type: "RADIO",
+    required: true,
+    options: [
+      "Immediately / As soon as possible",
+      "Within 1 month",
+      "Within 3 months",
+      "Within 6 months",
+      "Within 1 year",
+      "Flexible / Not decided yet",
+    ],
+    helperText: "Select when you and your family plan to perform the pilgrimage",
+    fieldRole: "travelTimeline",
+  },
+  {
     id: "q_travel_month",
-    label: "Preferred Travel Month",
+    label: "Approximate Travel Month / Season",
     type: "SHORT_TEXT",
     required: false,
-    placeholder: "e.g. October 2026 / Ramadan 2027 / Flexible",
-    helperText: "Optional — approximate month or season you wish to travel",
+    placeholder: "e.g. October 2026 / Ramadan 2027 / Winter Break",
+    helperText: "Optional — specific month or Islamic holiday you prefer",
     fieldRole: "travelMonth",
     validation: { maxLength: 80 },
   },
@@ -364,12 +391,22 @@ export function validateAndSanitizeSubmission(
   snapshots: SubmittedAnswerSnapshot[];
   extracted: {
     name: string;
+    fullName?: string;
     phone: string;
     whatsapp: string | null;
     email: string | null;
     city: string | null;
+    district: string | null;
+    state: string | null;
+    postalCode: string | null;
+    country: string | null;
+    address: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    locationSource: string | null;
     interestedIn: string | null;
     travelMonth: string | null;
+    travelTimeline: string | null;
     travellersCount: number;
     notes: string | null;
   };
@@ -382,14 +419,107 @@ export function validateAndSanitizeSubmission(
   let extractedWhatsapp: string | null = null;
   let extractedEmail: string | null = null;
   let extractedCity: string | null = null;
+  let extractedDistrict: string | null = null;
+  let extractedState: string | null = null;
+  let extractedPostalCode: string | null = null;
+  let extractedCountry: string | null = "India";
+  let extractedAddress: string | null = null;
+  let extractedLatitude: number | null = null;
+  let extractedLongitude: number | null = null;
+  let extractedLocationSource: string | null = null;
   let extractedInterestedIn: string | null = null;
   let extractedTravelMonth: string | null = null;
+  let extractedTravelTimeline: string | null = null;
   let extractedTravellersCount = 1;
   const extraNotesParts: string[] = [];
 
   for (const q of questions) {
     const rawVal = rawAnswers[q.id];
     const labelLower = q.label.toLowerCase();
+
+    if (q.type === "LOCATION") {
+      let locationData: {
+        address?: string;
+        city?: string;
+        district?: string;
+        state?: string;
+        postalCode?: string;
+        country?: string;
+        latitude?: number;
+        longitude?: number;
+        locationSource?: "GPS" | "MANUAL";
+      } = {};
+
+      if (rawVal && typeof rawVal === "object" && !Array.isArray(rawVal)) {
+        const obj = rawVal as Record<string, unknown>;
+        locationData = {
+          address: sanitizeTextValue(obj.address, 300),
+          city: sanitizeTextValue(obj.city, 100),
+          district: sanitizeTextValue(obj.district, 100),
+          state: sanitizeTextValue(obj.state, 100),
+          postalCode: sanitizeTextValue(obj.postalCode, 20),
+          country: sanitizeTextValue(obj.country, 100) || "India",
+          latitude: Number.isFinite(Number(obj.latitude))
+            ? Number(obj.latitude)
+            : undefined,
+          longitude: Number.isFinite(Number(obj.longitude))
+            ? Number(obj.longitude)
+            : undefined,
+          locationSource:
+            obj.locationSource === "GPS" || obj.source === "GPS"
+              ? "GPS"
+              : "MANUAL",
+        };
+      } else if (rawVal && typeof rawVal === "string") {
+        const cleanStr = sanitizeTextValue(rawVal, 300);
+        locationData = {
+          address: cleanStr,
+          city: cleanStr.split(",")[0]?.trim() || cleanStr,
+          country: "India",
+          locationSource: "MANUAL",
+        };
+      }
+
+      const primaryLocality =
+        locationData.city || locationData.address || locationData.state || "";
+      if (q.required && !primaryLocality) {
+        errors[q.id] = `"${q.label}" is required. Please detect your location or enter your city.`;
+      }
+
+      const displayString = [
+        locationData.address || locationData.city,
+        locationData.state,
+        locationData.postalCode,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      snapshots.push({
+        questionId: q.id,
+        label: q.label,
+        type: q.type,
+        required: q.required,
+        fieldRole: q.fieldRole,
+        value: locationData,
+        displayValue:
+          displayString ||
+          (locationData.locationSource === "GPS" ? "GPS Detected Location" : "—"),
+      });
+
+      if (locationData.city) extractedCity = locationData.city;
+      if (locationData.district) extractedDistrict = locationData.district;
+      if (locationData.state) extractedState = locationData.state;
+      if (locationData.postalCode) extractedPostalCode = locationData.postalCode;
+      if (locationData.country) extractedCountry = locationData.country;
+      if (locationData.address) extractedAddress = locationData.address;
+      if (locationData.latitude !== undefined)
+        extractedLatitude = locationData.latitude;
+      if (locationData.longitude !== undefined)
+        extractedLongitude = locationData.longitude;
+      if (locationData.locationSource)
+        extractedLocationSource = locationData.locationSource;
+      continue;
+    }
 
     if (q.type === "CONSENT") {
       const agreed =
@@ -620,6 +750,15 @@ export function validateAndSanitizeSubmission(
     ) {
       extractedInterestedIn = finalValue;
     } else if (
+      q.fieldRole === "travelTimeline" ||
+      (!extractedTravelTimeline &&
+        (labelLower.includes("timeline") ||
+          labelLower.includes("urgency") ||
+          labelLower.includes("planning to perform") ||
+          labelLower.includes("travel timeline")))
+    ) {
+      extractedTravelTimeline = finalValue;
+    } else if (
       q.fieldRole === "travelMonth" ||
       (!extractedTravelMonth &&
         (labelLower.includes("month") ||
@@ -664,13 +803,23 @@ export function validateAndSanitizeSubmission(
     firstErrorMessage: errorKeys.length > 0 ? errors[errorKeys[0]] : undefined,
     snapshots,
     extracted: {
+      fullName: extractedName,
       name: extractedName,
       phone: extractedPhone,
       whatsapp: extractedWhatsapp || extractedPhone || null,
       email: extractedEmail,
       city: extractedCity,
+      district: extractedDistrict,
+      state: extractedState,
+      postalCode: extractedPostalCode,
+      country: extractedCountry,
+      address: extractedAddress,
+      latitude: extractedLatitude,
+      longitude: extractedLongitude,
+      locationSource: extractedLocationSource,
       interestedIn: extractedInterestedIn,
       travelMonth: extractedTravelMonth,
+      travelTimeline: extractedTravelTimeline,
       travellersCount: extractedTravellersCount,
       notes: extraNotesParts.length > 0 ? extraNotesParts.join(" | ") : null,
     },
@@ -779,6 +928,80 @@ export async function ensureDefaultYouTubeForm() {
   });
 
   if (existingDefault) {
+    try {
+      const qList = parseFormQuestions(existingDefault.questionsJson);
+      let needsUpdate = false;
+      const hasTimeline = qList.some(
+        (q) => q.fieldRole === "travelTimeline" || q.id === "q_travel_timeline"
+      );
+      const hasLocation = qList.some(
+        (q) => q.type === "LOCATION" || q.fieldRole === "location"
+      );
+
+      const updatedList = [...qList];
+      if (!hasLocation) {
+        const cityIdx = updatedList.findIndex(
+          (q) => q.id === "q_city" || q.fieldRole === "city"
+        );
+        const locationQuestion: FormQuestion = {
+          id: "q_location",
+          label: "Your City / Current Location",
+          type: "LOCATION",
+          required: true,
+          placeholder: "Click 'Detect My Location' or type your city/district",
+          helperText:
+            "Helps us arrange nearest airport departure & regional guidance",
+          fieldRole: "location",
+        };
+        if (cityIdx >= 0) {
+          updatedList[cityIdx] = locationQuestion;
+        } else {
+          updatedList.splice(3, 0, locationQuestion);
+        }
+        needsUpdate = true;
+      }
+
+      if (!hasTimeline) {
+        const timelineQuestion: FormQuestion = {
+          id: "q_travel_timeline",
+          label: "Preferred Travel Timeline",
+          type: "RADIO",
+          required: true,
+          options: [
+            "Immediately / As soon as possible",
+            "Within 1 month",
+            "Within 3 months",
+            "Within 6 months",
+            "Within 1 year",
+            "Flexible / Not decided yet",
+          ],
+          helperText:
+            "Select when you and your family plan to perform the pilgrimage",
+          fieldRole: "travelTimeline",
+        };
+        const interestIdx = updatedList.findIndex(
+          (q) => q.fieldRole === "interestedIn"
+        );
+        if (interestIdx >= 0) {
+          updatedList.splice(interestIdx + 1, 0, timelineQuestion);
+        } else {
+          updatedList.push(timelineQuestion);
+        }
+        needsUpdate = true;
+      }
+
+      if (needsUpdate) {
+        const updated = await prisma.leadForm.update({
+          where: { id: existingDefault.id },
+          data: {
+            questionsJson: JSON.stringify(updatedList),
+          },
+        });
+        return updated;
+      }
+    } catch {
+      // ignore
+    }
     return existingDefault;
   }
 
