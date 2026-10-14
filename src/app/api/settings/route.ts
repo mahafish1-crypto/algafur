@@ -8,6 +8,7 @@ import {
   SITE_SETTINGS_CACHE_TAG,
   maskSecretSetting,
 } from "@/lib/settings";
+import { validateAndExtractMetaPixel } from "@/lib/meta-pixel";
 
 export async function GET() {
   try {
@@ -42,6 +43,29 @@ export async function POST(req: NextRequest) {
 
     const body: Record<string, string> = await req.json();
 
+    // 1. Meta Pixel Code Validation & Extraction
+    if ("meta_pixel_code" in body) {
+      const rawCode = String(body.meta_pixel_code || "").trim();
+      if (rawCode) {
+        const validation = validateAndExtractMetaPixel(rawCode);
+        if (!validation.isValid) {
+          return NextResponse.json(
+            { error: validation.error || "Invalid Meta Pixel code snippet provided." },
+            { status: 400 }
+          );
+        }
+        body.meta_pixel_id = validation.pixelId || "";
+        body.meta_pixel_updated_at = new Date().toISOString();
+      } else {
+        // Code cleared: automatically clear pixel ID, disable tracking, and update timestamp
+        body.meta_pixel_id = "";
+        body.meta_pixel_enabled = "false";
+        body.meta_pixel_updated_at = new Date().toISOString();
+      }
+    } else if ("meta_pixel_enabled" in body) {
+      body.meta_pixel_updated_at = new Date().toISOString();
+    }
+
     const keys = Object.keys(body);
     const upsertOperations = [];
 
@@ -56,14 +80,18 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      const category = key.startsWith("meta_pixel")
+        ? "TRACKING"
+        : (key.split("_")[0] || "GENERAL");
+
       upsertOperations.push(
         prisma.siteSetting.upsert({
           where: { key },
-          update: { value: incomingVal },
+          update: { value: incomingVal, category },
           create: {
             key,
             value: incomingVal,
-            category: key.split("_")[0] || "GENERAL",
+            category,
           },
         })
       );

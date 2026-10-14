@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Send, CheckCircle2, AlertCircle, MessageCircle, Sparkles, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
+import { trackMetaLead } from "@/lib/meta-pixel-events";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 interface PackageOption {
@@ -147,6 +148,11 @@ export default function LeadEnquiryForm({
         sourcePage: currentPath,
         language,
         metadata: { leadNumber: data.leadNumber },
+      });
+
+      trackMetaLead({
+        leadType: "website_enquiry",
+        packageName: formData.packageInterest,
       });
 
       setSuccess(true);

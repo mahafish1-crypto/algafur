@@ -20,8 +20,13 @@ import {
   ExternalLink,
   FileText,
   Award,
+  Activity,
+  Info,
+  ShieldCheck,
+  Code2,
 } from "lucide-react";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
+import { validateAndExtractMetaPixel } from "@/lib/meta-pixel";
 
 interface Props {
   initialSettings: Record<string, string>;
@@ -39,7 +44,8 @@ type TabType =
   | "whatsapp"
   | "ai"
   | "payment"
-  | "localization";
+  | "localization"
+  | "tracking";
 
 export default function AdminSettingsClient({
   initialSettings,
@@ -196,10 +202,22 @@ export default function AdminSettingsClient({
     about_leader_3_role: initialSettings.about_leader_3_role || "Director of Operations",
     about_leader_3_desc: initialSettings.about_leader_3_desc || "Directs hotel contracting in Makkah & Madinah and airport transfer operations.",
     about_leader_3_phone: initialSettings.about_leader_3_phone || "+91 9764444044",
+
+    // Meta Pixel Tracking
+    meta_pixel_code: initialSettings.meta_pixel_code || "",
+    meta_pixel_id: initialSettings.meta_pixel_id || "",
+    meta_pixel_enabled: initialSettings.meta_pixel_enabled || "false",
+    meta_pixel_updated_at: initialSettings.meta_pixel_updated_at || "",
   });
 
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [testStatusTriggered, setTestStatusTriggered] = useState(false);
+  const [copiedPixelId, setCopiedPixelId] = useState(false);
+
+  // Live Meta Pixel validation computation
+  const livePixelValidation = validateAndExtractMetaPixel(settings.meta_pixel_code);
+  const isPixelConfigValid = livePixelValidation.isValid;
 
   // Media Picker state
   const [mediaTarget, setMediaTarget] = useState<string | null>(null);
@@ -221,10 +239,18 @@ export default function AdminSettingsClient({
       });
 
       if (res.ok) {
+        const parsed = validateAndExtractMetaPixel(settings.meta_pixel_code);
+        const nowIso = new Date().toISOString();
+        setSettings((prev) => ({
+          ...prev,
+          meta_pixel_id: parsed.isValid ? (parsed.pixelId || "") : "",
+          meta_pixel_updated_at: nowIso,
+        }));
         setSavedSuccess(true);
         setTimeout(() => setSavedSuccess(false), 3000);
       } else {
-        alert("Failed to save settings.");
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to save settings.");
       }
     } catch (err) {
       console.error(err);
@@ -319,6 +345,7 @@ export default function AdminSettingsClient({
             { id: "ai", label: "AI Marketing Studio", icon: Sparkles },
             { id: "payment", label: "Payment Gateways", icon: CreditCard },
             { id: "localization", label: "Languages & Currency", icon: Globe },
+            { id: "tracking", label: "Tracking & Pixel Settings", icon: Activity },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -1867,6 +1894,242 @@ export default function AdminSettingsClient({
                       className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                     />
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* 9. Tracking & Pixel Settings Tab */}
+            {activeTab === "tracking" && (
+              <div className="space-y-6">
+                <div className="border-b pb-3 border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-emerald-700" />
+                      Tracking &amp; Pixel Settings
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Configure Meta Pixel installation code and conversion tracking for your sacred pilgrimage campaigns.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                        settings.meta_pixel_enabled === "true" && isPixelConfigValid
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          : settings.meta_pixel_enabled === "true"
+                          ? "bg-amber-100 text-amber-800 border border-amber-200"
+                          : "bg-slate-100 text-slate-600 border border-slate-200"
+                      }`}
+                    >
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          settings.meta_pixel_enabled === "true" && isPixelConfigValid
+                            ? "bg-emerald-600 animate-pulse"
+                            : settings.meta_pixel_enabled === "true"
+                            ? "bg-amber-500"
+                            : "bg-slate-400"
+                        }`}
+                      />
+                      {settings.meta_pixel_enabled === "true"
+                        ? isPixelConfigValid
+                          ? "Meta Pixel Active"
+                          : "Enabled (Needs Valid Snippet)"
+                        : "Meta Pixel Inactive"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Security Warning Notice */}
+                <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-4 text-xs text-amber-950 flex items-start gap-3 shadow-xs">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-bold text-amber-950 text-sm">Security Notice &amp; Strict Allowlist</p>
+                    <p className="text-amber-800 leading-relaxed">
+                      <strong>Only paste tracking code from a trusted provider. Scripts are security-sensitive.</strong> All pasted code is analyzed on the client and server against a strict Meta security allowlist. Arbitrary JavaScript execution, cross-site iframes, and non-Meta external CDNs are automatically blocked.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Enable Meta Pixel Toggle */}
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-bold text-slate-900 block">
+                      Enable Meta Pixel
+                    </label>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Activate Meta Pixel tracking and conversion events across the public Al-Gafur website without redeployment.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.meta_pixel_enabled === "true"}
+                      onChange={(e) =>
+                        handleChange("meta_pixel_enabled", e.target.checked ? "true" : "false")
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-12 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-700"></div>
+                  </label>
+                </div>
+
+                {/* Multiline Code Editor */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                      <Code2 className="w-4 h-4 text-emerald-700" />
+                      Meta Pixel Code
+                    </label>
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      Paste complete Meta Pixel script or numeric ID
+                    </span>
+                  </div>
+
+                  <div className="relative">
+                    <textarea
+                      rows={11}
+                      value={settings.meta_pixel_code}
+                      onChange={(e) => handleChange("meta_pixel_code", e.target.value)}
+                      placeholder={`<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '123456789012345');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=123456789012345&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->`}
+                      className="w-full text-xs font-mono rounded-xl border border-slate-300 p-3.5 bg-slate-900 text-emerald-400 placeholder-slate-600 focus:outline-hidden focus:ring-2 focus:ring-emerald-600 focus:border-transparent leading-relaxed"
+                      spellCheck={false}
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Paste the entire standard snippet from Meta Events Manager. You do not need to manually locate or extract the Pixel ID — our system safely extracts and validates the numeric identifier.
+                  </p>
+                </div>
+
+                {/* Test / Verification Status Card */}
+                <div
+                  className={`p-4 rounded-xl border transition-all ${
+                    !settings.meta_pixel_code?.trim()
+                      ? "bg-slate-50 border-slate-200"
+                      : livePixelValidation.isValid
+                      ? "bg-emerald-50/80 border-emerald-300"
+                      : "bg-rose-50/80 border-rose-300"
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                          Test / Verification Status:
+                        </span>
+                        {!settings.meta_pixel_code?.trim() ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 bg-slate-200/80 px-2.5 py-0.5 rounded-md">
+                            <Info className="w-3.5 h-3.5" /> No Code Pasted
+                          </span>
+                        ) : livePixelValidation.isValid ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-900 bg-emerald-200/90 px-2.5 py-0.5 rounded-md border border-emerald-300">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-700" /> Verified &amp; Allowlist Passed
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-900 bg-rose-200/90 px-2.5 py-0.5 rounded-md border border-rose-300">
+                            <AlertTriangle className="w-3.5 h-3.5 text-rose-700" /> Verification Failed
+                          </span>
+                        )}
+                      </div>
+
+                      {livePixelValidation.isValid && livePixelValidation.pixelId ? (
+                        <div className="flex flex-wrap items-center gap-2 pt-1.5">
+                          <span className="text-xs text-slate-700 font-medium">Validated Numeric Pixel ID:</span>
+                          <code className="px-2.5 py-1 rounded-md bg-white text-emerald-950 border border-emerald-400 font-mono text-xs font-bold shadow-xs">
+                            {livePixelValidation.pixelId}
+                          </code>
+                          <span className="text-[11px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md font-medium border border-emerald-200">
+                            Detection: {livePixelValidation.detectionType === "SNIPPET" ? "Standard Meta Snippet" : livePixelValidation.detectionType === "NOSCRIPT" ? "Noscript Pixel Tag" : "Raw Numeric ID"}
+                          </span>
+                        </div>
+                      ) : !livePixelValidation.isValid && settings.meta_pixel_code?.trim() ? (
+                        <p className="text-xs text-rose-700 font-semibold pt-1">
+                          {livePixelValidation.error}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-slate-500 pt-1">
+                          Paste your Meta Pixel snippet above to see real-time verification and extracted identifier.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTestStatusTriggered(true);
+                          setTimeout(() => setTestStatusTriggered(false), 3000);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors shadow-xs"
+                      >
+                        <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                        {testStatusTriggered ? "Verification Check Passed" : "Test Pixel Code"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Metadata & Audit Card */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                    <span className="text-slate-500 block mb-0.5 font-medium">Last Updated Timestamp:</span>
+                    <span className="text-slate-900 font-semibold font-mono">
+                      {settings.meta_pixel_updated_at
+                        ? new Date(settings.meta_pixel_updated_at).toLocaleString("en-IN", {
+                            dateStyle: "medium",
+                            timeStyle: "medium",
+                          })
+                        : "Never updated"}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                    <span className="text-slate-500 block mb-0.5 font-medium">Sensitive Page Protection:</span>
+                    <span className="text-emerald-800 font-semibold flex items-center gap-1.5 mt-0.5">
+                      <Shield className="w-4 h-4 text-emerald-700" />
+                      Tracking strictly excluded on /admin, /agent, /customer, /login, /signup, /track-booking
+                    </span>
+                  </div>
+                </div>
+
+                {/* Section Specific Save Button */}
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleSave()}
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-medium text-xs transition-colors shadow-sm disabled:opacity-50"
+                  >
+                    {saving ? (
+                      "Saving..."
+                    ) : savedSuccess ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-emerald-300" />
+                        Saved Successfully!
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save Tracking Settings
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             )}

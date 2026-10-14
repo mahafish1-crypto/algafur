@@ -73,6 +73,12 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   // AI Growth Studio & Gemini (Note: secret keys are never loaded into public shared cache)
   ai_gemini_api_key: "",
   ai_model_name: "gemini-2.5-flash",
+
+  // Meta Pixel & Marketing Tracking
+  meta_pixel_code: "",
+  meta_pixel_id: "",
+  meta_pixel_enabled: "false",
+  meta_pixel_updated_at: "",
 };
 
 const getCachedPublicSiteSettings = unstable_cache(

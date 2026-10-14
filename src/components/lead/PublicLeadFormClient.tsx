@@ -17,6 +17,7 @@ import {
   MessageCircle,
   Send,
 } from "lucide-react";
+import { trackMetaLead } from "@/lib/meta-pixel-events";
 
 export interface PublicLeadFormData {
   id: string;
@@ -247,6 +248,13 @@ export default function PublicLeadFormClient({
           data.error || "Unable to submit your enquiry. Please check your details."
         );
       }
+
+      trackMetaLead({
+        leadType: "youtube_lead",
+        formTitle: form.title,
+        packageName: form.packageName || undefined,
+        campaignName: trackingParams.campaignName || form.campaignName || undefined,
+      });
 
       setSubmittedResult({
         submissionCode: data.submissionCode,

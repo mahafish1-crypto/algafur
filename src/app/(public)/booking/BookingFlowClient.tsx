@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
+import { trackMetaLead } from "@/lib/meta-pixel-events";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 interface BookingFlowClientProps {
@@ -212,6 +213,11 @@ export default function BookingFlowClient({
           travellersCount: totalTravellers,
           roomPreference: formData.roomPreference,
         },
+      });
+
+      trackMetaLead({
+        leadType: "booking_enquiry",
+        packageName: selectedPkg?.name || undefined,
       });
 
       setLeadResult({

@@ -28,6 +28,7 @@ import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
+import { trackMetaViewContent } from "@/lib/meta-pixel-events";
 import { useLanguage } from "@/context/LanguageContext";
 import {
   parseHotelImages,
@@ -64,8 +65,17 @@ export default function PackageDetailClient({
         sourcePage: `/packages/${pkg.slug}`,
         language,
       });
+
+      trackMetaViewContent({
+        id: pkg.id,
+        name: pkg.name,
+        slug: pkg.slug,
+        price: pkg.priceQuad || pkg.basePrice || pkg.startingPrice || 0,
+        currency: "INR",
+        category: pkg.type || "Umrah",
+      });
     }
-  }, [pkg?.id, pkg?.slug, pkg?.name, language]);
+  }, [pkg?.id, pkg?.slug, pkg?.name, pkg?.priceQuad, pkg?.basePrice, pkg?.startingPrice, pkg?.type, language]);
 
   const roomPrices = {
     QUAD: pkg.priceQuad || pkg.basePrice,

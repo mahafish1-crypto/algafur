@@ -44,6 +44,8 @@ export const metadata: Metadata = {
   },
 };
 
+import MetaPixelTracker from "@/components/analytics/MetaPixelTracker";
+
 export default async function RootLayout({
   children,
 }: {
@@ -88,6 +90,10 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased selection:bg-gold-500/20 selection:text-gold-900">
+        <MetaPixelTracker
+          pixelId={settings.meta_pixel_id}
+          enabled={settings.meta_pixel_enabled === "true"}
+        />
         <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
