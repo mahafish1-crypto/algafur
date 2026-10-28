@@ -59,13 +59,14 @@ export default function Footer({ settings = {} }: FooterProps) {
     <footer className="bg-forest-950 text-emerald-100/85 border-t border-gold-500/20 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         {/* Main Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-emerald-900/60">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10 pb-12 border-b border-emerald-900/60 items-start">
           {/* Column 1: Brand Info & Accreditation */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-4 xl:col-span-4 space-y-4">
             <BrandLogo
               variant="light"
               size="md"
               showTagline={true}
+              showSubheading={false}
               customLogoUrl={logoUrl}
               companyName={companyName}
             />
@@ -73,13 +74,13 @@ export default function Footer({ settings = {} }: FooterProps) {
               {footerDesc}
             </p>
 
-            <div className="pt-2 flex flex-col gap-2">
+            <div className="pt-1 flex flex-col gap-2">
               <div className="inline-flex items-center gap-2 text-xs text-gold-300 bg-forest-900/80 border border-gold-500/20 px-3 py-1.5 rounded-lg w-fit">
                 <ShieldCheck className="w-4 h-4 text-gold-400 flex-shrink-0" />
                 <span>Govt. Approved Tour Operator | 1448 Hijri</span>
               </div>
               <div className="inline-flex items-center gap-2 text-xs text-emerald-300">
-                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
                 <span>Dedicated Scholar Assistance (Hafiz Asrar &amp; Hafiz Sameer Madani)</span>
               </div>
             </div>
@@ -103,8 +104,8 @@ export default function Footer({ settings = {} }: FooterProps) {
           </div>
 
           {/* Column 2: Quick Links */}
-          <div>
-            <h4 className="text-sm font-bold text-gold-300 uppercase tracking-wider mb-4">
+          <div className="lg:col-span-2 xl:col-span-2">
+            <h4 className="text-xs sm:text-sm font-bold text-gold-300 uppercase tracking-wider mb-4 pb-1 border-b border-gold-500/20 inline-block sm:block sm:border-b-0">
               {t("footer_quick_links")}
             </h4>
             <ul className="space-y-2.5 text-xs">
@@ -152,8 +153,8 @@ export default function Footer({ settings = {} }: FooterProps) {
           </div>
 
           {/* Column 3: Portals, Policies & Legal */}
-          <div>
-            <h4 className="text-sm font-bold text-gold-300 uppercase tracking-wider mb-4">
+          <div className="lg:col-span-3 xl:col-span-3">
+            <h4 className="text-xs sm:text-sm font-bold text-gold-300 uppercase tracking-wider mb-4 pb-1 border-b border-gold-500/20 inline-block sm:block sm:border-b-0">
               {t("footer_packages")}
             </h4>
             <ul className="space-y-2.5 text-xs">
@@ -207,70 +208,69 @@ export default function Footer({ settings = {} }: FooterProps) {
           </div>
 
           {/* Column 4: Contact & Booking Offices */}
-          <div>
-            <h4 className="text-sm font-bold text-gold-300 uppercase tracking-wider mb-4">
+          <div className="lg:col-span-3 xl:col-span-3">
+            <h4 className="text-xs sm:text-sm font-bold text-gold-300 uppercase tracking-wider mb-4 pb-1 border-b border-gold-500/20 inline-block sm:block sm:border-b-0">
               {t("footer_contact_info")}
             </h4>
-            <div className="space-y-3 text-xs">
-              <div className="flex items-start gap-2">
+            <div className="space-y-3.5 text-xs">
+              <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-gold-400 flex-shrink-0 mt-0.5" />
-                <span>
-                  <strong>Head Office Address:</strong>
-                  <br />
-                  {address}
-                </span>
+                <div className="leading-relaxed">
+                  <strong className="text-gold-300/90 font-semibold block">Head Office Address:</strong>
+                  <span className="text-emerald-100/90">{address}</span>
+                </div>
               </div>
 
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-gold-400 flex-shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <a
                     href={`tel:${phone1.replace(/\s+/g, "")}`}
-                    className="hover:text-gold-300 block"
+                    className="hover:text-gold-300 block transition-colors"
                   >
-                    {phone1} (Dr. Mudassir)
+                    {phone1} <span className="text-emerald-300/80 text-[11px]">(Dr. Mudassir)</span>
                   </a>
                   <a
                     href={`tel:${phone2.replace(/\s+/g, "")}`}
-                    className="hover:text-gold-300 block"
+                    className="hover:text-gold-300 block transition-colors"
                   >
-                    {phone2} (Hafiz Asrar)
+                    {phone2} <span className="text-emerald-300/80 text-[11px]">(Hafiz Asrar)</span>
                   </a>
                   {phone3 && (
                     <a
                       href={`tel:${phone3.replace(/\s+/g, "")}`}
-                      className="hover:text-gold-300 block"
+                      className="hover:text-gold-300 block transition-colors"
                     >
-                      {phone3} (Zahir Ali)
+                      {phone3} <span className="text-emerald-300/80 text-[11px]">(Zahir Ali)</span>
                     </a>
                   )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <div className="flex items-start gap-2.5">
+                <MessageCircle className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                 <a
                   href={`https://wa.me/${whatsapp}?text=Assalamualaikum`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-300 hover:underline font-medium"
+                  className="text-emerald-300 hover:text-emerald-200 transition-colors font-medium"
                 >
                   WhatsApp: +{whatsapp}
                 </a>
               </div>
 
               {email && (
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-gold-400 flex-shrink-0" />
-                  <a href={`mailto:${email}`} className="hover:text-gold-300">
+                <div className="flex items-start gap-2.5">
+                  <Mail className="w-4 h-4 text-gold-400 flex-shrink-0 mt-0.5" />
+                  <a href={`mailto:${email}`} className="hover:text-gold-300 transition-colors break-all">
                     {email}
                   </a>
                 </div>
               )}
 
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gold-400 flex-shrink-0" />
-                <span>{workingHours}</span>
+              <div className="flex items-start gap-2.5">
+                <Clock className="w-4 h-4 text-gold-400 flex-shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{workingHours}</span>
               </div>
             </div>
           </div>

@@ -8,6 +8,7 @@ interface BrandLogoProps {
   variant?: "default" | "light" | "image-only";
   size?: "sm" | "md" | "lg" | "xl";
   showTagline?: boolean;
+  showSubheading?: boolean;
   href?: string;
   customLogoUrl?: string;
   companyName?: string;
@@ -19,12 +20,16 @@ export default function BrandLogo({
   variant = "default",
   size = "md",
   showTagline = false,
+  showSubheading,
   href = "/",
   customLogoUrl,
   companyName = "AL GAFUR",
   tagline = "Your Sacred Journey, Handled With Care.",
 }: BrandLogoProps) {
   const isLight = variant === "light";
+  const isFullName = /INTERNATIONAL\s+TOURS/i.test(companyName);
+  const isLongName = companyName.length > 15;
+  const shouldShowSubheading = showSubheading !== undefined ? showSubheading : !isFullName;
 
   const sizeClasses = {
     sm: "h-9",
@@ -120,41 +125,51 @@ export default function BrandLogo({
       )}
 
       {/* Typography: Brand Text */}
-      <div className="flex flex-col justify-center">
+      <div className="flex flex-col justify-center min-w-0">
         <span
-          className={`font-serif tracking-widest leading-none font-extrabold ${
-            size === "sm"
-              ? "text-lg"
+          className={`font-serif font-extrabold ${
+            isLongName
+              ? size === "sm"
+                ? "text-xs leading-tight"
+                : size === "md"
+                ? "text-base sm:text-lg leading-snug"
+                : size === "lg"
+                ? "text-lg sm:text-xl leading-snug"
+                : "text-xl sm:text-2xl leading-snug"
+              : size === "sm"
+              ? "text-lg tracking-widest leading-none"
               : size === "md"
-              ? "text-2xl"
+              ? "text-2xl tracking-widest leading-none"
               : size === "lg"
-              ? "text-3xl"
-              : "text-4xl"
+              ? "text-3xl tracking-widest leading-none"
+              : "text-4xl tracking-widest leading-none"
           } ${
             isLight
               ? "text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-amber-200 to-gold-400"
               : "text-transparent bg-clip-text bg-gradient-to-r from-gold-600 via-amber-600 to-gold-700"
           }`}
-          style={{ letterSpacing: "0.14em" }}
+          style={isLongName ? { letterSpacing: "0.03em" } : { letterSpacing: "0.14em" }}
         >
           {companyName}
         </span>
-        <span
-          className={`font-sans tracking-widest font-semibold uppercase ${
-            size === "sm"
-              ? "text-[7.5px]"
-              : size === "md"
-              ? "text-[9.5px]"
-              : size === "lg"
-              ? "text-xs"
-              : "text-sm"
-          } ${isLight ? "text-amber-200/90" : "text-amber-800/90"}`}
-          style={{ letterSpacing: "0.22em" }}
-        >
-          International Tours And Travels
-        </span>
+        {shouldShowSubheading && (
+          <span
+            className={`font-sans tracking-widest font-semibold uppercase ${
+              size === "sm"
+                ? "text-[7.5px]"
+                : size === "md"
+                ? "text-[9.5px]"
+                : size === "lg"
+                ? "text-xs"
+                : "text-sm"
+            } ${isLight ? "text-amber-200/90" : "text-amber-800/90"}`}
+            style={{ letterSpacing: "0.22em" }}
+          >
+            International Tours And Travels
+          </span>
+        )}
         {showTagline && (
-          <span className={`text-[10px] mt-0.5 italic ${isLight ? "text-emerald-200/70" : "text-emerald-800/70"}`}>
+          <span className={`text-[10px] sm:text-[11px] mt-1 italic leading-tight ${isLight ? "text-emerald-200/80" : "text-emerald-800/80"}`}>
             {tagline}
           </span>
         )}
