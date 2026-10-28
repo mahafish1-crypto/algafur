@@ -5,7 +5,7 @@ import { Calendar, ArrowRight } from "lucide-react";
 import { getPublishedBlogPosts } from "@/lib/packages-data";
 
 export const metadata = {
-  title: "Pilgrim Guidance Blog | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  title: "Pilgrim Guidance Blog",
   description: "Educational articles, Sunnah du'as, and practical guides for Hajj & Umrah pilgrims.",
 };
 

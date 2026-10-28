@@ -6,7 +6,7 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Cancellation & Refund Policy | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  title: "Cancellation & Refund Policy",
   description:
     "Transparent cancellation, rescheduling, and refund terms for Hajj and Umrah packages with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
 };

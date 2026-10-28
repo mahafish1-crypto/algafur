@@ -6,7 +6,7 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Privacy Policy | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  title: "Privacy Policy",
   description:
     "How AL GAFUR INTERNATIONAL TOURS AND TRAVELS collects, protects, and processes pilgrim personal and passport information.",
 };

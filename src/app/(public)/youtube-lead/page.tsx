@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata() {
   const form = await ensureDefaultYouTubeForm();
   return {
-    title: `${form.title} | AL GAFUR INTERNATIONAL TOURS AND TRAVELS`,
+    title: form.title,
     description:
       form.description ||
       "Submit your Hajj & Umrah enquiry to receive package details and a personal callback from AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",

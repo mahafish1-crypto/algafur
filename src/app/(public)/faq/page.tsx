@@ -8,7 +8,7 @@ import { buildWhatsAppLink } from "@/lib/whatsapp";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Frequently Asked Questions | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  title: "Frequently Asked Questions",
   description: "Answers to common questions regarding Umrah visas, flight bookings, Indian meals, and hotel proximity.",
 };
 

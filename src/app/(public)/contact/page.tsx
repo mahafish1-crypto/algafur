@@ -7,7 +7,7 @@ import { getPublishedPackagesCatalog } from "@/lib/packages-data";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Contact Us & Booking Offices | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  title: "Contact Us & Booking Offices",
   description: "Get in touch with AL GAFUR INTERNATIONAL TOURS AND TRAVELS offices in Pune, Mumbai, Aurangabad, and Ahmednagar.",
 };
 

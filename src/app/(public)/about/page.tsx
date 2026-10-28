@@ -28,7 +28,7 @@ export async function generateMetadata() {
   const companyName =
     settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
   return {
-    title: `About Us & Leadership | ${companyName}`,
+    title: "About Us & Leadership",
     description:
       settings.about_subtitle ||
       "Learn about the mission, scholarly leadership, spiritual guides, and operations team of AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",

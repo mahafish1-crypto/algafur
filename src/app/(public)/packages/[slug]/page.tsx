@@ -24,7 +24,7 @@ export async function generateMetadata({
 
     const canonicalPath = `/packages/${pkg.slug}`;
     return {
-      title: `${pkg.name} | AL GAFUR INTERNATIONAL TOURS AND TRAVELS`,
+      title: pkg.name,
       description:
         pkg.overview ||
         "Premium Umrah package with scholarly guidance, direct flights and walking distance hotels.",
@@ -39,7 +39,7 @@ export async function generateMetadata({
       },
     };
   } catch {
-    return { title: "Hajj & Umrah Packages | AL GAFUR INTERNATIONAL TOURS AND TRAVELS" };
+    return { title: "Hajj & Umrah Packages" };
   }
 }
 

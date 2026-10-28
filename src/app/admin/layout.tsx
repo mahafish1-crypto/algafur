@@ -7,6 +7,13 @@ import AdminLayoutClient from "./AdminLayoutClient";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: {
+    template: "%s",
+    default: "AL GAFUR Admin Operating System",
+  },
+};
+
 export default async function AdminLayout({
   children,
 }: {

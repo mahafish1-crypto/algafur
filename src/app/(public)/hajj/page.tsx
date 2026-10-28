@@ -8,7 +8,7 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Hajj 1448 / 2027 Registration | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  title: "Hajj 1448 / 2027 Registration",
   description: "Official registration and guidance for Hajj pilgrimage with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
 };
 

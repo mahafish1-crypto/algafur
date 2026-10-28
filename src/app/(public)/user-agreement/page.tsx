@@ -6,7 +6,7 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "User Agreement & Terms of Service | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  title: "User Agreement & Terms of Service",
   description:
     "Official User Agreement, Pilgrim Responsibilities, and Terms of Service for Hajj & Umrah travel bookings with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
 };
