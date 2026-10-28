@@ -1,5 +1,5 @@
 /**
- * Al-Gafur Reverse Geocoding Utility
+ * AL GAFUR Reverse Geocoding Utility
  * 
  * Secure server-side reverse geocoding from latitude/longitude coordinates to human-readable address fields.
  * Supports:

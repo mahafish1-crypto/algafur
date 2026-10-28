@@ -4,7 +4,7 @@ import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 import AdminTestimonialsClient from "./AdminTestimonialsClient";
 
 export const metadata = {
-  title: "Voices of Blessed Pilgrims | AL-GAFUR Admin",
+  title: "Voices of Blessed Pilgrims | AL GAFUR Admin",
   description:
     "Manage pilgrim testimonials, reviews, photos, and homepage display status.",
 };

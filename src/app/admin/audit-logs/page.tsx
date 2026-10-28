@@ -4,7 +4,7 @@ import AdminAuditLogsClient from "./AdminAuditLogsClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
-  title: "Audit Logs & Security Trail | AL-GAFUR Admin",
+  title: "Audit Logs & Security Trail | AL GAFUR Admin",
   description: "Complete chronological security audit log of all system operations.",
 };
 

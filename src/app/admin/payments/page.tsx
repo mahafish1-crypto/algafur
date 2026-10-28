@@ -4,7 +4,7 @@ import AdminPaymentsClient from "./AdminPaymentsClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
-  title: "Payments & Financial Ledger | AL-GAFUR Admin",
+  title: "Payments & Financial Ledger | AL GAFUR Admin",
   description: "Real-time payment records, advance collections, and official receipts.",
 };
 

@@ -239,7 +239,7 @@ export async function DELETE(
     // Safeguard: Never delete existing default platinum package!
     if (existing.slug === "umrah-platinum-package-2026") {
       return NextResponse.json(
-        { error: "The default Al-Gafur Platinum 2026 package is protected and cannot be deleted." },
+        { error: "The default AL GAFUR Platinum 2026 package is protected and cannot be deleted." },
         { status: 400 }
       );
     }

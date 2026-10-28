@@ -84,7 +84,7 @@ export default function AIImageGeneratorClient() {
           AI Creative Graphic Studio & Social Poster Generator
         </h1>
         <p className="text-sm text-slate-600 mt-1">
-          Generate pixel-perfect branded social media creatives, WhatsApp status cards, and package posters featuring the official Al-Gafur identity.
+          Generate pixel-perfect branded social media creatives, WhatsApp status cards, and package posters featuring the official AL GAFUR INTERNATIONAL TOURS AND TRAVELS identity.
         </p>
       </div>
 

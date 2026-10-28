@@ -6,9 +6,9 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Privacy Policy | Al-Gafur International Tours And Travels",
+  title: "Privacy Policy | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
   description:
-    "How Al-Gafur International Tours And Travels collects, protects, and processes pilgrim personal and passport information.",
+    "How AL GAFUR INTERNATIONAL TOURS AND TRAVELS collects, protects, and processes pilgrim personal and passport information.",
 };
 
 const PRIVACY_VERSION = "v1.0";
@@ -16,7 +16,7 @@ const PRIVACY_EFFECTIVE_DATE = "October 10, 2026";
 
 export default async function PrivacyPolicyPage() {
   const settings = await getSiteSettings();
-  const companyName = settings.company_name || "Al-Gafur International Tours And Travels";
+  const companyName = settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
   const address =
     settings.company_address ||
     "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.";
@@ -108,7 +108,7 @@ export default async function PrivacyPolicyPage() {
               </h2>
               <p>
                 Customer records, uploaded documents, and booking histories are stored in encrypted databases
-                with role-based access control (RBAC) restricted to authorized Al-Gafur staff and the
+                with role-based access control (RBAC) restricted to authorized AL GAFUR INTERNATIONAL TOURS AND TRAVELS staff and the
                 authenticated customer. Passwords are encrypted using industry-standard cryptographic hashing.
               </p>
             </section>

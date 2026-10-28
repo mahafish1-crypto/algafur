@@ -140,7 +140,7 @@ export default async function AdminDashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <span className="text-[11px] font-mono text-gold-400 uppercase font-bold tracking-wider">
-            Al-Gafur Operating System • {displayRole}
+            AL GAFUR Operating System • {displayRole}
           </span>
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white mt-0.5">
             Welcome, {session.name}

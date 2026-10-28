@@ -7,8 +7,8 @@ import { getPublishedPackagesCatalog } from "@/lib/packages-data";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Contact Us & Booking Offices | Al-Gafur International Tours And Travels",
-  description: "Get in touch with Al-Gafur offices in Pune, Mumbai, Aurangabad, and Ahmednagar.",
+  title: "Contact Us & Booking Offices | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  description: "Get in touch with AL GAFUR INTERNATIONAL TOURS AND TRAVELS offices in Pune, Mumbai, Aurangabad, and Ahmednagar.",
 };
 
 export default async function ContactPage() {
@@ -35,7 +35,7 @@ export default async function ContactPage() {
             Reach Out to Us
           </span>
           <h1 className="text-3xl sm:text-4xl font-serif font-bold text-forest-950 mt-3">
-            Contact Al-Gafur Tours Desk
+            Contact AL GAFUR INTERNATIONAL TOURS AND TRAVELS Desk
           </h1>
           <p className="text-xs sm:text-sm text-neutral-600 mt-2">
             Visit our regional booking offices or speak directly with our senior directors and scholars.

@@ -17,11 +17,11 @@ export async function generateMetadata({
     const post = await getPublishedBlogPostBySlug(resolvedParams.slug);
     if (!post) return { title: "Post Not Found" };
     return {
-      title: `${post.title} | Al-Gafur Tours`,
+      title: `${post.title} | AL GAFUR INTERNATIONAL TOURS AND TRAVELS`,
       description: post.excerpt,
     };
   } catch {
-    return { title: "Pilgrim Guidance | Al-Gafur Tours" };
+    return { title: "Pilgrim Guidance | AL GAFUR INTERNATIONAL TOURS AND TRAVELS" };
   }
 }
 

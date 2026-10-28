@@ -4,7 +4,7 @@ import AdminVisaClient from "./AdminVisaClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
-  title: "Visa Applications & MOFA Pipeline | AL-GAFUR Admin",
+  title: "Visa Applications & MOFA Pipeline | AL GAFUR Admin",
   description: "Saudi Umrah & Hajj visa tracking, MOFA processing, and passport status.",
 };
 

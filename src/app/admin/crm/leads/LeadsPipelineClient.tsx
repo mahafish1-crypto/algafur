@@ -491,7 +491,7 @@ export default function LeadsPipelineClient({
                           </a>
                           <a
                             href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(
-                              `Assalamualaikum ${l.name}, this is Al-Gafur Tours regarding your enquiry (${l.leadNumber}) for ${l.packageInterest}.`
+                              `Assalamualaikum ${l.name}, this is AL GAFUR INTERNATIONAL TOURS AND TRAVELS regarding your enquiry (${l.leadNumber}) for ${l.packageInterest}.`
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -503,7 +503,7 @@ export default function LeadsPipelineClient({
                           {l.email && (
                             <a
                               href={`mailto:${l.email}?subject=${encodeURIComponent(
-                                `Al-Gafur Tours — Enquiry ${l.leadNumber}`
+                                `AL GAFUR INTERNATIONAL TOURS AND TRAVELS — Enquiry ${l.leadNumber}`
                               )}`}
                               className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700"
                               title="Email Lead"

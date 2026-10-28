@@ -3,8 +3,8 @@ import Image from "next/image";
 import { MapPin, Compass, Sparkles } from "lucide-react";
 
 export const metadata = {
-  title: "Holy Sites & Ziyarat Gallery | Al-Gafur International Tours And Travels",
-  description: "Explore the historic Ziyarat sites of Makkah Mukarrama and Madinah Munawwara guided by Al-Gafur Tours.",
+  title: "Holy Sites & Ziyarat Gallery | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  description: "Explore the historic Ziyarat sites of Makkah Mukarrama and Madinah Munawwara guided by AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
 };
 
 export default function GalleryPage() {

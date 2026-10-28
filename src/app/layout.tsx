@@ -8,13 +8,15 @@ export const metadata: Metadata = {
   metadataBase: new URL(CANONICAL_SITE_URL),
   title: {
     default:
-      "Al-Gafur International Tours And Travels | Premium Hajj & Umrah Packages",
-    template: "%s | Al-Gafur International Tours And Travels",
+      "AL GAFUR INTERNATIONAL TOURS AND TRAVELS | Premium Hajj & Umrah Packages",
+    template: "%s | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
   },
   description:
-    "Official website of Al-Gafur International Tours And Travels. Premium Hajj & Umrah packages with scholarly guidance, walking distance hotels in Makkah & Madinah, direct flights, and complete pilgrim care.",
+    "Official website of AL GAFUR INTERNATIONAL TOURS AND TRAVELS. Premium Hajj & Umrah packages with scholarly guidance, walking distance hotels in Makkah & Madinah, direct flights, and complete pilgrim care.",
   keywords: [
-    "Al-Gafur Tours",
+    "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+    "AL GAFUR",
+    "AL GAFUR Tours",
     "Umrah Packages 2026",
     "Hajj 1448",
     "Umrah Mumbai Pune Maharashtra",
@@ -23,22 +25,22 @@ export const metadata: Metadata = {
     "Hafiz Asrar Sahab Umrah",
     "Direct Flight Umrah",
   ],
-  authors: [{ name: "Al-Gafur International Tours And Travels" }],
+  authors: [{ name: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS" }],
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Al-Gafur International Tours And Travels",
+    title: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
     description:
       "Your Sacred Journey, Handled With Care. Premium Hajj & Umrah Packages.",
     url: CANONICAL_SITE_URL,
-    siteName: "Al-Gafur Tours",
+    siteName: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
     locale: "en_IN",
     type: "website",
     images: [
       {
         url: "/brand/poster.jpg",
-        alt: "Al-Gafur International Tours And Travels",
+        alt: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
       },
     ],
   },
@@ -54,7 +56,7 @@ export default async function RootLayout({
   const settings = await getSiteSettings();
   const faviconUrl = settings.favicon || "/favicon.ico";
   const companyTitle =
-    settings.company_name || "Al-Gafur International Tours And Travels";
+    settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
   const phone = settings.company_phone_1 || "+91-8793939393";
   const email = settings.company_email || "contact@algafurtours.com";
 

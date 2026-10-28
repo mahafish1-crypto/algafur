@@ -157,7 +157,7 @@ export default function PackageFormModal({
     // SEO
     seoTitle: initialPackage?.seoTitle || "",
     seoDescription: initialPackage?.seoDescription || "",
-    seoKeywords: initialPackage?.seoKeywords || "Umrah 2026, Mumbai direct flight Umrah, Al-Gafur Umrah package",
+    seoKeywords: initialPackage?.seoKeywords || "Umrah 2026, Mumbai direct flight Umrah, AL GAFUR INTERNATIONAL TOURS AND TRAVELS Umrah package",
     ogImage: initialPackage?.ogImage || "",
 
     // Features
@@ -171,7 +171,7 @@ export default function PackageFormModal({
       "Makkah & Madinah Historical Ziyarat",
       "Complimentary 5L Zamzam Can",
       "Free Laundry Service",
-      "Al-Gafur Welcome Kit & Shoulder Bags",
+      "AL GAFUR INTERNATIONAL TOURS AND TRAVELS Welcome Kit & Shoulder Bags",
     ],
 
     // Inclusions & Exclusions
@@ -185,7 +185,7 @@ export default function PackageFormModal({
       { title: "Complete Holy Ziyarat", description: "Guided tour to Jabal al-Noor, Ghar Thawr, Mina, Arafat, Quba, Uhud" },
       { title: "Zamzam Water (5 Litres)", description: "Official 5-litre packed Zamzam can provided at Jeddah airport" },
       { title: "Free Laundry Facilities", description: "Complimentary laundry service every 3 days" },
-      { title: "Al-Gafur Pilgrimage Kit", description: "Shoulder bag, passport pouch, shoe bag, and Umrah guidebook" },
+      { title: "AL GAFUR Pilgrimage Kit", description: "Shoulder bag, passport pouch, shoe bag, and Umrah guidebook" },
     ],
     exclusions: initialPackage?.inclusions ? initialPackage.inclusions.filter((i: any) => !i.isIncluded) : [
       { title: "Room Service & Personal Expenses", description: "Personal laundry outside package, phone calls, room service" },
@@ -300,7 +300,7 @@ export default function PackageFormModal({
           // SEO
           seoTitle: initialPackage.seoTitle || "",
           seoDescription: initialPackage.seoDescription || "",
-          seoKeywords: initialPackage.seoKeywords || "Umrah 2026, Mumbai direct flight Umrah, Al-Gafur Umrah package",
+          seoKeywords: initialPackage.seoKeywords || "Umrah 2026, Mumbai direct flight Umrah, AL GAFUR INTERNATIONAL TOURS AND TRAVELS Umrah package",
           ogImage: initialPackage.ogImage || "",
 
           // Features
@@ -318,7 +318,7 @@ export default function PackageFormModal({
                 "Makkah & Madinah Historical Ziyarat",
                 "Complimentary 5L Zamzam Can",
                 "Free Laundry Service",
-                "Al-Gafur Welcome Kit & Shoulder Bags",
+                "AL GAFUR INTERNATIONAL TOURS AND TRAVELS Welcome Kit & Shoulder Bags",
               ],
 
           // Inclusions & Exclusions
@@ -423,7 +423,7 @@ export default function PackageFormModal({
           // SEO
           seoTitle: "",
           seoDescription: "",
-          seoKeywords: "Umrah 2026, Mumbai direct flight Umrah, Al-Gafur Umrah package",
+          seoKeywords: "Umrah 2026, Mumbai direct flight Umrah, AL GAFUR INTERNATIONAL TOURS AND TRAVELS Umrah package",
           ogImage: "",
 
           // Features
@@ -437,7 +437,7 @@ export default function PackageFormModal({
             "Makkah & Madinah Historical Ziyarat",
             "Complimentary 5L Zamzam Can",
             "Free Laundry Service",
-            "Al-Gafur Welcome Kit & Shoulder Bags",
+            "AL GAFUR INTERNATIONAL TOURS AND TRAVELS Welcome Kit & Shoulder Bags",
           ],
 
           // Inclusions & Exclusions
@@ -451,7 +451,7 @@ export default function PackageFormModal({
             { title: "Complete Holy Ziyarat", description: "Guided tour to Jabal al-Noor, Ghar Thawr, Mina, Arafat, Quba, Uhud" },
             { title: "Zamzam Water (5 Litres)", description: "Official 5-litre packed Zamzam can provided at Jeddah airport" },
             { title: "Free Laundry Facilities", description: "Complimentary laundry service every 3 days" },
-            { title: "Al-Gafur Pilgrimage Kit", description: "Shoulder bag, passport pouch, shoe bag, and Umrah guidebook" },
+            { title: "AL GAFUR Pilgrimage Kit", description: "Shoulder bag, passport pouch, shoe bag, and Umrah guidebook" },
           ],
           exclusions: [
             { title: "Room Service & Personal Expenses", description: "Personal laundry outside package, phone calls, room service" },
@@ -1987,7 +1987,7 @@ export default function PackageFormModal({
                   type="text"
                   value={form.seoTitle}
                   onChange={(e) => handleTextChange("seoTitle", e.target.value)}
-                  placeholder="e.g. Umrah Platinum Package 2026 | Al-Gafur International Tours"
+                  placeholder="e.g. Umrah Platinum Package 2026 | AL GAFUR INTERNATIONAL TOURS AND TRAVELS"
                   className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
                 />
               </div>
@@ -2013,7 +2013,7 @@ export default function PackageFormModal({
                   type="text"
                   value={form.seoKeywords}
                   onChange={(e) => handleTextChange("seoKeywords", e.target.value)}
-                  placeholder="Umrah 2026, Mumbai direct Umrah, Al-Gafur Tours"
+                  placeholder="Umrah 2026, Mumbai direct Umrah, AL GAFUR INTERNATIONAL TOURS AND TRAVELS"
                   className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
                 />
               </div>

@@ -7,7 +7,7 @@ import { TRACKING_START_DATE } from "@/lib/analytics-client";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Reports, Package Analytics & CRM Funnel | AL-GAFUR Admin",
+  title: "Reports, Package Analytics & CRM Funnel | AL GAFUR Admin",
   description: "Revenue performance, package view analytics, load factors, and CRM conversion metrics.",
 };
 

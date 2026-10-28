@@ -155,7 +155,7 @@ export default function FollowupsClient({ initialFollowUps }: FollowupsClientPro
                     <a
                       href={`https://wa.me/${targetPhone.replace(/[^0-9]/g, "")}?text=Assalamualaikum%20${encodeURIComponent(
                         targetName
-                      )},%20this%20is%20Al-Gafur%20Tours%20following%20up%20on%20your%20inquiry.`}
+                      )},%20this%20is%20AL%20GAFUR%20INTERNATIONAL%20TOURS%20AND%20TRAVELS%20following%20up%20on%20your%20inquiry.`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-2 bg-emerald-800 hover:bg-emerald-700 text-white rounded-xl"

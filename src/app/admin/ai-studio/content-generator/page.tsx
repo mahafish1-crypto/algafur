@@ -4,7 +4,7 @@ import AIContentGeneratorClient from "./AIContentGeneratorClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
-  title: "AI Content & Copy Generator | AL-GAFUR Admin",
+  title: "AI Content & Copy Generator | AL GAFUR Admin",
   description: "Multilingual marketing copy, captions, and WhatsApp broadcasts powered by AI.",
 };
 

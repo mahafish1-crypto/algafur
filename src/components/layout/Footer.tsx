@@ -24,10 +24,10 @@ export default function Footer({ settings = {} }: FooterProps) {
 
   const logoUrl = settings.footer_logo || settings.site_logo || "";
   const companyName =
-    settings.company_name || "Al-Gafur International Tours And Travels";
+    settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
   const footerDesc =
     settings.footer_description ||
-    "Al-Gafur International Tours And Travels is dedicated to facilitating serene, spiritually uplifting, and meticulously organized Hajj & Umrah pilgrimages with experienced guides, walking-distance hotels in holy cities, and authentic Indian hospitality.";
+    "AL GAFUR INTERNATIONAL TOURS AND TRAVELS is dedicated to facilitating serene, spiritually uplifting, and meticulously organized Hajj & Umrah pilgrimages with experienced guides, walking-distance hotels in holy cities, and authentic Indian hospitality.";
   const phone1 = settings.company_phone_1 || "+91 8793939393";
   const phone2 = settings.company_phone_2 || "+91 9890708013";
   const phone3 = settings.company_phone_3 || "+91 9764444044";

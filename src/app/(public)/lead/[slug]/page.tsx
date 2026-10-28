@@ -23,12 +23,12 @@ export async function generateMetadata({
 
   if (!form) {
     return {
-      title: "Enquiry Form | Al-Gafur Hajj & Umrah",
+      title: "Enquiry Form | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
     };
   }
 
   return {
-    title: `${form.title} | Al-Gafur Hajj & Umrah`,
+    title: `${form.title} | AL GAFUR INTERNATIONAL TOURS AND TRAVELS`,
     description:
       form.description ||
       "Submit your Hajj & Umrah enquiry to receive package details and a personal callback.",

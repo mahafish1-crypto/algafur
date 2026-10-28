@@ -6,7 +6,7 @@ import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 import AdminTeamClient from "./AdminTeamClient";
 
 export const metadata = {
-  title: "Team & Spiritual Guides | AL-GAFUR Admin",
+  title: "Team & Spiritual Guides | AL GAFUR Admin",
   description:
     "Manage Directors, Spiritual Guides, Operations, Sales, Accounts, and custom staff profiles.",
 };

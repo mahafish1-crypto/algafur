@@ -157,7 +157,7 @@ export async function generateMarketingContent(
   let apiErrorCode: GeneratedContentResult["errorCode"] | undefined;
 
   if (geminiApiKey) {
-    const prompt = `You are a specialist Islamic travel copywriter for "Al-Gafur International Tours And Travels".
+    const prompt = `You are a specialist Islamic travel copywriter for "AL GAFUR INTERNATIONAL TOURS AND TRAVELS".
 Generate marketing copy for:
 Package: ${options.packageTitle}
 Duration: ${options.duration || "20 Days"}
@@ -204,14 +204,14 @@ Format strictly as JSON.`;
   const isArabic = options.language === "Arabic";
   const isUrdu = options.language === "Urdu";
 
-  let headline = `Begin Your Sacred Pilgrimage With Al-Gafur: ${options.packageTitle}`;
-  let caption = `Labbaik Allahumma Labbaik! ✨ Experience the blessed courtyards of Masjid Al-Haram and Masjid An-Nabawi with Al-Gafur International Tours And Travels. Complete peace of mind with direct flights, 4-star stays within walking distance, fresh Indian buffet, and scholarly guidance by Hafiz Asrar Sahab & Hafiz Sameer Madani.`;
+  let headline = `Begin Your Sacred Pilgrimage With AL GAFUR: ${options.packageTitle}`;
+  let caption = `Labbaik Allahumma Labbaik! ✨ Experience the blessed courtyards of Masjid Al-Haram and Masjid An-Nabawi with AL GAFUR INTERNATIONAL TOURS AND TRAVELS. Complete peace of mind with direct flights, 4-star stays within walking distance, fresh Indian buffet, and scholarly guidance by Hafiz Asrar Sahab & Hafiz Sameer Madani.`;
   let cta = "Reserve Your Seat Today — Call +91 9890708013";
-  let hashtags = ["#AlGafurTours", "#Umrah2026", "#HajjAndUmrah", "#Makkah", "#Madinah", "#SacredJourney"];
+  let hashtags = ["#ALGAFUR", "#ALGAFURINTERNATIONAL", "#Umrah2026", "#HajjAndUmrah", "#Makkah", "#Madinah", "#SacredJourney"];
   let shortVersion = `✨ ${options.packageTitle} | ${options.duration || "20 Days"} | Direct Flights | Walking Distance to Haram | ₹${options.price || "1,20,000"}. Book now: +91 9890708013`;
   let longVersion = `${caption}\n\n🌟 Inclusions:\n✔ Direct Flight Return\n✔ Umrah Visa & Insurance\n✔ 12 Nights Makkah & 7 Nights Madinah\n✔ 5 Guided Umrahs & Historic Ziyarat\n✔ 3 Times Indian Buffet Meals\n✔ Complimentary 5L Zamzam & Complete Luggage Kit\n\n📞 Inquire Now: +91 8793939393 / +91 9890708013`;
-  let whatsappVersion = `*Assalamualaikum wa Rahmatullahi wa Barakatuhu!* 🕋\n\nSpecial booking open for *${options.packageTitle}*:\n\n📅 *Duration:* ${options.duration || "20 Days"}\n💰 *Price:* ${options.price || "₹1,20,000"}/- onwards\n🏨 *Hotels:* Walking distance to Haram\n🍽️ *Meals:* 3 Times Indian Food\n👳 *Guide:* Scholarly supervision & 5 Umrahs\n\nTap below to claim your seat with Al-Gafur Tours:\nwa.me/919890708013`;
-  let reelScript = `[0:00 - 0:03] Drone view of the Holy Kaaba under golden twilight. Voiceover: "Kya aap is saal Khana-e-Kaba ke samne aansu bahane ka irada kar rahe hain?"\n[0:03 - 0:08] Cut to Green Dome of Masjid An-Nabawi. Voiceover: "Al-Gafur International Tours lekar aaya hai aapke liye Umrah Platinum Package."\n[0:08 - 0:15] Quick montage: Luxury walking distance hotels, fresh Indian buffet, Hafiz Asrar Sahab guiding pilgrims. Voiceover: "Direct flight, 5 Umrahs, 4-star hotel haram ke kareeb aur mukammal aasan safar."\n[0:15 - 0:20] Al-Gafur Gold Logo reveal on screen with phone numbers. Voiceover: "Abhi call karein 9890708013 par aur apni seat book karein."`;
+  let whatsappVersion = `*Assalamualaikum wa Rahmatullahi wa Barakatuhu!* 🕋\n\nSpecial booking open for *${options.packageTitle}*:\n\n📅 *Duration:* ${options.duration || "20 Days"}\n💰 *Price:* ${options.price || "₹1,20,000"}/- onwards\n🏨 *Hotels:* Walking distance to Haram\n🍽️ *Meals:* 3 Times Indian Food\n👳 *Guide:* Scholarly supervision & 5 Umrahs\n\nTap below to claim your seat with AL GAFUR INTERNATIONAL TOURS AND TRAVELS:\nwa.me/919890708013`;
+  let reelScript = `[0:00 - 0:03] Drone view of the Holy Kaaba under golden twilight. Voiceover: "Kya aap is saal Khana-e-Kaba ke samne aansu bahane ka irada kar rahe hain?"\n[0:03 - 0:08] Cut to Green Dome of Masjid An-Nabawi. Voiceover: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS lekar aaya hai aapke liye Umrah Platinum Package."\n[0:08 - 0:15] Quick montage: Luxury walking distance hotels, fresh Indian buffet, Hafiz Asrar Sahab guiding pilgrims. Voiceover: "Direct flight, 5 Umrahs, 4-star hotel haram ke kareeb aur mukammal aasan safar."\n[0:15 - 0:20] AL GAFUR Gold Logo reveal on screen with phone numbers. Voiceover: "Abhi call karein 9890708013 par aur apni seat book karein."`;
 
   if (isHindi) {
     headline = `अल-गफूर के साथ मुकद्दस उमराह का मुबारक सफर: ${options.packageTitle}`;

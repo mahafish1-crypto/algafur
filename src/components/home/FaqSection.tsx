@@ -21,7 +21,7 @@ export default function FaqSection({ faqs: dbFaqs }: FaqSectionProps) {
 
   const defaultFaqs = [
     {
-      q: "What is included in the Al-Gafur Umrah Platinum Package?",
+      q: "What is included in the AL GAFUR INTERNATIONAL TOURS AND TRAVELS Umrah Platinum Package?",
       a: "Our Platinum Package covers direct return flights from Mumbai, official Umrah visa with medical insurance, 12 nights in Makkah Mukarrama (Diyafa Jamal or similar), 7 nights in Madinah Munawwara (Ilaf Kuba or similar), 3 times Indian buffet meals, 5 guided Umrahs, comprehensive Ziyarat in Makkah & Madinah, free 5L Zamzam, and a complete luggage & Ihram travel kit.",
     },
     {
@@ -66,7 +66,7 @@ export default function FaqSection({ faqs: dbFaqs }: FaqSectionProps) {
             {t("section_faqs")}
           </h2>
           <p className="text-xs sm:text-sm text-neutral-600 mt-2">
-            Everything you need to know about preparing for your Umrah with Al-Gafur Tours.
+            Everything you need to know about preparing for your Umrah with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.
           </p>
         </div>
 

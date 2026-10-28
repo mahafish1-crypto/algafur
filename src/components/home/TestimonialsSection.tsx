@@ -57,7 +57,7 @@ export default function TestimonialsSection({
           </h2>
           <p className="text-xs sm:text-sm text-neutral-600 mt-2">
             Read heartfelt experiences from pilgrims who completed their sacred
-            journey with Al-Gafur Tours.
+            journey with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.
           </p>
         </div>
 

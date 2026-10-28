@@ -727,7 +727,7 @@ export default function FormBuilderClient({
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Al-Gafur Hajj & Umrah — Special YouTube Pilgrim Enquiry"
+                    placeholder="e.g. AL GAFUR INTERNATIONAL TOURS AND TRAVELS — Special YouTube Pilgrim Enquiry"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                   />
                 </div>
@@ -840,7 +840,7 @@ export default function FormBuilderClient({
                     className="w-4 h-4 rounded text-emerald-700 focus:ring-emerald-600"
                   />
                   <span className="text-xs font-semibold text-slate-700">
-                    Display Al-Gafur Logo & Verified Branding Banner
+                    Display AL GAFUR Logo & Verified Branding Banner
                   </span>
                 </label>
 

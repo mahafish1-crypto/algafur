@@ -280,7 +280,7 @@ export default function YouTubeLeadDetailClient({
           {waPhone && (
             <a
               href={`https://wa.me/${waPhone}?text=${encodeURIComponent(
-                `Assalamu Alaikum ${submission.fullName}, JazakAllah Khair for submitting our Al-Gafur YouTube inquiry form (${submission.submissionCode}).`
+                `Assalamu Alaikum ${submission.fullName}, JazakAllah Khair for submitting our AL GAFUR INTERNATIONAL TOURS AND TRAVELS YouTube inquiry form (${submission.submissionCode}).`
               )}`}
               target="_blank"
               rel="noreferrer"

@@ -7,7 +7,7 @@ import { parseStoredPermissions, resolveUserPermissions } from "@/lib/rbac";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "User & Role Access Management | AL-GAFUR Admin",
+  title: "User & Role Access Management | AL GAFUR Admin",
   description:
     "Super Admin control panel for staff accounts, custom roles, and granular module permissions.",
 };

@@ -4,7 +4,7 @@ import AdminFlightsClient from "./AdminFlightsClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
-  title: "Flight Schedules & PNR Registry | AL-GAFUR Admin",
+  title: "Flight Schedules & PNR Registry | AL GAFUR Admin",
   description: "Monitor direct flights, airline group PNRs, and baggage quotas.",
 };
 

@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('--- Seeding Al-Gafur Production Database ---');
+  console.log('--- Seeding AL GAFUR INTERNATIONAL TOURS AND TRAVELS Production Database ---');
 
   // Password for demo accounts: Admin@123456
   const passwordHash = await bcrypt.hash('Admin@123456', 10);
@@ -199,7 +199,7 @@ async function main() {
       isPopular: true,
       badge: 'PLATINUM',
       featuredImage: '/brand/poster.jpg',
-      overview: 'Experience a transformative, deeply spiritual 20-day Umrah journey with Al-Gafur International Tours And Travels. Featuring 5 Umrah pilgrimages, direct return flights from Mumbai, 12 blessed nights in Makkah Mukarrama, 7 peaceful nights in Madinah Munawwara, 3 times Indian buffet meals, full historic Ziyarat, guidance by respected scholars Hafiz Asrar Sahab & Hafiz Sameer Madani, and complete luggage kits.',
+      overview: 'Experience a transformative, deeply spiritual 20-day Umrah journey with AL GAFUR INTERNATIONAL TOURS AND TRAVELS. Featuring 5 Umrah pilgrimages, direct return flights from Mumbai, 12 blessed nights in Makkah Mukarrama, 7 peaceful nights in Madinah Munawwara, 3 times Indian buffet meals, full historic Ziyarat, guidance by respected scholars Hafiz Asrar Sahab & Hafiz Sameer Madani, and complete luggage kits.',
       travelRequirements: 'Valid Indian Passport with minimum 6 months validity from departure date. 2 Passport size photos with white background. Original Aadhaar Card copy. Confirmed vaccination certificates as per KSA rules.',
       termsAndConditions: '₹25,000 advance per pilgrim at the time of booking. Balance to be settled 15 days before departure. Flight tickets and visa once processed are subject to airline and KSA ministry policies.',
     },
@@ -666,7 +666,7 @@ async function main() {
       city: 'Pune, Maharashtra',
       packageTitle: 'Umrah Platinum Group 2026',
       rating: 5,
-      reviewText: 'Alhamdulillah! Travelling with Al-Gafur was a life changing experience. The hotels in Makkah and Madinah were very close to the Haram, Indian food was fresh, and scholars guided every step of our 5 Umrahs with deep humility.',
+      reviewText: 'Alhamdulillah! Travelling with AL GAFUR was a life changing experience. The hotels in Makkah and Madinah were very close to the Haram, Indian food was fresh, and scholars guided every step of our 5 Umrahs with deep humility.',
       isFeatured: true,
       status: 'PUBLISHED',
     },
@@ -676,7 +676,7 @@ async function main() {
       city: 'Mumbai',
       packageTitle: 'Ramadan Umrah Special',
       rating: 5,
-      reviewText: 'From direct flight arrangements to flawless visa processing, Al-Gafur team handled everything like family. Highly recommended for elders and first-time pilgrims.',
+      reviewText: 'From direct flight arrangements to flawless visa processing, AL GAFUR team handled everything like family. Highly recommended for elders and first-time pilgrims.',
       isFeatured: true,
       status: 'PUBLISHED',
     },
@@ -699,7 +699,7 @@ async function main() {
   // 10. FAQs
   const sampleFaqs = [
     {
-      question: 'What is included in the Al-Gafur Umrah Platinum Package?',
+      question: 'What is included in the AL GAFUR Umrah Platinum Package?',
       answer: 'Our Platinum Package covers direct return flights from Mumbai, official Umrah visa with medical insurance, 12 nights in Makkah Mukarrama (Diyafa Jamal or similar), 7 nights in Madinah Munawwara (Ilaf Kuba or similar), 3 times Indian buffet meals, 5 guided Umrahs, comprehensive Ziyarat in Makkah & Madinah, free 5L Zamzam, and a complete luggage & Ihram kit.',
       category: 'UMRAH',
       sortOrder: 1,
@@ -743,7 +743,7 @@ async function main() {
       title: 'Complete Umrah Step-by-Step Guide for First-Time Pilgrims',
       featuredImage: 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=1200&auto=format&fit=crop',
       excerpt: 'Learn the sacred rites of Umrah from wearing Ihram and entering the Meeqat to performing Tawaf, Sa’i, and Tahallul according to the Sunnah.',
-      content: 'Umrah is one of the greatest spiritual blessings for a believer. In this comprehensive guide prepared by Al-Gafur International Tours And Travels, we explain the four primary pillars of Umrah: 1. Ihram with Niyyah at the Meeqat, 2. Tawaf of the Holy Kaaba (7 circuits), 3. Sa’i between Safa and Marwah (7 laps), and 4. Halq (shaving) or Taqsir (trimming) to exit the state of Ihram.',
+      content: 'Umrah is one of the greatest spiritual blessings for a believer. In this comprehensive guide prepared by AL GAFUR INTERNATIONAL TOURS AND TRAVELS, we explain the four primary pillars of Umrah: 1. Ihram with Niyyah at the Meeqat, 2. Tawaf of the Holy Kaaba (7 circuits), 3. Sa’i between Safa and Marwah (7 laps), and 4. Halq (shaving) or Taqsir (trimming) to exit the state of Ihram.',
       category: 'Umrah Guide',
       tags: 'Umrah, Guide, Makkah, Madinah, Pilgrimage',
       status: 'PUBLISHED',
@@ -755,7 +755,7 @@ async function main() {
     {
       templateKey: 'NEW_LEAD',
       name: 'New Lead Welcome Message',
-      body: 'Assalamualaikum {{name}}! Thank you for inquiring with Al-Gafur International Tours And Travels for {{package}}. Our senior advisor will assist you with hotel details, flight schedule, and special offers. You can also reach us at +91 9890708013.',
+      body: 'Assalamualaikum {{name}}! Thank you for inquiring with AL GAFUR INTERNATIONAL TOURS AND TRAVELS for {{package}}. Our senior advisor will assist you with hotel details, flight schedule, and special offers. You can also reach us at +91 9890708013.',
       variables: JSON.stringify(['name', 'package']),
     },
     {
@@ -773,7 +773,7 @@ async function main() {
     {
       templateKey: 'VISA_APPROVED',
       name: 'Visa Approved Notification',
-      body: 'Mubarak ho {{name}}! Your Umrah visa for Passport {{passportNumber}} has been APPROVED by the Ministry of Hajj & Umrah KSA. You can view your e-Visa on your Al-Gafur portal.',
+      body: 'Mubarak ho {{name}}! Your Umrah visa for Passport {{passportNumber}} has been APPROVED by the Ministry of Hajj & Umrah KSA. You can view your e-Visa on your AL GAFUR portal.',
       variables: JSON.stringify(['name', 'passportNumber']),
     },
   ];
@@ -788,7 +788,7 @@ async function main() {
 
   // 13. Site Settings
   const defaultSettings = [
-    { key: 'COMPANY_NAME', value: 'Al-Gafur International Tours And Travels', category: 'BRAND' },
+    { key: 'COMPANY_NAME', value: 'AL GAFUR INTERNATIONAL TOURS AND TRAVELS', category: 'BRAND' },
     { key: 'COMPANY_TAGLINE', value: 'Your Sacred Journey, Handled With Care.', category: 'BRAND' },
     { key: 'COMPANY_SUBTAGLINE', value: 'एक सफर जिंदगी में तब्दीली लानेवाला... इन्शाअल्लाह', category: 'BRAND' },
     { key: 'PHONE_PRIMARY', value: '+91 8793939393', category: 'CONTACT' },

@@ -11,8 +11,8 @@ export function maskSecretSetting(val: string): string {
 }
 
 export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
-  company_name: "AL-GAFUR International Tours And Travels",
-  company_short_name: "Al-Gafur Tours",
+  company_name: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  company_short_name: "AL GAFUR",
   company_tagline: "Your Sacred Journey, Handled With Care",
   company_phone_1: "+91 8793939393",
   company_phone_2: "+91 9890708013",
@@ -39,19 +39,19 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   header_cta_link: "/packages",
 
   // Footer Management
-  footer_description: "Al-Gafur International Tours And Travels is dedicated to facilitating serene, spiritually uplifting, and meticulously organized Hajj & Umrah pilgrimages with authentic Indian hospitality.",
-  footer_copyright: "© 2026 AL-GAFUR International Tours And Travels. All Rights Reserved. Govt. Approved Tour Operator.",
+  footer_description: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS is dedicated to facilitating serene, spiritually uplifting, and meticulously organized Hajj & Umrah pilgrimages with authentic Indian hospitality.",
+  footer_copyright: "© 2026 AL GAFUR INTERNATIONAL TOURS AND TRAVELS. All Rights Reserved. Govt. Approved Tour Operator.",
   social_facebook: "https://facebook.com",
   social_instagram: "https://instagram.com",
   social_youtube: "https://youtube.com",
   social_twitter: "https://twitter.com",
 
   // About Page CMS
-  about_badge: "About Al-Gafur Tours",
+  about_badge: "About AL GAFUR",
   about_title: "Serving the Guests of Allah with Honor and Care",
   about_subtitle: "A premier international Hajj & Umrah travel organization founded on devotion, transparency, and scholarly guidance.",
   about_mandate_title: "Our Spiritual Mandate",
-  about_mandate_description_1: "At Al-Gafur International Tours And Travels, we believe embarking on Hajj or Umrah is not merely an itinerary — it is the milestone pilgrimage of a lifetime. Every detail, from selecting hotels with level walking pathways to the Haram courtyards, to preparing fresh Indian meals that nourish tired worshippers, is managed with intense responsibility.",
+  about_mandate_description_1: "At AL GAFUR INTERNATIONAL TOURS AND TRAVELS, we believe embarking on Hajj or Umrah is not merely an itinerary — it is the milestone pilgrimage of a lifetime. Every detail, from selecting hotels with level walking pathways to the Haram courtyards, to preparing fresh Indian meals that nourish tired worshippers, is managed with intense responsibility.",
   about_mandate_description_2: "Our slogan reflects our devotion: \"एक सफर जिंदगी में तब्दीली लानेवाला... इन्शाअल्लाह\" — A journey destined to transform your heart and life.",
   about_image: "/brand/img2.jpeg",
   about_feature_1: "Ministry of Hajj & Umrah Recognized Operations",

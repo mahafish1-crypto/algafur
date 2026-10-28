@@ -60,7 +60,7 @@ export default function AdminPackagesClient({ initialPackages }: AdminPackagesCl
 
   const handleDeletePackage = async (pkg: any) => {
     if (pkg.slug === "umrah-platinum-package-2026") {
-      alert("The default Al-Gafur Platinum 2026 package is protected and cannot be deleted.");
+      alert("The default AL GAFUR Platinum 2026 package is protected and cannot be deleted.");
       return;
     }
 

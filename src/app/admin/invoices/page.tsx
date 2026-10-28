@@ -5,7 +5,7 @@ import AdminInvoicesClient from "./AdminInvoicesClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
-  title: "Tax Invoices & Billing | AL-GAFUR Admin",
+  title: "Tax Invoices & Billing | AL GAFUR Admin",
   description: "GST-compliant tax invoices, billing management, and receivables.",
 };
 

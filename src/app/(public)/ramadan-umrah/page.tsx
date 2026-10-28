@@ -7,7 +7,7 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Ramadan Umrah 2027 / 1448 Hijri | Al-Gafur International Tours And Travels",
+  title: "Ramadan Umrah 2027 / 1448 Hijri | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
   description: "Spend Laylatul Qadr and celebrate Eid-ul-Fitr in the holy courtyards of Makkah & Madinah.",
 };
 

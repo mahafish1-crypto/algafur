@@ -140,7 +140,7 @@ export default function BookingFlowClient({
   const whatsappNum = settings.whatsapp_number || "919890708013";
   const supportPhone = settings.company_phone_1 || "+91 8793939393";
   const companyName =
-    settings.company_short_name || settings.company_name || "Al-Gafur Tours";
+    settings.company_short_name || settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
 
   const handleSubmitEnquiry = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -597,7 +597,7 @@ export default function BookingFlowClient({
                 />
                 <span>
                   I agree to receive pilgrimage package details and callback
-                  assistance from Al-Gafur Tours in accordance with the{" "}
+                  assistance from AL GAFUR INTERNATIONAL TOURS AND TRAVELS in accordance with the{" "}
                   <Link
                     href="/privacy-policy"
                     className="text-emerald-700 font-semibold underline"

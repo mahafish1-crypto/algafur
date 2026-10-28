@@ -105,7 +105,7 @@ export default async function HomePage() {
         <PosterSpotlight packageData={featuredPlatinum} settings={settings} />
       )}
 
-      {/* 5. Trust Pillars: Why Pilgrims Choose Al-Gafur */}
+      {/* 5. Trust Pillars: Why Pilgrims Choose AL GAFUR INTERNATIONAL TOURS AND TRAVELS */}
       {showWhyChoose && <WhyChooseUs />}
 
       {/* 6. Hotels Proximity Showcase */}

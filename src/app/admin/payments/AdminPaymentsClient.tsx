@@ -353,7 +353,7 @@ export default function AdminPaymentsClient({
               <div>
                 <h3 className="font-bold text-base">Record Payment / Advance</h3>
                 <p className="text-xs text-emerald-200">
-                  Issues official Al-Gafur receipt and adjusts booking outstanding balance
+                  Issues official AL GAFUR receipt and adjusts booking outstanding balance
                 </p>
               </div>
               <button
@@ -609,14 +609,14 @@ export default function AdminPaymentsClient({
                 <div className="max-w-xs text-[10px] text-slate-500 leading-relaxed">
                   <p className="font-semibold text-slate-700">Terms & Acknowledgement:</p>
                   <p>
-                    Receipt generated electronically by AL-GAFUR International Tours And Travels. All
+                    Receipt generated electronically by AL GAFUR INTERNATIONAL TOURS AND TRAVELS. All
                     advances are subject to booking terms, visa regulations, and airlines policy.
                   </p>
                 </div>
                 <div className="text-center">
                   <div className="w-36 border-b border-slate-400 mb-1"></div>
                   <p className="text-xs font-semibold text-slate-800">Authorized Signatory</p>
-                  <p className="text-[10px] text-slate-500">AL-GAFUR International</p>
+                  <p className="text-[10px] text-slate-500">AL GAFUR INTERNATIONAL TOURS AND TRAVELS</p>
                 </div>
               </div>
             </div>

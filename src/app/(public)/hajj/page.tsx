@@ -8,8 +8,8 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Hajj 1448 / 2027 Registration | Al-Gafur International Tours And Travels",
-  description: "Official registration and guidance for Hajj pilgrimage with Al-Gafur Tours.",
+  title: "Hajj 1448 / 2027 Registration | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  description: "Official registration and guidance for Hajj pilgrimage with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
 };
 
 export default async function HajjPage() {

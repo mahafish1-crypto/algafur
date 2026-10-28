@@ -324,7 +324,7 @@ export default function SignupPage() {
 
         <div className="flex items-center justify-center gap-2 text-[11px] text-emerald-200/60">
           <ShieldCheck className="w-3.5 h-3.5 text-gold-400" />
-          <span>Encrypted Pilgrim Portal • Al-Gafur International Tours And Travels</span>
+          <span>Encrypted Pilgrim Portal • AL GAFUR INTERNATIONAL TOURS AND TRAVELS</span>
         </div>
       </div>
     </div>

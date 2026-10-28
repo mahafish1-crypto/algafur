@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
         balanceDue: booking.outstandingAmount,
         dueDate: dueDate ? new Date(dueDate) : new Date(Date.now() + 14 * 86400000),
         status: booking.outstandingAmount <= 0 ? "PAID" : "ISSUED",
-        notes: notes || "Thank you for choosing Al-Gafur International.",
+        notes: notes || "Thank you for choosing AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
         terms: terms || "Standard Hajj & Umrah package terms apply.",
       },
       include: {

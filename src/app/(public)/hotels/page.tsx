@@ -10,7 +10,7 @@ import {
 } from "@/lib/hotel-helpers";
 
 export const metadata = {
-  title: "Hotels in Makkah & Madinah | Al-Gafur International Tours And Travels",
+  title: "Hotels in Makkah & Madinah | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
   description:
     "Explore our handpicked hotels within walking distance of Masjid Al-Haram and Masjid An-Nabawi.",
 };

@@ -11,10 +11,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata() {
   const form = await ensureDefaultYouTubeForm();
   return {
-    title: `${form.title} | Al-Gafur Hajj & Umrah`,
+    title: `${form.title} | AL GAFUR INTERNATIONAL TOURS AND TRAVELS`,
     description:
       form.description ||
-      "Submit your Hajj & Umrah enquiry to receive package details and a personal callback from Al-Gafur International Tours And Travels.",
+      "Submit your Hajj & Umrah enquiry to receive package details and a personal callback from AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
     alternates: {
       canonical: "/youtube-lead",
     },

@@ -81,7 +81,7 @@ export default function TrackBookingPage() {
             Track Your Pilgrimage Booking
           </h1>
           <p className="text-xs sm:text-sm text-neutral-600 mt-2">
-            Enter your official Al-Gafur Booking Number and registered mobile number.
+            Enter your official AL GAFUR INTERNATIONAL TOURS AND TRAVELS Booking Number and registered mobile number.
           </p>
         </div>
 

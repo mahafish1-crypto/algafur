@@ -104,8 +104,8 @@ export default function AdminSettingsClient({
     favicon: initialSettings.favicon || "",
 
     company_name:
-      initialSettings.company_name || "AL-GAFUR International Tours And Travels",
-    company_short_name: initialSettings.company_short_name || "Al-Gafur Tours",
+      initialSettings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+    company_short_name: initialSettings.company_short_name || "AL GAFUR",
     company_tagline:
       initialSettings.company_tagline || "Your Sacred Journey, Handled With Care",
 
@@ -118,10 +118,10 @@ export default function AdminSettingsClient({
 
     footer_description:
       initialSettings.footer_description ||
-      "Al-Gafur International Tours And Travels is dedicated to facilitating serene, spiritually uplifting, and meticulously organized Hajj & Umrah pilgrimages with authentic Indian hospitality.",
+      "AL GAFUR INTERNATIONAL TOURS AND TRAVELS is dedicated to facilitating serene, spiritually uplifting, and meticulously organized Hajj & Umrah pilgrimages with authentic Indian hospitality.",
     footer_copyright:
       initialSettings.footer_copyright ||
-      "© 2026 AL-GAFUR International Tours And Travels. All Rights Reserved. Govt. Approved Tour Operator.",
+      "© 2026 AL GAFUR INTERNATIONAL TOURS AND TRAVELS. All Rights Reserved. Govt. Approved Tour Operator.",
     social_facebook: initialSettings.social_facebook || "https://facebook.com",
     social_instagram: initialSettings.social_instagram || "https://instagram.com",
     social_youtube: initialSettings.social_youtube || "https://youtube.com",
@@ -174,7 +174,7 @@ export default function AdminSettingsClient({
     timezone: initialSettings.timezone || "Asia/Kolkata",
 
     // About Page CMS
-    about_badge: initialSettings.about_badge || "About Al-Gafur Tours",
+    about_badge: initialSettings.about_badge || "About AL GAFUR",
     about_title: initialSettings.about_title || "Serving the Guests of Allah with Honor and Care",
     about_subtitle:
       initialSettings.about_subtitle ||
@@ -182,7 +182,7 @@ export default function AdminSettingsClient({
     about_mandate_title: initialSettings.about_mandate_title || "Our Spiritual Mandate",
     about_mandate_description_1:
       initialSettings.about_mandate_description_1 ||
-      "At Al-Gafur International Tours And Travels, we believe embarking on Hajj or Umrah is not merely an itinerary — it is the milestone pilgrimage of a lifetime. Every detail, from selecting hotels with level walking pathways to the Haram courtyards, to preparing fresh Indian meals that nourish tired worshippers, is managed with intense responsibility.",
+      "At AL GAFUR INTERNATIONAL TOURS AND TRAVELS, we believe embarking on Hajj or Umrah is not merely an itinerary — it is the milestone pilgrimage of a lifetime. Every detail, from selecting hotels with level walking pathways to the Haram courtyards, to preparing fresh Indian meals that nourish tired worshippers, is managed with intense responsibility.",
     about_mandate_description_2:
       initialSettings.about_mandate_description_2 ||
       'Our slogan reflects our devotion: "एक सफर जिंदगी में तब्दीली लानेवाला... इन्शाअल्लाह" — A journey destined to transform your heart and life.',
@@ -1958,7 +1958,7 @@ export default function AdminSettingsClient({
                       Enable Meta Pixel
                     </label>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Activate Meta Pixel tracking and conversion events across the public Al-Gafur website without redeployment.
+                      Activate Meta Pixel tracking and conversion events across the public AL GAFUR website without redeployment.
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">

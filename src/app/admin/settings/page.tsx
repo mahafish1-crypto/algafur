@@ -5,7 +5,7 @@ import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 import { SECRET_SETTING_KEYS, maskSecretSetting } from "@/lib/settings";
 
 export const metadata = {
-  title: "System Settings & Website CMS | AL-GAFUR Admin",
+  title: "System Settings & Website CMS | AL GAFUR Admin",
   description:
     "Configure homepage hero, agency profile, WhatsApp Cloud API, AI Studio, and banking.",
 };

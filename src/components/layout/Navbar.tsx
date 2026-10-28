@@ -65,7 +65,7 @@ export default function Navbar({ settings = {} }: NavbarProps) {
     "Umrah Platinum 20 Days Departing 31 Oct — Booking Open";
   const showTopBar = settings.header_topbar_enabled !== "false";
   const logoUrl = settings.header_logo || settings.site_logo || "";
-  const companyName = settings.company_short_name || settings.company_name || "AL-GAFUR";
+  const companyName = settings.company_short_name || settings.company_name || "AL GAFUR";
 
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
@@ -171,7 +171,7 @@ export default function Navbar({ settings = {} }: NavbarProps) {
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Quick WhatsApp Chat (Desktop) */}
             <a
-              href={`https://wa.me/${whatsappRaw}?text=Assalamualaikum,%20I%20would%20like%20information%20about%20Al-Gafur%20Hajj%20and%20Umrah%20packages`}
+              href={`https://wa.me/${whatsappRaw}?text=Assalamualaikum,%20I%20would%20like%20information%20about%20AL%20GAFUR%20INTERNATIONAL%20TOURS%20AND%20TRAVELS%20Hajj%20and%20Umrah%20packages`}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden lg:inline-flex items-center gap-1.5 text-xs font-bold text-emerald-950 bg-emerald-300 hover:bg-emerald-200 px-3.5 py-2 rounded-lg transition-all shadow-sm min-h-[38px]"

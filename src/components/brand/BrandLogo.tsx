@@ -21,7 +21,7 @@ export default function BrandLogo({
   showTagline = false,
   href = "/",
   customLogoUrl,
-  companyName = "AL-GAFUR",
+  companyName = "AL GAFUR",
   tagline = "Your Sacred Journey, Handled With Care.",
 }: BrandLogoProps) {
   const isLight = variant === "light";

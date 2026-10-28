@@ -1,5 +1,5 @@
 /**
- * Centralized, validated domain & URL configuration for Al-Gafur Hajj & Umrah.
+ * Centralized, validated domain & URL configuration for AL GAFUR INTERNATIONAL TOURS AND TRAVELS.
  *
  * Ensures both production domains work seamlessly:
  *  1. https://www.algafur.com (Preferred Canonical & Marketing/Share Domain)

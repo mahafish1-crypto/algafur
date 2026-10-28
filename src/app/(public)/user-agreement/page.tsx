@@ -6,9 +6,9 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "User Agreement & Terms of Service | Al-Gafur International Tours And Travels",
+  title: "User Agreement & Terms of Service | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
   description:
-    "Official User Agreement, Pilgrim Responsibilities, and Terms of Service for Hajj & Umrah travel bookings with Al-Gafur International Tours And Travels.",
+    "Official User Agreement, Pilgrim Responsibilities, and Terms of Service for Hajj & Umrah travel bookings with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
 };
 
 const AGREEMENT_VERSION = "v1.0";
@@ -16,7 +16,7 @@ const AGREEMENT_EFFECTIVE_DATE = "October 10, 2026";
 
 export default async function UserAgreementPage() {
   const settings = await getSiteSettings();
-  const companyName = settings.company_name || "Al-Gafur International Tours And Travels";
+  const companyName = settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
   const address =
     settings.company_address ||
     "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.";
@@ -57,7 +57,7 @@ export default async function UserAgreementPage() {
                 1. Scope of Services
               </h2>
               <p>
-                <strong>{companyName}</strong> (&ldquo;Al-Gafur&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) acts as a specialized
+                <strong>{companyName}</strong> (&ldquo;AL GAFUR&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) acts as a specialized
                 pilgrimage travel organizer facilitating Hajj, Umrah, Ramadan Umrah, Ziyarat tours, visa
                 processing coordination, airline ticketing, hotel accommodations in Makkah Al-Mukarramah and
                 Madinah Al-Munawwarah, catering, and local ground transport in the Kingdom of Saudi Arabia.

@@ -5,8 +5,8 @@ import { getPublishedTestimonials } from "@/lib/packages-data";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Pilgrim Testimonials & Reviews | Al-Gafur International Tours And Travels",
-  description: "Read real experiences from verified pilgrims who travelled for Hajj & Umrah with Al-Gafur Tours.",
+  title: "Pilgrim Testimonials & Reviews | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+  description: "Read real experiences from verified pilgrims who travelled for Hajj & Umrah with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
 };
 
 export default async function TestimonialsPage() {

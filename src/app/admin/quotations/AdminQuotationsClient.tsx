@@ -489,7 +489,7 @@ export default function AdminQuotationsClient({
                 {selectedQuote.customer?.phone && (
                   <a
                     href={`https://wa.me/${selectedQuote.customer.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-                      `Assalamu Alaikum ${selectedQuote.customer.name},\nHere is your official Umrah Quotation from AL-GAFUR International Tours And Travels.\n\nRef: ${selectedQuote.quotationNumber}\nPackage: ${selectedQuote.package.name}\nPilgrims: ${selectedQuote.travellersCount}\nRoom: ${selectedQuote.roomType}\nTotal Amount: ₹${selectedQuote.total.toLocaleString("en-IN")}\nAdvance to Confirm: ₹${selectedQuote.advanceRequired.toLocaleString("en-IN")}\n\nCall us for instant booking!`
+                      `Assalamu Alaikum ${selectedQuote.customer.name},\nHere is your official Umrah Quotation from AL GAFUR INTERNATIONAL TOURS AND TRAVELS.\n\nRef: ${selectedQuote.quotationNumber}\nPackage: ${selectedQuote.package.name}\nPilgrims: ${selectedQuote.travellersCount}\nRoom: ${selectedQuote.roomType}\nTotal Amount: ₹${selectedQuote.total.toLocaleString("en-IN")}\nAdvance to Confirm: ₹${selectedQuote.advanceRequired.toLocaleString("en-IN")}\n\nCall us for instant booking!`
                     )}`}
                     target="_blank"
                     rel="noreferrer"
@@ -526,7 +526,7 @@ export default function AdminQuotationsClient({
                     customLogoUrl={siteSettings.site_logo || siteSettings.header_logo || ""}
                   />
                   <p className="text-xs text-slate-500 mt-1 font-semibold">
-                    {siteSettings.company_name || "AL-GAFUR International Tours And Travels"}
+                    {siteSettings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS"}
                   </p>
                   <p className="text-xs text-slate-500">
                     Phone: {siteSettings.company_phone_1 || "+91 8793939393"} | Email: {siteSettings.company_email || "contact@algafurtours.com"}
@@ -714,7 +714,7 @@ export default function AdminQuotationsClient({
                 <div className="text-center">
                   <div className="w-36 border-b border-slate-400 mb-1"></div>
                   <p className="text-xs font-semibold text-slate-800">Authorized Officer</p>
-                  <p className="text-[10px] text-slate-500">AL-GAFUR International</p>
+                  <p className="text-[10px] text-slate-500">AL GAFUR INTERNATIONAL TOURS AND TRAVELS</p>
                 </div>
               </div>
             </div>

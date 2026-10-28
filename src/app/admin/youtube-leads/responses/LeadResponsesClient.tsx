@@ -1079,7 +1079,7 @@ export default function LeadResponsesClient({
                             {waPhone && (
                               <a
                                 href={`https://wa.me/${waPhone}?text=${encodeURIComponent(
-                                  `Assalamu Alaikum ${sub.fullName}, this is Al-Gafur Hajj & Umrah regarding your YouTube inquiry (${sub.submissionCode}).`
+                                  `Assalamu Alaikum ${sub.fullName}, this is AL GAFUR INTERNATIONAL TOURS AND TRAVELS regarding your YouTube inquiry (${sub.submissionCode}).`
                                 )}`}
                                 target="_blank"
                                 rel="noreferrer"
@@ -1243,7 +1243,7 @@ export default function LeadResponsesClient({
                       href={`https://wa.me/${cleanPhoneForWhatsApp(
                         activeSubmission.whatsapp || activeSubmission.phone
                       )}?text=${encodeURIComponent(
-                        `Assalamu Alaikum ${activeSubmission.fullName}, JazakAllah Khair for submitting our Al-Gafur YouTube inquiry form (${activeSubmission.submissionCode}). How can we assist you with your ${
+                        `Assalamu Alaikum ${activeSubmission.fullName}, JazakAllah Khair for submitting our AL GAFUR INTERNATIONAL TOURS AND TRAVELS YouTube inquiry form (${activeSubmission.submissionCode}). How can we assist you with your ${
                           activeSubmission.interestedIn || "Hajj / Umrah"
                         } plans?`
                       )}`}

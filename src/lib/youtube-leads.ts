@@ -297,7 +297,7 @@ export const DEFAULT_YOUTUBE_FORM_QUESTIONS: FormQuestion[] = [
   },
   {
     id: "q_consent",
-    label: "I agree to be contacted by Al-Gafur Hajj & Umrah Tours via Phone/WhatsApp regarding my enquiry.",
+    label: "I agree to be contacted by AL GAFUR INTERNATIONAL TOURS AND TRAVELS via Phone/WhatsApp regarding my enquiry.",
     type: "CONSENT",
     required: true,
     helperText: "Your contact details are kept strictly confidential and never shared with third parties.",
@@ -1008,7 +1008,7 @@ export async function ensureDefaultYouTubeForm() {
   return prisma.leadForm.create({
     data: {
       slug: "youtube-lead",
-      title: "Al-Gafur Hajj & Umrah — Pilgrim Callback & Brochure Form",
+      title: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS — Pilgrim Callback & Brochure Form",
       description:
         "Assalamu Alaikum! Fill in your details below to receive complete 2026–2027 Hajj, Umrah & Ramadan package pricing, Makkah & Madinah hotel details, and a personal callback from our advisor.",
       campaignName: "YouTube General Enquiries",

@@ -5,7 +5,7 @@ import AdminQuotationsClient from "./AdminQuotationsClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
-  title: "Quotations & Tour Estimator | AL-GAFUR Admin",
+  title: "Quotations & Tour Estimator | AL GAFUR Admin",
   description: "Create and manage branded Hajj & Umrah travel quotations and proposals.",
 };
 

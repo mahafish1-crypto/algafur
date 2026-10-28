@@ -118,8 +118,8 @@ export default function LeadDetailClient({
   };
 
   const cleanPhone = (lead.mobile || "").replace(/[^0-9]/g, "");
-  const whatsappMessage = `Assalamualaikum ${lead.name}, this is Al-Gafur Tours regarding your pilgrimage booking enquiry (${lead.leadNumber}) for ${lead.packageInterest}. How may we assist you with seat availability and confirmation?`;
-  const emailSubject = `Al-Gafur Tours — Pilgrimage Enquiry (${lead.leadNumber})`;
+  const whatsappMessage = `Assalamualaikum ${lead.name}, this is AL GAFUR INTERNATIONAL TOURS AND TRAVELS regarding your pilgrimage booking enquiry (${lead.leadNumber}) for ${lead.packageInterest}. How may we assist you with seat availability and confirmation?`;
+  const emailSubject = `AL GAFUR INTERNATIONAL TOURS AND TRAVELS — Pilgrimage Enquiry (${lead.leadNumber})`;
 
   return (
     <div className="space-y-6">

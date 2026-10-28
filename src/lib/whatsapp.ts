@@ -2,15 +2,15 @@ import prisma from "./db";
 
 export function getFloatingWhatsAppMessage(pageType: "home" | "package" | "booking" | "contact", packageName?: string): string {
   if (pageType === "package" && packageName) {
-    return `Assalamualaikum, I am interested in the ${packageName} with Al-Gafur Tours. Please share departure details, pricing, and hotel information.`;
+    return `Assalamualaikum, I am interested in the ${packageName} with AL GAFUR INTERNATIONAL TOURS AND TRAVELS. Please share departure details, pricing, and hotel information.`;
   }
   if (pageType === "booking") {
-    return `Assalamualaikum, I am completing a booking on Al-Gafur website and need assistance with pilgrim details.`;
+    return `Assalamualaikum, I am completing a booking on AL GAFUR website and need assistance with pilgrim details.`;
   }
   if (pageType === "contact") {
-    return `Assalamualaikum, I want to inquire about upcoming Hajj and Umrah packages with Al-Gafur International Tours.`;
+    return `Assalamualaikum, I want to inquire about upcoming Hajj and Umrah packages with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.`;
   }
-  return `Assalamualaikum, I want information about Al-Gafur Hajj & Umrah packages.`;
+  return `Assalamualaikum, I want information about AL GAFUR INTERNATIONAL TOURS AND TRAVELS packages.`;
 }
 
 export function buildWhatsAppLink(phone: string, text: string): string {
@@ -50,7 +50,7 @@ export async function sendWhatsAppMessage({
       where: { templateKey },
     });
 
-    let messageBody = template?.body || "Notification from Al-Gafur Tours";
+    let messageBody = template?.body || "Notification from AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
     for (const [key, val] of Object.entries(variables)) {
       messageBody = messageBody.replaceAll(`{{${key}}}`, val);
     }

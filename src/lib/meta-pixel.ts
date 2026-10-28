@@ -1,5 +1,5 @@
 /**
- * AL-GAFUR Meta Pixel Security & Allowlist Architecture
+ * AL GAFUR Meta Pixel Security & Allowlist Architecture
  * 
  * Secure parser, allowlist validator, and route exclusion rules for dynamic Meta Pixel tracking.
  * Strictly prevents XSS, arbitrary script injection, unauthorized external CDNs, and data leakage.

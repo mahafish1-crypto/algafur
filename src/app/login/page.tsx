@@ -60,7 +60,7 @@ export default function LoginPage() {
             <BrandLogo variant="light" size="lg" showTagline={true} />
           </div>
           <h2 className="text-xl font-serif font-bold text-white pt-2">
-            Al-Gafur Unified Portal
+            AL GAFUR INTERNATIONAL TOURS AND TRAVELS Unified Portal
           </h2>
           <p className="text-xs text-emerald-200/70">
             Sign in to access your Pilgrim Dashboard or authorized Staff Workspace.

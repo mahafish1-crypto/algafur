@@ -26,12 +26,12 @@ export const revalidate = 60;
 export async function generateMetadata() {
   const settings = await getSiteSettings();
   const companyName =
-    settings.company_name || "Al-Gafur International Tours And Travels";
+    settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
   return {
     title: `About Us & Leadership | ${companyName}`,
     description:
       settings.about_subtitle ||
-      "Learn about the mission, scholarly leadership, spiritual guides, and operations team of Al-Gafur International Tours And Travels.",
+      "Learn about the mission, scholarly leadership, spiritual guides, and operations team of AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
   };
 }
 
@@ -160,8 +160,8 @@ export default async function AboutPage() {
   }
 
   const companyName =
-    settings.company_name || "Al-Gafur International Tours And Travels";
-  const badge = settings.about_badge || "About Al-Gafur Tours";
+    settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
+  const badge = settings.about_badge || "About AL GAFUR";
   const title =
     settings.about_title || "Serving the Guests of Allah with Honor and Care";
   const subtitle =

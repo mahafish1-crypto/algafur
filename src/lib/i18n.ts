@@ -18,8 +18,8 @@ export const LANGUAGES: LanguageMeta[] = [
 
 export const translations: Record<LanguageCode, Record<string, string>> = {
   en: {
-    brand_name: "AL-GAFUR",
-    brand_sub: "International Tours And Travels",
+    brand_name: "AL GAFUR",
+    brand_sub: "INTERNATIONAL TOURS AND TRAVELS",
     tagline: "Your Sacred Journey, Handled With Care.",
     subtagline: "A journey that brings transformation in life... Insha'Allah",
     hero_headline: "Your Sacred Journey, Handled With Care.",
@@ -73,7 +73,7 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     section_featured: "Featured & Upcoming Packages",
     section_featured_sub: "Verified dates, direct flights, walking-distance hotels, and complete visa facilitation.",
     section_departures: "Next Confirmed Departures",
-    section_why_us: "Why Pilgrims Trust Al-Gafur",
+    section_why_us: "Why Pilgrims Trust AL GAFUR",
     section_journey_steps: "The Sacred Umrah Journey",
     section_testimonials: "Voices of Blessed Pilgrims",
     section_faqs: "Frequently Asked Questions",
@@ -132,7 +132,7 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     label_confirm_password: "Confirm Password",
     btn_sign_in: "Sign In",
     btn_create_account: "Create Pilgrim Account",
-    prompt_no_account: "New to Al-Gafur Tours?",
+    prompt_no_account: "New to AL GAFUR INTERNATIONAL TOURS AND TRAVELS?",
     prompt_have_account: "Already have an account?",
     footer_quick_links: "Quick Links",
     footer_packages: "Portals & Services",

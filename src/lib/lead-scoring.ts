@@ -1,5 +1,5 @@
 /**
- * Al-Gafur Lead Quality & Priority Scoring Engine
+ * AL GAFUR Lead Quality & Priority Scoring Engine
  * 
  * Implements an explainable, objective, 0-100 score with 3 distinct priority tiers:
  * - Hot Lead — First Priority (70–100)

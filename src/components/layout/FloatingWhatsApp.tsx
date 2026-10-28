@@ -43,7 +43,7 @@ export default function FloatingWhatsApp({ packageName, settings = {} }: Floatin
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-forest-900 rounded-full" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white">Al-Gafur Travel Desk</h4>
+                <h4 className="text-sm font-bold text-white">AL GAFUR Travel Desk</h4>
                 <p className="text-[11px] text-emerald-300">Typically replies within 5 mins</p>
               </div>
             </div>
@@ -61,7 +61,7 @@ export default function FloatingWhatsApp({ packageName, settings = {} }: Floatin
             <div className="bg-white p-3 rounded-xl rounded-tl-none shadow-sm border border-emerald-50 text-neutral-800">
               <p className="font-semibold text-emerald-950 mb-1">Assalamualaikum! 🕋</p>
               <p className="text-neutral-600 leading-relaxed">
-                Welcome to Al-Gafur International Tours. How can we assist you with your sacred journey today?
+                Welcome to AL GAFUR INTERNATIONAL TOURS AND TRAVELS. How can we assist you with your sacred journey today?
               </p>
             </div>
 

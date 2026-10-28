@@ -92,7 +92,7 @@ export default function PackageDetailClient({
   const phone = settings.company_phone_1 || "+91 8793939393";
   const whatsappNum = settings.whatsapp_number || "919890708013";
   const companyTitle =
-    settings.company_short_name || settings.company_name || "Al-Gafur Tours";
+    settings.company_short_name || settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
   const whatsappMessage = `Assalamualaikum, I am interested in ${pkg.name} (${pkg.departureDate}) with ${companyTitle}. Please share seat booking details for ${selectedRoom} sharing.`;
   const whatsappUrl = buildWhatsAppLink(whatsappNum, whatsappMessage);
 

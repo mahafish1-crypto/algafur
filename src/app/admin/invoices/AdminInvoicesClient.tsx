@@ -454,7 +454,7 @@ export default function AdminInvoicesClient({
                     customLogoUrl={siteSettings.site_logo || siteSettings.header_logo || ""}
                   />
                   <p className="text-xs text-slate-500 mt-1 font-semibold">
-                    {siteSettings.company_name || "AL-GAFUR International Tours And Travels"}
+                    {siteSettings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS"}
                   </p>
                   <p className="text-xs text-slate-500">
                     GSTIN: {siteSettings.gst_number || "27AABCA1234F1Z5"} &bull; PAN: {siteSettings.pan_number || "AABCA1234F"}
@@ -609,7 +609,7 @@ export default function AdminInvoicesClient({
                 <div className="text-center">
                   <div className="w-36 border-b border-slate-400 mb-1"></div>
                   <p className="text-xs font-semibold text-slate-800">Authorized Signatory</p>
-                  <p className="text-[10px] text-slate-500">AL-GAFUR International</p>
+                  <p className="text-[10px] text-slate-500">AL GAFUR INTERNATIONAL TOURS AND TRAVELS</p>
                 </div>
               </div>
             </div>

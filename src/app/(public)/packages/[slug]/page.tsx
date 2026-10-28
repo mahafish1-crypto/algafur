@@ -24,7 +24,7 @@ export async function generateMetadata({
 
     const canonicalPath = `/packages/${pkg.slug}`;
     return {
-      title: `${pkg.name} | Al-Gafur International Tours And Travels`,
+      title: `${pkg.name} | AL GAFUR INTERNATIONAL TOURS AND TRAVELS`,
       description:
         pkg.overview ||
         "Premium Umrah package with scholarly guidance, direct flights and walking distance hotels.",
@@ -33,13 +33,13 @@ export async function generateMetadata({
       },
       openGraph: {
         title: pkg.name,
-        description: pkg.overview || "Al-Gafur Tours",
+        description: pkg.overview || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
         url: buildCanonicalUrl(canonicalPath),
         images: [pkg.featuredImage || "/brand/poster.jpg"],
       },
     };
   } catch {
-    return { title: "Hajj & Umrah Packages | Al-Gafur Tours" };
+    return { title: "Hajj & Umrah Packages | AL GAFUR INTERNATIONAL TOURS AND TRAVELS" };
   }
 }
 

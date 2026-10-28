@@ -6,14 +6,14 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Cancellation & Refund Policy | Al-Gafur International Tours And Travels",
+  title: "Cancellation & Refund Policy | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
   description:
-    "Transparent cancellation, rescheduling, and refund terms for Hajj and Umrah packages with Al-Gafur International Tours And Travels.",
+    "Transparent cancellation, rescheduling, and refund terms for Hajj and Umrah packages with AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
 };
 
 export default async function CancellationPolicyPage() {
   const settings = await getSiteSettings();
-  const companyName = settings.company_name || "Al-Gafur International Tours And Travels";
+  const companyName = settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
   const phone = settings.company_phone_1 || "+91 8793939393";
   const email = settings.company_email || "contact@algafurtours.com";
 

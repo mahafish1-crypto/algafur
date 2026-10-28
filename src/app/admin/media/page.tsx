@@ -4,7 +4,7 @@ import AdminMediaClient from "./AdminMediaClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
-  title: "Media Asset Library | AL-GAFUR Admin",
+  title: "Media Asset Library | AL GAFUR Admin",
   description: "Centralized digital asset management for marketing, hotels, and brand identity.",
 };
 
@@ -33,7 +33,7 @@ export default async function AdminMediaPage() {
   if (media.length === 0) {
     const defaults = [
       {
-        name: "Official Al-Gafur Identity Card & Logo",
+        name: "Official AL GAFUR INTERNATIONAL TOURS AND TRAVELS Identity Card & Logo",
         category: "LOGO",
         url: "/brand/logo-card.jpg",
         dimensions: "1080x1080",

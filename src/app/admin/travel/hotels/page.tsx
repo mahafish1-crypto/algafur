@@ -4,7 +4,7 @@ import AdminHotelsClient from "./AdminHotelsClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
 export const metadata = {
-  title: "Hotels & Haram Proximity | AL-GAFUR Admin",
+  title: "Hotels & Haram Proximity | AL GAFUR Admin",
   description:
     "Contracted hotel properties, walking distances to Haram, photos, and amenities.",
 };

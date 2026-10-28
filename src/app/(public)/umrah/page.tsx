@@ -8,7 +8,7 @@ import { getSiteSettings } from "@/lib/settings";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Umrah Packages 2026 / 1448 Hijri | Al-Gafur International Tours And Travels",
+  title: "Umrah Packages 2026 / 1448 Hijri | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
   description: "Explore 15, 20 and 22-day Umrah packages departing from Maharashtra.",
 };
 

@@ -3,7 +3,7 @@ import { getPublishedPackagesForBooking } from "@/lib/packages-data";
 import { getSiteSettings } from "@/lib/settings";
 
 export const metadata = {
-  title: "Book Your Pilgrimage | Al-Gafur International Tours And Travels",
+  title: "Book Your Pilgrimage | AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
   description:
     "Submit your Hajj or Umrah booking enquiry. Our travel advisors will contact you to confirm availability and assist with your sacred journey.",
 };
