@@ -27,6 +27,10 @@ export interface PackageCardData {
   basePrice: number;
   departureDate: string;
   departureCity?: string;
+  airline?: string | null;
+  flightType?: string | null;
+  flightDetails?: string | null;
+  features?: string | null;
   makkahHotelName?: string | null;
   madinahHotelName?: string | null;
   makkahDistance?: string | null;
@@ -47,6 +51,29 @@ export default function PackageCard({ pkg }: PackageCardProps) {
   const seatsRemaining = Math.max(0, pkg.totalSeats - pkg.bookedSeats);
   const isLimited = seatsRemaining > 0 && seatsRemaining <= 18;
   const localizedName = localizeField(pkg, "name", pkg.name);
+
+  const hasFlight = Boolean(
+    pkg.airline ||
+    pkg.flightDetails ||
+    pkg.flightType === "DIRECT"
+  );
+
+  const getBadgeStyle = (badge?: string | null) => {
+    const b = (badge || "").toUpperCase();
+    if (b.includes("PLATINUM")) {
+      return "bg-gradient-to-r from-amber-400 via-gold-500 to-amber-600 text-forest-950 font-extrabold";
+    }
+    if (b.includes("DELUXE")) {
+      return "bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-bold";
+    }
+    if (b.includes("PREMIUM")) {
+      return "bg-gradient-to-r from-purple-700 to-indigo-800 text-white font-bold";
+    }
+    if (b.includes("ECONOMY") || b.includes("VALUE")) {
+      return "bg-gradient-to-r from-sky-600 to-blue-700 text-white font-bold";
+    }
+    return "bg-gradient-to-r from-gold-500 to-amber-600 text-forest-950 font-extrabold";
+  };
 
   const defaultImage =
     pkg.slug.includes("platinum")
@@ -69,7 +96,11 @@ export default function PackageCard({ pkg }: PackageCardProps) {
         {/* Top Floating Badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
           {pkg.badge && (
-            <span className="bg-gradient-to-r from-gold-500 to-amber-600 text-forest-950 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md shadow-md tracking-wider">
+            <span
+              className={`${getBadgeStyle(
+                pkg.badge
+              )} text-[10px] uppercase px-2.5 py-1 rounded-md shadow-md tracking-wider`}
+            >
               {pkg.badge}
             </span>
           )}
@@ -93,8 +124,12 @@ export default function PackageCard({ pkg }: PackageCardProps) {
           <span>
             {pkg.makkahNights}N Makkah • {pkg.madinahNights}N Madinah
           </span>
-          <span className="text-gold-300 font-semibold">
-            {pkg.departureCity || "Mumbai"} Flight
+          <span className="text-gold-300 font-semibold truncate max-w-[50%] text-right">
+            {typeof pkg.airline === "string" && pkg.airline.trim().length > 0
+              ? pkg.airline
+              : pkg.departureCity
+              ? `${pkg.departureCity} Departure`
+              : "Group Departure"}
           </span>
         </div>
       </div>
@@ -118,19 +153,21 @@ export default function PackageCard({ pkg }: PackageCardProps) {
           {/* Hotel Highlights */}
           <div className="mt-3 space-y-1.5 text-xs bg-ivory-100/80 p-3 rounded-xl border border-neutral-100">
             <div className="flex items-start justify-between gap-2 text-neutral-700">
-              <span className="flex items-center gap-1 text-neutral-500 text-[11px]">
+              <span className="flex items-center gap-1 text-neutral-500 text-[11px] shrink-0">
                 <Building className="w-3 h-3 text-gold-600 flex-shrink-0" /> {t("pkg_makkah_hotel")}:
               </span>
-              <span className="font-medium text-right text-[11px] text-neutral-900">
-                {pkg.makkahHotelName || "Diyafa Jamal"} ({pkg.makkahDistance || "500m"})
+              <span className="font-medium text-right text-[11px] text-neutral-900 truncate">
+                {pkg.makkahHotelName ? pkg.makkahHotelName.trim() : "Hotel Confirmed on Booking"}
+                {pkg.makkahDistance ? ` (${pkg.makkahDistance.trim()})` : ""}
               </span>
             </div>
             <div className="flex items-start justify-between gap-2 text-neutral-700">
-              <span className="flex items-center gap-1 text-neutral-500 text-[11px]">
+              <span className="flex items-center gap-1 text-neutral-500 text-[11px] shrink-0">
                 <Building className="w-3 h-3 text-gold-600 flex-shrink-0" /> {t("pkg_madinah_hotel")}:
               </span>
-              <span className="font-medium text-right text-[11px] text-neutral-900">
-                {pkg.madinahHotelName || "Ilaf Kuba"} ({pkg.madinahDistance || "400m"})
+              <span className="font-medium text-right text-[11px] text-neutral-900 truncate">
+                {pkg.madinahHotelName ? pkg.madinahHotelName.trim() : "Hotel Confirmed on Booking"}
+                {pkg.madinahDistance ? ` (${pkg.madinahDistance.trim()})` : ""}
               </span>
             </div>
           </div>
@@ -139,19 +176,21 @@ export default function PackageCard({ pkg }: PackageCardProps) {
           <div className="grid grid-cols-4 gap-1 pt-3 text-[10px] text-neutral-600 text-center">
             <div className="flex flex-col items-center p-1.5 rounded-lg bg-neutral-50">
               <Plane className="w-3.5 h-3.5 text-emerald-700 mb-0.5" />
-              <span className="line-clamp-1">{t("pkg_direct_flight")}</span>
+              <span className="line-clamp-1 font-medium">
+                {hasFlight ? t("pkg_direct_flight") : "Assistance"}
+              </span>
             </div>
             <div className="flex flex-col items-center p-1.5 rounded-lg bg-neutral-50">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 mb-0.5" />
-              <span className="line-clamp-1">{t("pkg_visa_ins")}</span>
+              <span className="line-clamp-1 font-medium">{t("pkg_visa_ins")}</span>
             </div>
             <div className="flex flex-col items-center p-1.5 rounded-lg bg-neutral-50">
               <Utensils className="w-3.5 h-3.5 text-emerald-700 mb-0.5" />
-              <span className="line-clamp-1">{t("pkg_indian_buffet")}</span>
+              <span className="line-clamp-1 font-medium">{t("pkg_indian_buffet")}</span>
             </div>
             <div className="flex flex-col items-center p-1.5 rounded-lg bg-neutral-50">
               <Bus className="w-3.5 h-3.5 text-emerald-700 mb-0.5" />
-              <span className="line-clamp-1">{t("pkg_full_ziyarat")}</span>
+              <span className="line-clamp-1 font-medium">{t("pkg_full_ziyarat")}</span>
             </div>
           </div>
         </div>
@@ -184,12 +223,14 @@ export default function PackageCard({ pkg }: PackageCardProps) {
           <div className="grid grid-cols-2 gap-2">
             <Link
               href={`/packages/${pkg.slug}`}
+              aria-label={`View details of ${localizedName}`}
               className="text-center text-xs font-semibold py-2.5 px-3 rounded-lg border border-neutral-300 hover:border-forest-900 text-neutral-700 hover:text-forest-950 transition-colors"
             >
               {t("pkg_view_details")}
             </Link>
             <Link
               href={`/booking?package=${pkg.slug}`}
+              aria-label={`Book or enquire about ${localizedName}`}
               className="text-center text-xs font-bold py-2.5 px-3 rounded-lg bg-forest-900 hover:bg-forest-950 text-gold-300 transition-colors shadow-sm"
             >
               {t("pkg_book_now")}

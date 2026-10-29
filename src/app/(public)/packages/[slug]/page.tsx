@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getSiteSettings } from "@/lib/settings";
 import {
   getPublishedPackageBySlug,
   getRelatedPublishedPackages,
+  LEGACY_PACKAGE_SLUGS,
 } from "@/lib/packages-data";
 import { getSpiritualGuidesForPackage } from "@/lib/team-data";
 import PackageDetailClient from "./PackageDetailClient";
@@ -49,6 +50,10 @@ export default async function PackageDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
+
+  if (resolvedParams.slug && LEGACY_PACKAGE_SLUGS[resolvedParams.slug]) {
+    redirect(`/packages/${LEGACY_PACKAGE_SLUGS[resolvedParams.slug]}`);
+  }
 
   const [pkg, relatedPackages, settings] = await Promise.all([
     getPublishedPackageBySlug(resolvedParams.slug).catch((err) => {

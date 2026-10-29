@@ -175,7 +175,7 @@ export default function TimelinePreview() {
                 href="/packages/umrah-platinum-package-2026"
                 className="inline-flex items-center gap-2 text-xs font-bold text-forest-950 bg-gold-400 hover:bg-gold-300 px-5 py-2.5 rounded-xl transition-all shadow-sm"
               >
-                <span>View Complete 20-Day Itinerary</span>
+                <span>View Complete Itinerary &amp; Details</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

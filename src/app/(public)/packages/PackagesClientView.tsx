@@ -9,13 +9,41 @@ import { useLanguage } from "@/context/LanguageContext";
 
 interface PackagesClientViewProps {
   initialPackages: any[];
+  initialCategory?: string;
+  initialDuration?: string;
 }
 
-export default function PackagesClientView({ initialPackages }: PackagesClientViewProps) {
+const CATEGORY_TABS = [
+  { id: "ALL", label: "All Journeys" },
+  { id: "DIRECT_FLIGHT", label: "Direct Flight Packages" },
+  { id: "UMRAH", label: "Umrah Packages" },
+  { id: "RAMADAN_UMRAH", label: "Ramadan Umrah" },
+  { id: "HAJJ", label: "Hajj Packages" },
+  { id: "ECONOMY", label: "Economy Packages" },
+  { id: "PLATINUM_DELUXE", label: "Platinum & Deluxe" },
+];
+
+function normalizeCategory(cat?: string): string {
+  if (!cat) return "ALL";
+  const c = cat.toUpperCase().replace(/-/g, "_");
+  if (c === "DIRECT_FLIGHT" || c === "DIRECT") return "DIRECT_FLIGHT";
+  if (c === "RAMADAN" || c === "RAMADAN_UMRAH") return "RAMADAN_UMRAH";
+  if (c === "HAJJ") return "HAJJ";
+  if (c === "ECONOMY" || c === "BUDGET" || c === "BEST_VALUE") return "ECONOMY";
+  if (c === "PLATINUM" || c === "DELUXE" || c === "PLATINUM_DELUXE" || c === "PREMIUM") return "PLATINUM_DELUXE";
+  if (c === "UMRAH") return "UMRAH";
+  return "ALL";
+}
+
+export default function PackagesClientView({
+  initialPackages,
+  initialCategory = "ALL",
+  initialDuration = "ALL",
+}: PackagesClientViewProps) {
   const { t, formatPrice } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("ALL");
-  const [selectedDuration, setSelectedDuration] = useState("ALL");
+  const [selectedCategory, setSelectedCategory] = useState(() => normalizeCategory(initialCategory));
+  const [selectedDuration, setSelectedDuration] = useState(initialDuration);
   const [sortBy, setSortBy] = useState("POPULAR");
 
   // Comparison State (Max 3 packages)
@@ -41,19 +69,59 @@ export default function PackagesClientView({ initialPackages }: PackagesClientVi
     }
   };
 
+  const isDirectFlight = (pkg: any) => {
+    return (
+      pkg.flightType === "DIRECT" ||
+      (Boolean(pkg.airline) && pkg.flightType !== "CONNECTING") ||
+      (typeof pkg.flightDetails === "string" && pkg.flightDetails.toLowerCase().includes("direct")) ||
+      (typeof pkg.features === "string" && pkg.features.toLowerCase().includes("direct"))
+    );
+  };
+
+  const isEconomy = (pkg: any) => {
+    const badge = (pkg.badge || "").toUpperCase();
+    return (
+      badge.includes("ECONOMY") ||
+      badge.includes("VALUE") ||
+      pkg.basePrice < 90000 ||
+      pkg.name.toLowerCase().includes("economy") ||
+      pkg.name.toLowerCase().includes("standard")
+    );
+  };
+
+  const isPlatinumDeluxe = (pkg: any) => {
+    const badge = (pkg.badge || "").toUpperCase();
+    return (
+      badge.includes("PLATINUM") ||
+      badge.includes("DELUXE") ||
+      badge.includes("PREMIUM") ||
+      pkg.basePrice >= 95000
+    );
+  };
+
   const filteredPackages = useMemo(() => {
     return initialPackages
       .filter((pkg) => {
         const matchesSearch =
           pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (pkg.overview && pkg.overview.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (pkg.makkahHotelName && pkg.makkahHotelName.toLowerCase().includes(searchTerm.toLowerCase()));
+          (pkg.makkahHotelName && pkg.makkahHotelName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (pkg.madinahHotelName && pkg.madinahHotelName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (pkg.badge && pkg.badge.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (pkg.airline && pkg.airline.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        const matchesType = selectedType === "ALL" || pkg.type === selectedType;
+        let matchesCat = true;
+        if (selectedCategory === "UMRAH") matchesCat = pkg.type === "UMRAH";
+        else if (selectedCategory === "RAMADAN_UMRAH") matchesCat = pkg.type === "RAMADAN_UMRAH";
+        else if (selectedCategory === "HAJJ") matchesCat = pkg.type === "HAJJ";
+        else if (selectedCategory === "DIRECT_FLIGHT") matchesCat = isDirectFlight(pkg);
+        else if (selectedCategory === "ECONOMY") matchesCat = isEconomy(pkg);
+        else if (selectedCategory === "PLATINUM_DELUXE") matchesCat = isPlatinumDeluxe(pkg);
+
         const matchesDuration =
           selectedDuration === "ALL" || pkg.durationDays.toString() === selectedDuration;
 
-        return matchesSearch && matchesType && matchesDuration;
+        return matchesSearch && matchesCat && matchesDuration;
       })
       .sort((a, b) => {
         if (sortBy === "PRICE_LOW") return a.basePrice - b.basePrice;
@@ -61,7 +129,7 @@ export default function PackagesClientView({ initialPackages }: PackagesClientVi
         if (sortBy === "DURATION") return b.durationDays - a.durationDays;
         return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
       });
-  }, [initialPackages, searchTerm, selectedType, selectedDuration, sortBy]);
+  }, [initialPackages, searchTerm, selectedCategory, selectedDuration, sortBy]);
 
   const comparedPackages = initialPackages.filter((p) => compareList.includes(p.slug));
 
@@ -69,7 +137,7 @@ export default function PackagesClientView({ initialPackages }: PackagesClientVi
     <div className="bg-ivory-100/50 min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         {/* Page Header */}
-        <div className="mb-10 text-center max-w-2xl mx-auto">
+        <div className="mb-8 text-center max-w-2xl mx-auto">
           <span className="text-xs font-extrabold uppercase tracking-widest text-gold-600 bg-gold-50 px-3 py-1 rounded-full border border-gold-200">
             Hajj & Umrah Season 1448 / 2026
           </span>
@@ -79,6 +147,27 @@ export default function PackagesClientView({ initialPackages }: PackagesClientVi
           <p className="text-xs sm:text-sm text-neutral-600 mt-2">
             Explore meticulously designed packages with verified hotel distances, scholarly guidance, and direct flight options.
           </p>
+        </div>
+
+        {/* Category Tabs Strip */}
+        <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          {CATEGORY_TABS.map((tab) => {
+            const isActive = selectedCategory === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setSelectedCategory(tab.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                  isActive
+                    ? "bg-forest-900 text-gold-300 border-forest-900 shadow-sm"
+                    : "bg-white text-neutral-700 border-neutral-200 hover:border-gold-500/50 hover:bg-neutral-50"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Filter & Search Bar */}
@@ -91,22 +180,23 @@ export default function PackagesClientView({ initialPackages }: PackagesClientVi
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search packages, hotels, tours..."
+                placeholder="Search packages, hotels, airlines..."
                 className="w-full text-xs pl-9 pr-3 py-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-forest-900"
               />
             </div>
 
-            {/* Journey Type */}
+            {/* Category Dropdown */}
             <div>
               <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none text-neutral-800"
               >
-                <option value="ALL">All Journeys</option>
-                <option value="UMRAH">Umrah Tours</option>
-                <option value="RAMADAN_UMRAH">Ramadan Umrah</option>
-                <option value="HAJJ">Hajj Packages</option>
+                {CATEGORY_TABS.map((tab) => (
+                  <option key={tab.id} value={tab.id}>
+                    {tab.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -139,6 +229,26 @@ export default function PackagesClientView({ initialPackages }: PackagesClientVi
             </div>
           </div>
 
+          {/* Active Filter Indicators */}
+          <div className="pt-2 flex flex-wrap items-center justify-between text-xs text-neutral-500 border-t border-neutral-100">
+            <span>
+              Showing <strong className="text-forest-950 font-semibold">{filteredPackages.length}</strong> verified package(s)
+            </span>
+            {(selectedCategory !== "ALL" || selectedDuration !== "ALL" || searchTerm) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory("ALL");
+                  setSelectedDuration("ALL");
+                  setSearchTerm("");
+                }}
+                className="text-emerald-700 hover:text-emerald-800 font-semibold hover:underline"
+              >
+                Reset All Filters
+              </button>
+            )}
+          </div>
+
           {/* Compare Toolbar Alert */}
           {compareList.length > 0 && (
             <div className="pt-3 border-t border-neutral-100 flex items-center justify-between text-xs bg-emerald-50/60 p-3 rounded-xl">
@@ -167,18 +277,35 @@ export default function PackagesClientView({ initialPackages }: PackagesClientVi
         {/* Packages Grid */}
         {filteredPackages.length === 0 ? (
           <div className="bg-white p-12 rounded-2xl border border-neutral-200 text-center space-y-3">
-            <h3 className="text-lg font-serif font-bold text-neutral-800">No Packages Match Your Criteria</h3>
-            <p className="text-xs text-neutral-500">Try adjusting your filters or search keywords.</p>
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedType("ALL");
-                setSelectedDuration("ALL");
-              }}
-              className="mt-2 text-xs font-bold text-forest-950 underline"
-            >
-              Reset All Filters
-            </button>
+            <h3 className="text-lg font-serif font-bold text-neutral-800">
+              {selectedCategory === "HAJJ"
+                ? "Hajj 1448 Hijri Advance Registration Open"
+                : "No Packages Match Your Criteria"}
+            </h3>
+            <p className="text-xs text-neutral-500 max-w-md mx-auto">
+              {selectedCategory === "HAJJ"
+                ? "Official Hajj 1448 quota packages are undergoing seat allotment. Contact our pilgrimage advisors to reserve your priority booking."
+                : "Try adjusting your category selection, duration, or search keywords."}
+            </p>
+            <div className="pt-2 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("ALL");
+                  setSelectedDuration("ALL");
+                }}
+                className="text-xs font-bold bg-forest-900 text-gold-300 px-4 py-2 rounded-xl hover:bg-forest-950 transition-colors"
+              >
+                Show All Packages
+              </button>
+              <Link
+                href="/contact"
+                className="text-xs font-semibold border border-neutral-300 text-neutral-700 px-4 py-2 rounded-xl hover:bg-neutral-50 transition-colors"
+              >
+                Custom Package Enquiry
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

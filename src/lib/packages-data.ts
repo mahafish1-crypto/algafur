@@ -4,6 +4,11 @@ import prisma from "@/lib/db";
 
 export const PACKAGES_CACHE_TAG = "packages";
 
+export const LEGACY_PACKAGE_SLUGS: Record<string, string> = {
+  u: "umrah-standard-package-15-days",
+  "u-6338": "umrah-super-deluxe-package-15-days",
+};
+
 const fetchPublishedPackagesCatalog = unstable_cache(
   async () => {
     return prisma.package.findMany({
@@ -29,8 +34,9 @@ export const getPublishedPackagesCatalog = cache(async () => {
 
 const fetchPublishedPackageBySlug = unstable_cache(
   async (slug: string) => {
+    const canonicalSlug = LEGACY_PACKAGE_SLUGS[slug] || slug;
     const pkg = await prisma.package.findUnique({
-      where: { slug },
+      where: { slug: canonicalSlug },
       include: {
         inclusions: true,
         itineraries: {

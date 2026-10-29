@@ -589,11 +589,19 @@ export default function PackageFormModal({
       return;
     }
 
+    const cleanSlug = form.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    if (!cleanSlug || cleanSlug.length < 3) {
+      setErrorMessage("URL Slug must be at least 3 characters (e.g. 'umrah-standard-package').");
+      setActiveTab("basic");
+      return;
+    }
+
     setSubmitting(true);
     setErrorMessage(null);
 
     const payload = {
       ...form,
+      slug: cleanSlug,
       status: statusOverride || form.status,
     };
 
@@ -718,9 +726,15 @@ export default function PackageFormModal({
                     required
                     value={form.name}
                     onChange={(e) => {
-                      handleTextChange("name", e.target.value);
-                      if (!isEditing && !form.slug) {
-                        handleTextChange("slug", e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-"));
+                      const newName = e.target.value;
+                      handleTextChange("name", newName);
+                      if (!isEditing) {
+                        const autoSlug = newName
+                          .toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9]+/g, "-")
+                          .replace(/^-+|-+$/g, "");
+                        handleTextChange("slug", autoSlug);
                       }
                     }}
                     placeholder="e.g. Umrah Platinum Package 2026"

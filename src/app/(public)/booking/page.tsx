@@ -1,5 +1,5 @@
 import BookingFlowClient from "./BookingFlowClient";
-import { getPublishedPackagesForBooking } from "@/lib/packages-data";
+import { getPublishedPackagesForBooking, LEGACY_PACKAGE_SLUGS } from "@/lib/packages-data";
 import { getSiteSettings } from "@/lib/settings";
 
 export const metadata = {
@@ -22,10 +22,13 @@ export default async function BookingPage({
     getSiteSettings().catch(() => ({})),
   ]);
 
-  const packageSlug =
+  const rawPackageSlug =
     typeof resolvedParams.package === "string"
       ? resolvedParams.package
       : undefined;
+  const packageSlug = rawPackageSlug
+    ? LEGACY_PACKAGE_SLUGS[rawPackageSlug] || rawPackageSlug
+    : undefined;
   const preselectedRoom =
     typeof resolvedParams.room === "string" ? resolvedParams.room : undefined;
 

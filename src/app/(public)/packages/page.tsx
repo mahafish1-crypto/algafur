@@ -14,19 +14,20 @@ export default async function PackagesPage({
     }),
   ]);
 
-  const typeFilter = typeof resolvedParams.type === "string" ? resolvedParams.type : undefined;
-  const durationFilter = typeof resolvedParams.duration === "string" ? resolvedParams.duration : undefined;
+  const categoryParam = typeof resolvedParams.category === "string" 
+    ? resolvedParams.category 
+    : (typeof resolvedParams.type === "string" ? resolvedParams.type : "ALL");
 
-  const packages = allPackages.filter((pkg) => {
-    if (typeFilter && typeFilter !== "ALL" && pkg.type !== typeFilter) {
-      return false;
-    }
-    if (durationFilter && durationFilter !== "ALL" && pkg.durationDays !== parseInt(durationFilter, 10)) {
-      return false;
-    }
-    return true;
-  });
+  const durationParam = typeof resolvedParams.duration === "string" 
+    ? resolvedParams.duration 
+    : "ALL";
 
-  return <PackagesClientView initialPackages={packages} />;
+  return (
+    <PackagesClientView
+      initialPackages={allPackages}
+      initialCategory={categoryParam}
+      initialDuration={durationParam}
+    />
+  );
 }
 

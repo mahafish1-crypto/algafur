@@ -86,8 +86,42 @@ export default function PackageDetailClient({
   const activePrice = roomPrices[selectedRoom];
   const seatsRemaining = Math.max(0, pkg.totalSeats - pkg.bookedSeats);
 
-  const inclusions = (pkg.inclusions || []).filter((i: any) => i.isIncluded);
-  const exclusions = (pkg.inclusions || []).filter((i: any) => !i.isIncluded);
+  let packageFeatures: string[] = [];
+  if (pkg.features) {
+    try {
+      packageFeatures =
+        typeof pkg.features === "string"
+          ? JSON.parse(pkg.features)
+          : pkg.features;
+    } catch {
+      packageFeatures =
+        typeof pkg.features === "string" ? pkg.features.split(",") : [];
+    }
+  }
+
+  const rawInclusions = (pkg.inclusions || []).filter((i: any) => i.isIncluded);
+  const rawExclusions = (pkg.inclusions || []).filter((i: any) => !i.isIncluded);
+
+  const inclusions = rawInclusions.length > 0
+    ? rawInclusions
+    : (packageFeatures.length > 0
+        ? packageFeatures.map((feat: string, idx: number) => ({ id: `feat-${idx}`, title: feat, description: null }))
+        : [
+            { id: "inc-1", title: "Umrah Visa & Tourist Insurance", description: "Official electronic visa issued with mandatory medical coverage." },
+            { id: "inc-2", title: "Hotel Accommodations", description: `${pkg.makkahNights} Nights Makkah and ${pkg.madinahNights} Nights Madinah.` },
+            { id: "inc-3", title: "Indian Buffet Meals", description: "Freshly prepared 3-times daily breakfast, lunch, and dinner." },
+            { id: "inc-4", title: "Air-Conditioned Bus Transportation", description: "Airport transfers, hotel shuttles, and intercity travel." },
+            { id: "inc-5", title: "Holy Ziyarat in Makkah & Madinah", description: "Guided historical site visits under scholar supervision." },
+            { id: "inc-6", title: "Complimentary Zamzam (5 Litres)", description: "Sealed authentic 5L Zamzam bottle per pilgrim." },
+          ]);
+
+  const exclusions = rawExclusions.length > 0
+    ? rawExclusions
+    : [
+        { id: "exc-1", title: "Room Service & Personal Laundry", description: "Personal laundry expenses unless specified as complimentary in package." },
+        { id: "exc-2", title: "Excess Baggage Charges", description: "Any baggage exceeding the standard airline weight allowance." },
+        { id: "exc-3", title: "Wheelchair Attendant Charges", description: "Private wheelchair handler fees at Haram." },
+      ];
 
   const phone = settings.company_phone_1 || "+91 8793939393";
   const whatsappNum = settings.whatsapp_number || "919890708013";
@@ -103,19 +137,6 @@ export default function PackageDetailClient({
         typeof pkg.gallery === "string" ? JSON.parse(pkg.gallery) : pkg.gallery;
     } catch {
       galleryImages = [];
-    }
-  }
-
-  let packageFeatures: string[] = [];
-  if (pkg.features) {
-    try {
-      packageFeatures =
-        typeof pkg.features === "string"
-          ? JSON.parse(pkg.features)
-          : pkg.features;
-    } catch {
-      packageFeatures =
-        typeof pkg.features === "string" ? pkg.features.split(",") : [];
     }
   }
 
@@ -730,8 +751,11 @@ export default function PackageDetailClient({
                     Airline &amp; Flight
                   </span>
                   <p className="font-bold text-forest-950 text-sm mt-0.5">
-                    {pkg.airline || "Direct Group Airline"}{" "}
-                    {pkg.flightNumber && `(${pkg.flightNumber})`}
+                    {pkg.airline
+                      ? `${pkg.airline} ${pkg.flightNumber ? `(${pkg.flightNumber})` : ""}`
+                      : pkg.flightDetails
+                      ? "Direct Group Airline"
+                      : "Group Airline Allocated on Confirmation"}
                   </p>
                   {pkg.pnr && (
                     <p className="text-[11px] text-neutral-500 font-mono mt-0.5">
@@ -751,7 +775,9 @@ export default function PackageDetailClient({
                   <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 font-semibold rounded text-[10px]">
                     {pkg.flightType === "CONNECTING"
                       ? "Connecting Flight"
-                      : "Direct Flight"}
+                      : pkg.airline || pkg.flightDetails
+                      ? "Direct Flight"
+                      : "Flight Assistance Available"}
                   </span>
                 </div>
 
@@ -760,7 +786,7 @@ export default function PackageDetailClient({
                     Baggage Allowance
                   </span>
                   <p className="font-semibold text-neutral-800 text-xs mt-0.5">
-                    {pkg.baggage || "Standard Airline Allowance + Zamzam"}
+                    {pkg.baggage || "Standard Airline Allowance + 5L Zamzam"}
                   </p>
                   <p className="text-[11px] text-neutral-500 mt-0.5">
                     Included for each pilgrim
@@ -804,40 +830,57 @@ export default function PackageDetailClient({
                   Complete {pkg.durationDays}-Day Pilgrimage Itinerary
                 </h2>
                 <span className="text-xs text-neutral-500">
-                  {(pkg.itineraries || []).length} Scheduled Stages
+                  {(pkg.itineraries || []).length > 0
+                    ? `${pkg.itineraries.length} Scheduled Stages`
+                    : "Scheduled Stages Announced on Ticket Issuance"}
                 </span>
               </div>
 
-              <div className="space-y-4">
-                {(pkg.itineraries || []).map((day: any) => (
-                  <div
-                    key={day.id}
-                    className="p-5 rounded-2xl border border-neutral-200 bg-neutral-50/40 hover:bg-white hover:border-gold-500/40 transition-colors space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-gold-700 bg-gold-100 px-2.5 py-0.5 rounded">
-                        Day {day.dayNumber}
-                      </span>
-                      <span className="text-xs font-semibold text-emerald-800 flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5" />
-                        {day.location}
-                      </span>
-                    </div>
-                    <h3 className="text-sm font-serif font-bold text-forest-950">
-                      {day.title}
-                    </h3>
-                    <p className="text-xs text-neutral-600 leading-relaxed">
-                      {day.activities}
-                    </p>
-                    {day.meals && (
-                      <div className="text-[11px] text-neutral-500 pt-1 flex items-center gap-1">
-                        <Utensils className="w-3 h-3 text-emerald-700" />
-                        <span>Meals: {day.meals}</span>
+              {(pkg.itineraries || []).length > 0 ? (
+                <div className="space-y-4">
+                  {(pkg.itineraries || []).map((day: any) => (
+                    <div
+                      key={day.id}
+                      className="p-5 rounded-2xl border border-neutral-200 bg-neutral-50/40 hover:bg-white hover:border-gold-500/40 transition-colors space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-gold-700 bg-gold-100 px-2.5 py-0.5 rounded">
+                          Day {day.dayNumber}
+                        </span>
+                        <span className="text-xs font-semibold text-emerald-800 flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5" />
+                          {day.location}
+                        </span>
                       </div>
-                    )}
+                      <h3 className="text-sm font-serif font-bold text-forest-950">
+                        {day.title}
+                      </h3>
+                      <p className="text-xs text-neutral-600 leading-relaxed">
+                        {day.activities}
+                      </p>
+                      {day.meals && (
+                        <div className="text-[11px] text-neutral-500 pt-1 flex items-center gap-1">
+                          <Utensils className="w-3 h-3 text-emerald-700" />
+                          <span>Meals: {day.meals}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 rounded-2xl border border-dashed border-gold-300 bg-ivory-50/80 space-y-3">
+                  <div className="flex items-center gap-2 text-forest-950 font-serif font-bold text-sm">
+                    <Sparkles className="w-4 h-4 text-gold-600" />
+                    Stage-by-Stage Pilgrimage Roadmap
                   </div>
-                ))}
-              </div>
+                  <p className="text-xs text-neutral-600 leading-relaxed">
+                    Our experienced Muallim and Group Leaders guide you through every milestone: Mumbai airport departure, Ihram wearing guidance, Madinah arrival &amp; Riyazul Jannah ziyarat, transfer to Makkah Al-Mukarramah, performing 5 guided Umrahs under scholarly supervision, historical Ziyarat of holy sites, and Tawaf al-Wida farewell.
+                  </p>
+                  <p className="text-[11px] text-neutral-500 italic">
+                    Detailed stage timings and daily Bayan schedules are shared with group members 10 days before flight departure. Contact our pilgrimage advisor for an advance itinerary breakdown.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Travel Requirements & Terms */}

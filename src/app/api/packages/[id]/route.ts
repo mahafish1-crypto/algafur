@@ -99,6 +99,17 @@ async function handleUpdate(
       updateData.features = JSON.stringify(updateData.features);
     }
 
+    if (updateData.slug) {
+      updateData.slug = updateData.slug
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+      if (updateData.slug.length < 3) {
+        delete updateData.slug; // Preserve existing slug rather than allowing corrupted short slug
+      }
+    }
+
     // Run transaction if inclusions or itineraries need update
     const updated = await prisma.$transaction(async (tx) => {
       // 1. Update scalar fields

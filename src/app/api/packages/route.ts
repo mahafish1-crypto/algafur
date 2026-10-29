@@ -123,10 +123,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Package Name is required." }, { status: 400 });
     }
 
-    // Auto-generate unique slug if empty
-    let finalSlug = slug
-      ? slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "")
-      : name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    // Auto-generate unique slug if empty or too short
+    const sanitizedSlug = (typeof slug === "string" ? slug : "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
+
+    const nameSlug = name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
+
+    let finalSlug = sanitizedSlug && sanitizedSlug.length >= 3 ? sanitizedSlug : nameSlug;
+    if (!finalSlug || finalSlug.length < 3) {
+      finalSlug = `package-${Date.now().toString().slice(-6)}`;
+    }
 
     const existingSlug = await prisma.package.findUnique({ where: { slug: finalSlug } });
     if (existingSlug) {

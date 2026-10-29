@@ -46,7 +46,7 @@ export default async function UmrahPage() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-8">
         <LeadEnquiryForm
-          defaultPackage={featured?.name || "Umrah Platinum Package (20 Days)"}
+          defaultPackage={featured?.name || "Umrah Platinum Package (15 Days)"}
           defaultPackageId={featured?.id}
           packages={allPackages.map((p) => ({ id: p.id, name: p.name, slug: p.slug, type: p.type }))}
           settings={settings}

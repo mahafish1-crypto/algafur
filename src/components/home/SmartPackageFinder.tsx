@@ -62,11 +62,12 @@ export default function SmartPackageFinder() {
               className="w-full text-xs p-2.5 rounded-lg border border-neutral-200 bg-neutral-50 text-neutral-800 focus:bg-white focus:border-emerald-600 focus:outline-none"
             >
               <option value="ALL">All Journeys</option>
+              <option value="DIRECT_FLIGHT">Direct Flight Packages</option>
               <option value="UMRAH">Umrah (2026)</option>
               <option value="RAMADAN_UMRAH">Ramadan Umrah</option>
               <option value="HAJJ">Hajj (1448 / 2027)</option>
-              <option value="GROUP">Group Departure</option>
-              <option value="PRIVATE">Private Family</option>
+              <option value="ECONOMY">Economy Packages</option>
+              <option value="PLATINUM_DELUXE">Platinum &amp; Deluxe</option>
             </select>
           </div>
 
