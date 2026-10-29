@@ -290,7 +290,7 @@ export default function Hero({
                     {t("hero_next_departure")}
                   </span>
                   <span className="text-[11px] font-semibold bg-gold-500/20 text-gold-300 px-2.5 py-0.5 rounded-full border border-gold-500/30">
-                    {pkg.durationDays} {t("pkg_days")} • {pkg.makkahNights}N Makkah / {pkg.madinahNights}N Madinah
+                    {pkg.durationDays} {t("pkg_days", "Days")} • {pkg.makkahNights}N Makkah / {pkg.madinahNights}N Madinah
                   </span>
                 </div>
 
@@ -300,7 +300,7 @@ export default function Hero({
                     {pkgTitle}
                   </h2>
                   <p className="text-xs text-emerald-300 mt-1">
-                    {t("pkg_departure")}: <strong>{pkg.departureDate}</strong> • {pkg.departureCity || "Mumbai"} {t("pkg_direct_flight")}
+                    {t("card_departure", "Departure")}: <strong>{pkg.departureDate}</strong> • {pkg.departureCity || "Mumbai"} {t("card_direct_flight", "Direct Flight")}
                   </p>
                 </div>
 
@@ -405,9 +405,9 @@ export default function Hero({
                     </span>
                   </div>
                   <div className="flex justify-between items-center gap-2">
-                    <span className="text-emerald-300/80">{t("pkg_seat_status")}:</span>
+                    <span className="text-emerald-300/80">{t("card_seat_status", "Availability")}:</span>
                     <span className="font-bold text-amber-300">
-                      {seatsRemaining} / {pkg.totalSeats} {t("pkg_seats_open")}
+                      {seatsRemaining} / {pkg.totalSeats} {t("card_seats_open", "Seats Open")}
                     </span>
                   </div>
                 </div>
@@ -416,11 +416,11 @@ export default function Hero({
                 <div className="pt-1 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <span className="text-[11px] text-emerald-300/70 block">
-                      {t("pkg_starting_from")}
+                      {t("card_starting_from", "Starting from")}
                     </span>
                     <span className="text-2xl font-extrabold text-gold-400">
                       {formatPrice(pkg.basePrice)}
-                      <span className="text-xs font-normal text-white/70">{t("pkg_per_person")}</span>
+                      <span className="text-xs font-normal text-white/70">{t("card_per_person", "/ person")}</span>
                     </span>
                   </div>
 
@@ -429,7 +429,7 @@ export default function Hero({
                       href={`/packages/${pkg.slug}`}
                       className="inline-flex items-center gap-1.5 text-xs font-bold bg-gold-400 hover:bg-gold-300 text-forest-950 px-4 py-2.5 rounded-xl transition-all shadow-md"
                     >
-                      View Package &amp; Book Now
+                      {t("btn_view_details", "View Details")}
                     </Link>
                   </div>
                 </div>

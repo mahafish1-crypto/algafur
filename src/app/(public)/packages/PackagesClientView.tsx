@@ -397,7 +397,7 @@ export default function PackagesClientView({
                       href={`/packages/${p.slug}`}
                       className="w-full block text-center py-2 bg-forest-900 text-gold-300 font-bold rounded-xl text-xs hover:bg-forest-950"
                     >
-                      View & Book
+                      {t("btn_view_details", "View Details")}
                     </Link>
                   </div>
                 </div>

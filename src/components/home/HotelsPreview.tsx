@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import Link from "next/link";
 import { Building, Star, CheckCircle2, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -110,8 +111,9 @@ export default function HotelsPreview({ hotels: dbHotels }: HotelsPreviewProps) 
               className="bg-ivory-100/50 rounded-2xl overflow-hidden border border-neutral-200 hover:border-gold-500/40 shadow-sm hover:shadow-premium transition-all duration-300 flex flex-col md:flex-row"
             >
               <div className="relative md:w-5/12 h-56 md:h-auto min-h-[200px]">
-                <Image
+                <SafeImage
                   src={h.image}
+                  fallbackSrc="/brand/poster.jpg"
                   alt={h.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 350px"

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import Link from "next/link";
 import {
   Calendar,
@@ -195,18 +196,26 @@ export default function PackageDetailClient({
     <div className="bg-ivory-100/50 min-h-screen pb-24">
       {/* 1. Breadcrumbs */}
       <div className="bg-white border-b border-neutral-200 py-3">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center gap-2 text-xs text-neutral-500">
-          <Link href="/" className="hover:text-forest-950">
-            Home
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between text-xs text-neutral-500">
+          <div className="flex items-center gap-2 min-w-0">
+            <Link href="/" className="hover:text-forest-950 shrink-0">
+              Home
+            </Link>
+            <ChevronRight className="w-3 h-3 shrink-0" />
+            <Link href="/packages" className="hover:text-forest-950 shrink-0">
+              Packages
+            </Link>
+            <ChevronRight className="w-3 h-3 shrink-0" />
+            <span className="text-forest-950 font-semibold truncate max-w-xs">
+              {pkg.name}
+            </span>
+          </div>
+          <Link
+            href="/packages"
+            className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 hover:text-forest-950 transition-colors shrink-0 ml-4"
+          >
+            &larr; {t("btn_back_to_packages", "Back to Packages")}
           </Link>
-          <ChevronRight className="w-3 h-3" />
-          <Link href="/packages" className="hover:text-forest-950">
-            Packages
-          </Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-forest-950 font-semibold truncate max-w-xs">
-            {pkg.name}
-          </span>
         </div>
       </div>
 
@@ -270,8 +279,9 @@ export default function PackageDetailClient({
             {/* Main Package Visual Banner & Optional Package Gallery */}
             <div className="space-y-3">
               <div className="relative h-80 sm:h-96 rounded-3xl overflow-hidden shadow-md border border-neutral-200 bg-forest-950">
-                <Image
+                <SafeImage
                   src={pkg.featuredImage || "/brand/poster.jpg"}
+                  fallbackSrc="/brand/poster.jpg"
                   alt={pkg.name}
                   fill
                   priority
@@ -286,8 +296,9 @@ export default function PackageDetailClient({
                       key={idx}
                       className="relative h-24 sm:h-28 rounded-2xl overflow-hidden border border-neutral-200 shadow-xs group bg-forest-950"
                     >
-                      <Image
+                      <SafeImage
                         src={imgUrl}
+                        fallbackSrc="/brand/poster.jpg"
                         alt={`${pkg.name} Gallery Photo ${idx + 1}`}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -330,8 +341,9 @@ export default function PackageDetailClient({
                     <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/70 flex flex-col justify-between space-y-4 overflow-hidden shadow-xs">
                       <div className="space-y-3">
                         <div className="relative h-52 w-full rounded-xl overflow-hidden bg-forest-950">
-                          <Image
+                          <SafeImage
                             src={displayedMakkahImg}
+                            fallbackSrc={makkahMedia.mainImage || "/brand/poster.jpg"}
                             alt={makkahName}
                             fill
                             sizes="(max-width: 768px) 100vw, 400px"
@@ -360,8 +372,9 @@ export default function PackageDetailClient({
                                     : "border-transparent opacity-75 hover:opacity-100"
                                 }`}
                               >
-                                <Image
+                                <SafeImage
                                   src={imgUrl}
+                                  fallbackSrc="/brand/poster.jpg"
                                   alt={`${makkahName} view ${idx + 1}`}
                                   fill
                                   sizes="60px"
@@ -462,8 +475,9 @@ export default function PackageDetailClient({
                     <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/70 flex flex-col justify-between space-y-4 overflow-hidden shadow-xs">
                       <div className="space-y-3">
                         <div className="relative h-52 w-full rounded-xl overflow-hidden bg-forest-950">
-                          <Image
+                          <SafeImage
                             src={displayedMadinahImg}
+                            fallbackSrc={madinahMedia.mainImage || "/brand/poster.jpg"}
                             alt={madinahName}
                             fill
                             sizes="(max-width: 768px) 100vw, 400px"
@@ -492,8 +506,9 @@ export default function PackageDetailClient({
                                     : "border-transparent opacity-75 hover:opacity-100"
                                 }`}
                               >
-                                <Image
+                                <SafeImage
                                   src={imgUrl}
+                                  fallbackSrc="/brand/poster.jpg"
                                   alt={`${madinahName} view ${idx + 1}`}
                                   fill
                                   sizes="60px"
@@ -634,8 +649,9 @@ export default function PackageDetailClient({
                         >
                           {guide.photo ? (
                             <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-gold-500/40 shrink-0 bg-forest-900">
-                              <Image
+                              <SafeImage
                                 src={guide.photo}
+                                fallbackSrc="/brand/poster.jpg"
                                 alt={guide.name}
                                 fill
                                 sizes="56px"
@@ -1030,14 +1046,14 @@ export default function PackageDetailClient({
                   href={`/booking?package=${pkg.slug}&room=${selectedRoom}`}
                   className="w-full block text-center py-3.5 bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 hover:from-gold-300 hover:to-gold-400 text-forest-950 font-bold rounded-xl text-sm shadow-gold transition-all"
                 >
-                  Book Now / Submit Enquiry
+                  {t("btn_book_now", "Book Now")}
                 </Link>
 
                 <a
                   href="#lead-form"
                   className="w-full block text-center py-2.5 bg-forest-950 hover:bg-forest-900 text-gold-300 font-semibold rounded-xl text-xs transition-colors"
                 >
-                  Quick Callback Request Form
+                  {t("btn_enquire_now", "Enquire Now")}
                 </a>
 
                 <a
@@ -1047,7 +1063,7 @@ export default function PackageDetailClient({
                   className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Talk on WhatsApp ({whatsappNum})
+                  {t("btn_whatsapp_enquiry", "WhatsApp Enquiry")}
                 </a>
 
                 <a
@@ -1124,16 +1140,17 @@ export default function PackageDetailClient({
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 bg-emerald-600 text-white rounded-xl"
-            aria-label="WhatsApp"
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 bg-emerald-600 text-white font-semibold rounded-xl text-xs"
+            aria-label="WhatsApp Enquiry"
           >
-            <MessageCircle className="w-5 h-5" />
+            <MessageCircle className="w-4 h-4" />
+            <span>WhatsApp</span>
           </a>
           <Link
             href={`/booking?package=${pkg.slug}&room=${selectedRoom}`}
             className="bg-forest-900 text-gold-300 font-bold px-5 py-2.5 rounded-xl text-xs"
           >
-            Book Now
+            {t("btn_book_now", "Book Now")}
           </Link>
         </div>
       </div>

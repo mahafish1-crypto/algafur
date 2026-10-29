@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import {
   CheckCircle2,
   Sparkles,
@@ -77,8 +78,9 @@ export default function PosterSpotlight({ packageData, settings = {} }: PosterSp
           {/* Left Column: Official Poster Showcase */}
           <div className="lg:col-span-5 flex justify-center">
             <div className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border-2 border-gold-400/40 group">
-              <Image
+              <SafeImage
                 src={pkg.featuredImage || "/brand/poster.jpg"}
+                fallbackSrc="/brand/poster.jpg"
                 alt={`${pkg.name} Official Poster`}
                 width={600}
                 height={850}
