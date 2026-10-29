@@ -101,6 +101,51 @@ export async function POST(req: NextRequest) {
       await prisma.$transaction(upsertOperations);
     }
 
+    // Synchronize team_directory_json if leader photos were updated
+    const hasLeaderUpdates = keys.some((k) => k.startsWith("about_leader_"));
+    if (hasLeaderUpdates) {
+      try {
+        const teamSetting = await prisma.siteSetting.findUnique({
+          where: { key: "team_directory_json" },
+        });
+        if (teamSetting?.value) {
+          const profiles = JSON.parse(teamSetting.value);
+          if (Array.isArray(profiles)) {
+            let changed = false;
+            for (const p of profiles) {
+              if (
+                (p.id === "team-director-1" || p.name?.toLowerCase().includes("mudassir")) &&
+                body.about_leader_1_photo !== undefined
+              ) {
+                p.photo = body.about_leader_1_photo;
+                changed = true;
+              } else if (
+                (p.id === "team-guide-1" || p.name?.toLowerCase().includes("asrar")) &&
+                body.about_leader_2_photo !== undefined
+              ) {
+                p.photo = body.about_leader_2_photo;
+                changed = true;
+              } else if (
+                (p.id === "team-director-2" || p.name?.toLowerCase().includes("zahir")) &&
+                body.about_leader_3_photo !== undefined
+              ) {
+                p.photo = body.about_leader_3_photo;
+                changed = true;
+              }
+            }
+            if (changed) {
+              await prisma.siteSetting.update({
+                where: { key: "team_directory_json" },
+                data: { value: JSON.stringify(profiles) },
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Could not sync team_directory_json:", err);
+      }
+    }
+
     await logAudit({
       userId: session?.id || null,
       action: "UPDATE_SITE_SETTINGS",

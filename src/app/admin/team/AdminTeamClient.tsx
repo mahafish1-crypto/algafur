@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import Link from "next/link";
 import {
   Users,
@@ -17,6 +18,8 @@ import {
   ExternalLink,
   ArrowUp,
   ArrowDown,
+  UploadCloud,
+  Loader2,
 } from "lucide-react";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import type { TeamMemberProfile, TeamCategory } from "@/lib/team-data";
@@ -67,6 +70,51 @@ export default function AdminTeamClient({
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleDirectFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please upload a JPG, PNG, or WEBP image.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size exceeds 10MB limit.");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("category", "TEAM");
+      formData.append("name", form.name || file.name.replace(/\.[^/.]+$/, ""));
+
+      const res = await fetch("/api/media", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.media?.url) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      setForm((prev) => ({ ...prev, photo: data.media.url }));
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to upload photo.");
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -108,7 +156,7 @@ export default function AdminTeamClient({
       const res = await fetch("/api/team", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ member: form }),
+        body: JSON.stringify(form),
       });
 
       const json = await res.json();
@@ -117,7 +165,7 @@ export default function AdminTeamClient({
         return;
       }
 
-      setMembers(json.members || []);
+      setMembers(json.profiles || json.members || []);
       setIsModalOpen(false);
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Error saving profile.");
@@ -136,7 +184,7 @@ export default function AdminTeamClient({
       });
       const json = await res.json();
       if (res.ok && json.success) {
-        setMembers(json.members || []);
+        setMembers(json.profiles || json.members || []);
       }
     } catch {
       alert("Failed to update visibility.");
@@ -519,42 +567,106 @@ export default function AdminTeamClient({
                 </div>
               </div>
 
-              {/* Profile Photo */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              {/* Profile Photograph Manager */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Profile Photograph (Optional)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setIsMediaPickerOpen(true)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg"
-                  >
-                    <ImageIcon className="w-3.5 h-3.5" />
-                    Upload / Select Photo
-                  </button>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-800 block">
+                      Profile Photograph
+                    </label>
+                    <p className="text-[11px] text-slate-500">
+                      Upload directly from your device or select from Media Library. Shows initials avatar if empty.
+                    </p>
+                  </div>
+                  {uploadingPhoto && (
+                    <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5 animate-pulse">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Uploading photo...
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="text"
-                    placeholder="Photo URL (leave blank to show initials)"
-                    value={form.photo || ""}
-                    onChange={(e) =>
-                      setForm({ ...form, photo: e.target.value })
-                    }
-                    className="flex-1 text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
-                  />
-                  {form.photo && (
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-300 shrink-0 bg-slate-900">
-                      <Image
+
+                {/* Hidden file input for direct computer upload */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleDirectFileUpload}
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                />
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-white p-3.5 rounded-xl border border-slate-200">
+                  {/* Photo Preview Circle */}
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-600/40 shadow-sm shrink-0 bg-slate-900 flex items-center justify-center">
+                    {form.photo ? (
+                      <SafeImage
                         src={form.photo}
-                        alt="Preview"
+                        fallbackSrc="/brand/poster.jpg"
+                        alt={form.name || "Team Member"}
                         fill
-                        sizes="48px"
+                        sizes="64px"
                         className="object-cover"
                       />
+                    ) : (
+                      <span className="text-gold-300 font-serif font-bold text-lg">
+                        {form.name
+                          ? form.name
+                              .split(" ")
+                              .map((w) => w[0])
+                              .filter(Boolean)
+                              .slice(0, 2)
+                              .join("")
+                              .toUpperCase()
+                          : "AG"}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Action Controls */}
+                  <div className="space-y-2 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={uploadingPhoto}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-800 hover:bg-emerald-900 text-white px-3.5 py-2 rounded-lg transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+                      >
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>{form.photo ? "Replace Photo" : "Upload Photo"}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={uploadingPhoto}
+                        onClick={() => setIsMediaPickerOpen(true)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg border border-slate-300 transition-colors cursor-pointer"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Media Library</span>
+                      </button>
+
+                      {form.photo && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Remove this profile photograph?")) {
+                              setForm((prev) => ({ ...prev, photo: "" }));
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 px-2.5 py-2 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Remove</span>
+                        </button>
+                      )}
                     </div>
-                  )}
+
+                    {form.photo && (
+                      <p className="text-[10px] text-slate-400 font-mono truncate max-w-sm">
+                        {form.photo}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 

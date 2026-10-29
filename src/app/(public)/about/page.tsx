@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -59,8 +60,9 @@ function TeamProfileCard({
       <div className="space-y-3 text-center">
         {member.photo ? (
           <div className="relative w-20 h-20 rounded-full overflow-hidden mx-auto border-2 border-gold-500/40 shadow-sm bg-forest-950">
-            <Image
+            <SafeImage
               src={member.photo}
+              fallbackSrc="/brand/poster.jpg"
               alt={member.name}
               fill
               sizes="80px"
@@ -247,8 +249,9 @@ export default async function AboutPage() {
           </div>
 
           <div className="relative h-80 rounded-2xl overflow-hidden shadow-md border-2 border-gold-500/20 bg-forest-950">
-            <Image
+            <SafeImage
               src={aboutImage}
+              fallbackSrc="/brand/img2.jpeg"
               alt={companyName}
               fill
               className="object-cover"

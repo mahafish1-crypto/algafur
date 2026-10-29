@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   Code2,
 } from "lucide-react";
+import SafeImage from "@/components/ui/SafeImage";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { validateAndExtractMetaPixel } from "@/lib/meta-pixel";
 
@@ -194,14 +195,17 @@ export default function AdminSettingsClient({
     about_leader_1_role: initialSettings.about_leader_1_role || "Managing Director",
     about_leader_1_desc: initialSettings.about_leader_1_desc || "Oversees institutional partnerships, airline charters, and pilgrim welfare.",
     about_leader_1_phone: initialSettings.about_leader_1_phone || "+91 8793939393",
+    about_leader_1_photo: initialSettings.about_leader_1_photo || "",
     about_leader_2_name: initialSettings.about_leader_2_name || "Hafiz Asrar Sahab (S.B.)",
     about_leader_2_role: initialSettings.about_leader_2_role || "Religious Director & International Naat Khwan",
     about_leader_2_desc: initialSettings.about_leader_2_desc || "Leads spiritual discourses, lectures on Umrah virtues, and Madinah salam sessions.",
     about_leader_2_phone: initialSettings.about_leader_2_phone || "+91 9890708013",
+    about_leader_2_photo: initialSettings.about_leader_2_photo || "",
     about_leader_3_name: initialSettings.about_leader_3_name || "Zahir Ali Pathan",
     about_leader_3_role: initialSettings.about_leader_3_role || "Director of Operations",
     about_leader_3_desc: initialSettings.about_leader_3_desc || "Directs hotel contracting in Makkah & Madinah and airport transfer operations.",
     about_leader_3_phone: initialSettings.about_leader_3_phone || "+91 9764444044",
+    about_leader_3_photo: initialSettings.about_leader_3_photo || "",
 
     // Meta Pixel Tracking
     meta_pixel_code: initialSettings.meta_pixel_code || "",
@@ -1266,6 +1270,42 @@ export default function AdminSettingsClient({
                         />
                       </div>
                     </div>
+                    {/* Leader 1 Photo */}
+                    <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-300 bg-slate-900 shrink-0 flex items-center justify-center">
+                        {settings.about_leader_1_photo ? (
+                          <SafeImage
+                            src={settings.about_leader_1_photo}
+                            fallbackSrc="/brand/poster.jpg"
+                            alt={settings.about_leader_1_name}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <span className="text-gold-300 font-bold text-xs">D1</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setMediaTarget("about_leader_1_photo")}
+                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white shadow-xs inline-flex items-center gap-1.5"
+                        >
+                          <ImageIcon className="w-3.5 h-3.5" />
+                          <span>{settings.about_leader_1_photo ? "Replace Photo" : "Upload / Select Photo"}</span>
+                        </button>
+                        {settings.about_leader_1_photo && (
+                          <button
+                            type="button"
+                            onClick={() => handleChange("about_leader_1_photo", "")}
+                            className="px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Leader 2 */}
@@ -1311,6 +1351,42 @@ export default function AdminSettingsClient({
                         />
                       </div>
                     </div>
+                    {/* Leader 2 Photo */}
+                    <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-300 bg-slate-900 shrink-0 flex items-center justify-center">
+                        {settings.about_leader_2_photo ? (
+                          <SafeImage
+                            src={settings.about_leader_2_photo}
+                            fallbackSrc="/brand/poster.jpg"
+                            alt={settings.about_leader_2_name}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <span className="text-gold-300 font-bold text-xs">D2</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setMediaTarget("about_leader_2_photo")}
+                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white shadow-xs inline-flex items-center gap-1.5"
+                        >
+                          <ImageIcon className="w-3.5 h-3.5" />
+                          <span>{settings.about_leader_2_photo ? "Replace Photo" : "Upload / Select Photo"}</span>
+                        </button>
+                        {settings.about_leader_2_photo && (
+                          <button
+                            type="button"
+                            onClick={() => handleChange("about_leader_2_photo", "")}
+                            className="px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Leader 3 */}
@@ -1354,6 +1430,42 @@ export default function AdminSettingsClient({
                           onChange={(e) => handleChange("about_leader_3_phone", e.target.value)}
                           className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none"
                         />
+                      </div>
+                    </div>
+                    {/* Leader 3 Photo */}
+                    <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+                      <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-300 bg-slate-900 shrink-0 flex items-center justify-center">
+                        {settings.about_leader_3_photo ? (
+                          <SafeImage
+                            src={settings.about_leader_3_photo}
+                            fallbackSrc="/brand/poster.jpg"
+                            alt={settings.about_leader_3_name}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <span className="text-gold-300 font-bold text-xs">D3</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setMediaTarget("about_leader_3_photo")}
+                          className="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white shadow-xs inline-flex items-center gap-1.5"
+                        >
+                          <ImageIcon className="w-3.5 h-3.5" />
+                          <span>{settings.about_leader_3_photo ? "Replace Photo" : "Upload / Select Photo"}</span>
+                        </button>
+                        {settings.about_leader_3_photo && (
+                          <button
+                            type="button"
+                            onClick={() => handleChange("about_leader_3_photo", "")}
+                            className="px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            Remove
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

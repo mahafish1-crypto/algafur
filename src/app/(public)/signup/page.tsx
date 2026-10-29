@@ -28,7 +28,7 @@ export default function SignupPage() {
     name: "",
     email: "",
     phone: "",
-    city: "Pune",
+    city: "",
     password: "",
     confirmPassword: "",
     acceptedTerms: false,
@@ -114,10 +114,10 @@ export default function SignupPage() {
             <BrandLogo variant="light" size="md" showTagline={true} />
           </div>
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white pt-2">
-            {t("auth_signup_title")}
+            {t("auth_signup_title", "Create Your Pilgrim Account")}
           </h1>
           <p className="text-xs sm:text-sm text-emerald-200/75 max-w-md mx-auto">
-            {t("auth_signup_sub")}
+            {t("auth_signup_sub", "Register once to track your booking status, visa updates, and travel documents.")}
           </p>
         </div>
 
@@ -137,7 +137,7 @@ export default function SignupPage() {
             {/* Full Name */}
             <div>
               <label htmlFor="signup-name" className="block text-xs font-semibold text-emerald-100 mb-1">
-                {t("form_full_name")} *
+                {t("form_full_name", "Full Name")} *
               </label>
               <div className="relative">
                 <User className="w-4 h-4 text-emerald-400/60 absolute left-3 top-3.5" />
@@ -158,7 +158,7 @@ export default function SignupPage() {
               {/* Mobile / WhatsApp */}
               <div>
                 <label htmlFor="signup-phone" className="block text-xs font-semibold text-emerald-100 mb-1">
-                  {t("form_mobile")} *
+                  {t("form_mobile", "Mobile Number")} *
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-emerald-400/60 absolute left-3 top-3.5" />
@@ -179,7 +179,7 @@ export default function SignupPage() {
               {/* City */}
               <div>
                 <label htmlFor="signup-city" className="block text-xs font-semibold text-emerald-100 mb-1">
-                  {t("form_city")}
+                  {t("form_city", "City / Town")}
                 </label>
                 <div className="relative">
                   <MapPin className="w-4 h-4 text-emerald-400/60 absolute left-3 top-3.5" />
@@ -199,7 +199,7 @@ export default function SignupPage() {
             {/* Email */}
             <div>
               <label htmlFor="signup-email" className="block text-xs font-semibold text-emerald-100 mb-1">
-                {t("form_email")} *
+                {t("form_email", "Email Address")} *
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-emerald-400/60 absolute left-3 top-3.5" />
@@ -220,7 +220,7 @@ export default function SignupPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="signup-password" className="block text-xs font-semibold text-emerald-100 mb-1">
-                  {t("auth_password")} *
+                  {t("auth_password", "Password")} *
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-emerald-400/60 absolute left-3 top-3.5" />
@@ -247,7 +247,7 @@ export default function SignupPage() {
 
               <div>
                 <label htmlFor="signup-confirm-password" className="block text-xs font-semibold text-emerald-100 mb-1">
-                  {t("auth_confirm_password")} *
+                  {t("auth_confirm_password", "Confirm Password")} *
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-emerald-400/60 absolute left-3 top-3.5" />
@@ -276,13 +276,13 @@ export default function SignupPage() {
                   className="mt-0.5 w-4 h-4 rounded border-emerald-600 text-gold-500 focus:ring-gold-400"
                 />
                 <span>
-                  {t("auth_agree_terms")}{" "}
+                  {t("auth_agree_terms", "I agree to the User Agreement and Privacy Policy.")}{" "}
                   <Link href="/user-agreement" className="text-gold-300 underline hover:text-white">
-                    {t("footer_user_agreement")}
+                    {t("footer_user_agreement", "User Agreement")}
                   </Link>{" "}
                   &amp;{" "}
                   <Link href="/privacy-policy" className="text-gold-300 underline hover:text-white">
-                    {t("footer_privacy")}
+                    {t("footer_privacy", "Privacy Policy")}
                   </Link>{" "}
                   (v1.0) *
                 </span>
@@ -312,12 +312,12 @@ export default function SignupPage() {
           </div>
 
           <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-emerald-200/80">
-            <span>{t("auth_have_account")}</span>
+            <span>{t("auth_have_account", "Already have an account?")}</span>
             <Link
               href="/login"
               className="font-bold text-gold-300 hover:text-white underline"
             >
-              {t("auth_sign_in")} →
+              {t("auth_sign_in", "Sign In")} →
             </Link>
           </div>
         </div>

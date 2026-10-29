@@ -224,7 +224,7 @@ export async function POST(req: NextRequest) {
             ? normalizePhone(String(whatsapp))
             : cleanMobile,
         email: cleanEmail,
-        city: city ? String(city).trim() : "Pune",
+        city: city ? String(city).trim() : "Not Specified",
         journeyType: journeyType || category || matchedPkg?.type || "UMRAH",
         packageInterest: resolvedPackageInterest,
         travelDate: resolvedTravelDate,

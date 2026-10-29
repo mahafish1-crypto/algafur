@@ -44,8 +44,9 @@ export async function POST(req: NextRequest) {
     const currentProfiles = parseTeamProfilesFromSettings(settings);
 
     // If full array replacement is provided (e.g. reorder or bulk save)
-    if (Array.isArray(body.profiles)) {
-      const sanitized: TeamMemberProfile[] = body.profiles
+    const incomingList = Array.isArray(body.profiles) ? body.profiles : (Array.isArray(body.members) ? body.members : null);
+    if (incomingList) {
+      const sanitized: TeamMemberProfile[] = incomingList
         .map((item: any, idx: number) => ({
           id: String(item.id || `team-${Date.now()}-${idx}`),
           name: String(item.name || "").trim(),
@@ -97,10 +98,11 @@ export async function POST(req: NextRequest) {
         // ignore revalidate warnings
       }
 
-      return NextResponse.json({ success: true, profiles: sanitized });
+      return NextResponse.json({ success: true, profiles: sanitized, members: sanitized });
     }
 
     // Single profile create or update
+    const memberData = body.member || body;
     const {
       id,
       name,
@@ -116,7 +118,7 @@ export async function POST(req: NextRequest) {
       packageIds = [],
       displayOrder,
       isActive = true,
-    } = body;
+    } = memberData;
 
     if (!name?.trim() || !designation?.trim()) {
       return NextResponse.json(
@@ -185,10 +187,34 @@ export async function POST(req: NextRequest) {
       // ignore
     }
 
+    // Sync leader photos to SiteSetting keys if applicable
+    if (newProfile.photo) {
+      if (profileId === 'team-director-1' || newProfile.name.toLowerCase().includes('mudassir')) {
+        await prisma.siteSetting.upsert({
+          where: { key: 'about_leader_1_photo' },
+          update: { value: newProfile.photo, category: 'ABOUT' },
+          create: { key: 'about_leader_1_photo', value: newProfile.photo, category: 'ABOUT' },
+        });
+      } else if (profileId === 'team-guide-1' || newProfile.name.toLowerCase().includes('asrar')) {
+        await prisma.siteSetting.upsert({
+          where: { key: 'about_leader_2_photo' },
+          update: { value: newProfile.photo, category: 'ABOUT' },
+          create: { key: 'about_leader_2_photo', value: newProfile.photo, category: 'ABOUT' },
+        });
+      } else if (profileId === 'team-director-2' || newProfile.name.toLowerCase().includes('zahir')) {
+        await prisma.siteSetting.upsert({
+          where: { key: 'about_leader_3_photo' },
+          update: { value: newProfile.photo, category: 'ABOUT' },
+          create: { key: 'about_leader_3_photo', value: newProfile.photo, category: 'ABOUT' },
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       profile: newProfile,
       profiles: updated,
+      members: updated,
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Internal Server Error";
@@ -241,7 +267,7 @@ export async function DELETE(req: NextRequest) {
       // ignore
     }
 
-    return NextResponse.json({ success: true, profiles: updated });
+    return NextResponse.json({ success: true, profiles: updated, members: updated });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: msg }, { status: 500 });

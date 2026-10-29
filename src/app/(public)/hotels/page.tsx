@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import Link from "next/link";
 import { Star, MapPin, Clock, CheckCircle2, ExternalLink } from "lucide-react";
 import { getPublishedHotels } from "@/lib/packages-data";
@@ -55,8 +56,9 @@ export default async function HotelsPage() {
               >
                 <div className="space-y-4">
                   <div className="relative h-64 w-full rounded-2xl overflow-hidden bg-forest-950">
-                    <Image
+                    <SafeImage
                       src={media.mainImage}
+                      fallbackSrc="/brand/poster.jpg"
                       alt={h.name}
                       fill
                       sizes="(max-width: 768px) 100vw, 50vw"
@@ -76,8 +78,9 @@ export default async function HotelsPage() {
                           key={idx}
                           className="relative h-16 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100"
                         >
-                          <Image
+                          <SafeImage
                             src={imgUrl}
+                            fallbackSrc="/brand/poster.jpg"
                             alt={`${h.name} photo ${idx + 2}`}
                             fill
                             sizes="120px"

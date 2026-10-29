@@ -62,7 +62,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth(req, "manage:media");
+    const auth = await requireAuth(req, [
+      "manage:media",
+      "manage:settings",
+      "manage:packages",
+    ]);
     if (!auth.authorized) return auth.response;
     const session = auth.session;
 
