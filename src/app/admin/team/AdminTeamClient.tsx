@@ -83,8 +83,8 @@ export default function AdminTeamClient({
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size exceeds 10MB limit.");
+    if (file.size > 3 * 1024 * 1024) {
+      alert("Photograph file size exceeds the 3MB limit.");
       return;
     }
 
@@ -92,20 +92,33 @@ export default function AdminTeamClient({
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("category", "TEAM");
+      if (form.id) {
+        formData.append("memberId", form.id);
+      }
       formData.append("name", form.name || file.name.replace(/\.[^/.]+$/, ""));
 
-      const res = await fetch("/api/media", {
+      // Try dedicated upload-photo endpoint first
+      let res = await fetch("/api/admin/team/upload-photo", {
         method: "POST",
         body: formData,
       });
 
+      // Fallback to media endpoint if needed
+      if (!res.ok) {
+        formData.append("category", "TEAM");
+        res = await fetch("/api/media", {
+          method: "POST",
+          body: formData,
+        });
+      }
+
       const data = await res.json();
-      if (!res.ok || !data.media?.url) {
+      const photoUrl = data.url || data.media?.url;
+      if (!res.ok || !photoUrl) {
         throw new Error(data.error || "Upload failed");
       }
 
-      setForm((prev) => ({ ...prev, photo: data.media.url }));
+      setForm((prev) => ({ ...prev, photo: photoUrl }));
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to upload photo.");
     } finally {

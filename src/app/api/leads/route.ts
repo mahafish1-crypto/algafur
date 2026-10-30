@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/api-auth";
+import { calculateLeadScore } from "@/lib/lead-scoring";
 
 const ipSubmissionMap = new Map<string, number[]>();
 
@@ -55,6 +56,7 @@ export async function POST(req: NextRequest) {
       packageId,
       travelDate,
       travelMonth,
+      travelTimeline,
       adults,
       children,
       roomPreference,
@@ -214,6 +216,23 @@ export async function POST(req: NextRequest) {
     const adultsCount = Math.max(1, Number(adults) || 1);
     const childrenCount = Math.max(0, Number(children) || 0);
 
+    // Compute deterministic Lead Quality Score (0-100) and Priority Category (HOT/WARM/COLD)
+    const scoreResult = calculateLeadScore({
+      travelTimeline: travelTimeline || resolvedTravelDate,
+      travelMonth: travelMonth || resolvedTravelDate,
+      interestedIn: resolvedPackageInterest,
+      notes: resolvedMessage,
+      phone: cleanMobile,
+      whatsapp:
+        whatsapp && String(whatsapp).trim()
+          ? normalizePhone(String(whatsapp))
+          : cleanMobile,
+      email: cleanEmail,
+      travellersCount: adultsCount + childrenCount,
+      city: city ? String(city).trim() : null,
+      createdAt: new Date(),
+    });
+
     const newLead = await prisma.lead.create({
       data: {
         leadNumber,
@@ -228,6 +247,10 @@ export async function POST(req: NextRequest) {
         journeyType: journeyType || category || matchedPkg?.type || "UMRAH",
         packageInterest: resolvedPackageInterest,
         travelDate: resolvedTravelDate,
+        travelTimeline: travelTimeline || resolvedTravelDate || null,
+        leadScore: scoreResult.score,
+        priority: scoreResult.priority,
+        scoreExplanation: scoreResult.explanation,
         adults: adultsCount,
         children: childrenCount,
         budget: roomPreference
@@ -244,14 +267,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Create Initial Activity
+    // Create Initial Activity with lead quality insights
     try {
       await prisma.leadActivity.create({
         data: {
           leadId: newLead.id,
           userId: assignee?.id || null,
           type: "NOTE",
-          description: `New booking enquiry submitted via ${resolvedSource} (${resolvedSourcePage}) for "${resolvedPackageInterest}". Travellers: ${adultsCount} Adult(s), ${childrenCount} Child(ren).${
+          description: `New booking enquiry submitted via ${resolvedSource} (${resolvedSourcePage}) for "${resolvedPackageInterest}". Travellers: ${adultsCount} Adult(s), ${childrenCount} Child(ren). Score: ${scoreResult.score}/100 [${scoreResult.priority}].${
             roomPreference ? ` Room: ${roomPreference}.` : ""
           }`,
         },
@@ -339,6 +362,9 @@ export async function POST(req: NextRequest) {
       success: true,
       leadNumber,
       id: newLead.id,
+      score: scoreResult.score,
+      priority: scoreResult.priority,
+      explanation: scoreResult.explanation,
       notificationSaved,
     });
   } catch (error: unknown) {

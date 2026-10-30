@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, Suspense } from "react";
+import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
 import { isRouteExcludedFromPixel } from "@/lib/meta-pixel";
 
@@ -9,57 +10,22 @@ interface MetaPixelTrackerProps {
   enabled?: boolean;
 }
 
-function MetaPixelTrackerInner({ pixelId, enabled = false }: MetaPixelTrackerProps) {
+function MetaPixelTrackerInner({
+  pixelId,
+  enabled = false,
+}: MetaPixelTrackerProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const lastTrackedUrlRef = useRef<string | null>(null);
-  const isInitializedRef = useRef<boolean>(false);
 
-  // Validate clean numeric pixel ID
+  // Validate clean numeric pixel ID (digits only, e.g. 15-16 digits)
   const cleanPixelId = pixelId ? pixelId.replace(/\D/g, "") : "";
-  const isTrackingActive = Boolean(enabled && cleanPixelId && cleanPixelId.length >= 10);
+  const isTrackingActive = Boolean(
+    enabled && cleanPixelId && cleanPixelId.length >= 10
+  );
   const isExcluded = isRouteExcludedFromPixel(pathname);
 
-  // 1. Initialize Meta Pixel Script and fbq queue
-  useEffect(() => {
-    if (!isTrackingActive || isExcluded) return;
-    if (typeof window === "undefined") return;
-
-    // Bootstrap standard fbq queue if not yet initialized
-    if (!window.fbq) {
-      (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
-        if (f.fbq) return;
-        n = f.fbq = function () {
-          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-        };
-        if (!f._fbq) f._fbq = n;
-        n.push = n;
-        n.loaded = !0;
-        n.version = "2.0";
-        n.queue = [];
-        t = b.createElement(e);
-        t.async = !0;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s);
-      })(
-        window,
-        document,
-        "script",
-        "https://connect.facebook.net/en_US/fbevents.js"
-      );
-    }
-
-    // Initialize with verified numeric Pixel ID
-    try {
-      window.fbq!("init", cleanPixelId);
-      isInitializedRef.current = true;
-    } catch (e) {
-      console.debug("[MetaPixel] init error:", e);
-    }
-  }, [isTrackingActive, isExcluded, cleanPixelId]);
-
-  // 2. Track PageView on route changes with strict deduplication
+  // Track subsequent PageView on client-side route changes with strict deduplication
   useEffect(() => {
     if (!isTrackingActive || isExcluded) return;
     if (typeof window === "undefined") return;
@@ -67,7 +33,7 @@ function MetaPixelTrackerInner({ pixelId, enabled = false }: MetaPixelTrackerPro
     const queryStr = searchParams?.toString();
     const currentUrl = `${pathname || "/"}${queryStr ? `?${queryStr}` : ""}`;
 
-    // Deduplication check: prevent multiple PageView triggers for the same URL in immediate succession
+    // Deduplication check: prevent duplicate PageView triggers on the same URL
     if (lastTrackedUrlRef.current === currentUrl) {
       return;
     }
@@ -89,17 +55,36 @@ function MetaPixelTrackerInner({ pixelId, enabled = false }: MetaPixelTrackerPro
   }
 
   return (
-    <noscript>
-      {/* Official noscript tracking pixel */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        height="1"
-        width="1"
-        style={{ display: "none" }}
-        src={`https://www.facebook.com/tr?id=${cleanPixelId}&ev=PageView&noscript=1`}
-        alt=""
+    <>
+      <Script
+        id={`meta-pixel-${cleanPixelId}`}
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '${cleanPixelId}');
+            fbq('track', 'PageView');
+          `,
+        }}
       />
-    </noscript>
+      <noscript>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          height="1"
+          width="1"
+          style={{ display: "none" }}
+          src={`https://www.facebook.com/tr?id=${cleanPixelId}&ev=PageView&noscript=1`}
+          alt=""
+        />
+      </noscript>
+    </>
   );
 }
 
