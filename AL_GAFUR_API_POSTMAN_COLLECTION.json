@@ -1,0 +1,369 @@
+{
+  "info": {
+    "_postman_id": "algafur-api-collection-v1",
+    "name": "AL GAFUR INTERNATIONAL TOURS AND TRAVELS - Public & Automation APIs",
+    "description": "Official Postman API Collection for AL GAFUR INTERNATIONAL TOURS AND TRAVELS. Includes all public read-only APIs for Packages, Company Information, Customer Testimonials, Hotels, Leadership, Booking Tracking, and the WhatsApp Bot Automation Master API (AiSensy, Wati, Botpress, Gallabox).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://www.algafur.com",
+      "type": "string",
+      "description": "Primary Production Domain (Use https://algafur.vercel.app as fallback)"
+    },
+    {
+      "key": "apiKey",
+      "value": "alg_live_wa_secret_2026_umrah",
+      "type": "string",
+      "description": "Active WhatsApp Bot Automation API Secret Key"
+    },
+    {
+      "key": "packageId",
+      "value": "07e24084-0e04-42d7-9a56-dd406ef3b9a5",
+      "type": "string",
+      "description": "Sample Package UUID (Umrah Platinum Package)"
+    },
+    {
+      "key": "packageSlug",
+      "value": "umrah-platinum-package-2026",
+      "type": "string",
+      "description": "Sample Package Slug"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. WhatsApp Bot Automation (A to Z Master API)",
+      "description": "High-performance master endpoint powering WhatsApp chatbots (AiSensy, Wati, Botpress, Gallabox). Combines company profile, all active packages, verified hotel proximities, direct flight specifications, and approved testimonials in one single call.",
+      "item": [
+        {
+          "name": "Get Full WhatsApp Bot Summary (Query Param Auth)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/whatsapp/summary?api_key={{apiKey}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "whatsapp", "summary"],
+              "query": [
+                {
+                  "key": "api_key",
+                  "value": "{{apiKey}}",
+                  "description": "API Secret Key validation"
+                }
+              ]
+            },
+            "description": "Plug-and-play webhook for WhatsApp chatbot HTTP GET blocks. Delivers full company details, active packages with hotel distances and pricing, plus pilgrim testimonials."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Full WhatsApp Bot Summary (Bearer Token Auth)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{apiKey}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/whatsapp/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "whatsapp", "summary"]
+            },
+            "description": "Standard Bearer header authentication for modern API gateways and backend microservices."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Tour Packages Catalog",
+      "description": "Public APIs for retrieving published Hajj and Umrah packages, pricing sharing variants, inclusions, day-by-day itineraries, and seat inventories.",
+      "item": [
+        {
+          "name": "Get All Published Packages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/packages?status=PUBLISHED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "packages"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PUBLISHED",
+                  "description": "Filter by publication status"
+                }
+              ]
+            },
+            "description": "Returns all published pilgrimage packages sorted by featured priority and creation date."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Packages by Category (Umrah)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/packages?status=PUBLISHED&type=UMRAH",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "packages"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PUBLISHED"
+                },
+                {
+                  "key": "type",
+                  "value": "UMRAH",
+                  "description": "Options: UMRAH, RAMADAN_UMRAH, HAJJ, GROUP, PRIVATE"
+                }
+              ]
+            },
+            "description": "Filter published packages specifically for regular Umrah journeys."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Packages by Category (Ramadan Umrah)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/packages?status=PUBLISHED&type=RAMADAN_UMRAH",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "packages"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PUBLISHED"
+                },
+                {
+                  "key": "type",
+                  "value": "RAMADAN_UMRAH"
+                }
+              ]
+            },
+            "description": "Filter published packages for Ramadan Umrah special departures."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Package by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/packages/{{packageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "packages", "{{packageId}}"]
+            },
+            "description": "Fetches complete package specifications including hotel relations, day-by-day itineraries, inclusions, and departure groups by unique package ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Company Profile & Official Info",
+      "description": "Public agency profile, official helplines, WhatsApp contact, head office address, banking remittance information, and executive directors.",
+      "item": [
+        {
+          "name": "Get Public Company Information",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/company",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "company"]
+            },
+            "description": "Returns official company branding, phones, WhatsApp number, email, address, working hours, license, GSTIN, and banking remittance details."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Customer Reviews & Testimonials",
+      "description": "Public customer feedback, ratings, and video testimonials from satisfied pilgrims.",
+      "item": [
+        {
+          "name": "Get All Published Testimonials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/testimonials",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "testimonials"]
+            },
+            "description": "Returns verified pilgrim reviews with customer name, city, package title, rating (out of 5), and review text."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Hotels & Accommodations",
+      "description": "Verified Makkah & Madinah hotels with distances to the Haram courtyards.",
+      "item": [
+        {
+          "name": "Get All Verified Hotels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hotels"]
+            },
+            "description": "Returns all registered hotels in Makkah and Madinah with walking distances, star ratings, and amenities."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Spiritual Guides & Leadership",
+      "description": "Resident scholars, spiritual guides, and executive leadership team.",
+      "item": [
+        {
+          "name": "Get Team & Spiritual Guides",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/team",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "team"]
+            },
+            "description": "Returns scholar profiles (Hafiz Asrar Sahab, Hafiz Sameer Madani) and executive leadership team."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Public Enquiry & Booking Submission",
+      "description": "Direct pilgrimage booking enquiry submission API for websites, mobile apps, and WhatsApp bots.",
+      "item": [
+        {
+          "name": "Submit Booking Enquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mohammad Rizwan\",\n  \"mobile\": \"+91 98221 23456\",\n  \"email\": \"rizwan@example.com\",\n  \"packageId\": \"07e24084-0e04-42d7-9a56-dd406ef3b9a5\",\n  \"packageName\": \"Umrah Platinum Package (15 Days)\",\n  \"travelMonth\": \"October 2026\",\n  \"city\": \"Pune\",\n  \"travellers\": 2,\n  \"source\": \"WHATSAPP_BOT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/leads/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "leads", "submit"]
+            },
+            "description": "Creates a new verified pilgrim lead in the CRM and assigns a unique Lead Reference Number (e.g. AGY-2026-0042)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Booking Status Tracker",
+      "description": "Public booking and visa tracking endpoint for pilgrims.",
+      "item": [
+        {
+          "name": "Track Booking Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/track?bookingId=BK-2026-0001",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "track"],
+              "query": [
+                {
+                  "key": "bookingId",
+                  "value": "BK-2026-0001",
+                  "description": "Booking Reference Number or Registered Mobile Number"
+                }
+              ]
+            },
+            "description": "Enables pilgrims to track their visa status, flight confirmation, and hotel room allocation."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+
