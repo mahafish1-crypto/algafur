@@ -90,3 +90,36 @@ All 13 end-to-end verification tests were executed against the live Supabase Pos
 | 12 | Verify RBAC authorization blocks unauthorized roles (`VISA_TEAM`, `ACCOUNTS`, `CUSTOMER`) | **PASS** |
 | 13 | Verify historical submissions remain 100% readable after form questions are edited or deleted | **PASS** |
 
+---
+
+## 5. Custom Domain Support & Canonical URL Architecture (`www.algafur.com`)
+
+### 5.1 Configured Canonical Domain
+- **Primary Canonical Origin:** `https://www.algafur.com`
+- **Apex Domain:** `https://algafur.com` (redirects 301 to `https://www.algafur.com` via `src/middleware.ts`)
+- **Fallback Vercel Domain:** `https://algafur.vercel.app` (active production deployment)
+- **Centralized Helper:** `src/lib/site-url.ts` with `getCanonicalSiteUrl()` and `buildCanonicalUrl(path, queryParams)`.
+
+### 5.2 Public Form URLs
+All shareable and marketing links are built on the canonical custom origin:
+- Default YouTube Lead Form: `https://www.algafur.com/youtube-lead`
+- Dynamic Campaign Forms: `https://www.algafur.com/lead/[slug]` (e.g., `https://www.algafur.com/lead/umrah-2026`, `https://www.algafur.com/lead/ramadan-umrah`)
+- Verified Campaign Tracking Example:
+  `https://www.algafur.com/youtube-lead?utm_source=youtube&utm_medium=video_description&utm_campaign=ramadan_umrah_2026&utm_content=pinned_comment`
+
+### 5.3 Admin Form Link Generator
+- Built into `/admin/youtube-leads/forms` and `/admin/youtube-leads`:
+  - **Copy Public Form URL**: Automatically copies the canonical public URL with visual feedback.
+  - **Copy YouTube Campaign Tracking Link**: Customizes `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, and `video` URL/ID parameters and copies the canonical link.
+  - **Zero Localhost/Vercel Leaks:** Guaranteed never to output `localhost` or `algafur.vercel.app` in production share links.
+
+### 5.4 Domain Verification & Registrar Status
+- **Vercel Production Deployment:** Active & returning `HTTP/1.1 200 OK` on `https://algafur.vercel.app` and `https://algafur.vercel.app/youtube-lead`.
+- **Authoritative Nameservers:** Successfully changed to `NS1.VERCEL-DNS.COM` and `NS2.VERCEL-DNS.COM` (updated 2026-11-02).
+- **Current Blocker for `www.algafur.com`:** Verisign RDAP query confirms `status: ["client hold"]` at registrar `Netregistry Wholesale Pty Ltd / HostingRaja`. This is the standard ICANN 15-day registrant email verification hold.
+- **Action Required to Complete Live Custom Domain Activation:**
+  1. The domain owner must check their registrant email inbox for the ICANN Verification email from HostingRaja / Netregistry and click the verification link.
+  2. If the email has expired, contact HostingRaja Support to re-send the verification email and remove the `clientHold` flag.
+  3. Once `clientHold` is removed, the domain will instantly resolve to Vercel production.
+
+
