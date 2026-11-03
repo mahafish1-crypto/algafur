@@ -5,18 +5,35 @@ import {
   parseFormQuestions,
 } from "@/lib/youtube-leads";
 import PublicLeadFormClient from "@/components/lead/PublicLeadFormClient";
+import { buildCanonicalUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const form = await ensureDefaultYouTubeForm();
+  const canonicalPath = "/youtube-lead";
   return {
     title: form.title,
     description:
       form.description ||
       "Submit your Hajj & Umrah enquiry to receive package details and a personal callback from AL GAFUR INTERNATIONAL TOURS AND TRAVELS.",
     alternates: {
-      canonical: "/youtube-lead",
+      canonical: canonicalPath,
+    },
+    openGraph: {
+      title: `${form.title} | AL GAFUR INTERNATIONAL TOURS AND TRAVELS`,
+      description:
+        form.description ||
+        "Submit your Hajj & Umrah enquiry to receive package details and a personal callback.",
+      url: buildCanonicalUrl(canonicalPath),
+      siteName: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+      type: "website",
+      images: [
+        {
+          url: "/brand/poster.jpg",
+          alt: form.title,
+        },
+      ],
     },
   };
 }

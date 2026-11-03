@@ -28,6 +28,7 @@ import {
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { buildCanonicalUrl } from "@/lib/site-url";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
 import { trackMetaViewContent } from "@/lib/meta-pixel-events";
 import { useLanguage } from "@/context/LanguageContext";
@@ -128,7 +129,8 @@ export default function PackageDetailClient({
   const whatsappNum = settings.whatsapp_number || "919890708013";
   const companyTitle =
     settings.company_short_name || settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
-  const whatsappMessage = `Assalamualaikum, I am interested in ${pkg.name} (${pkg.departureDate}) with ${companyTitle}. Please share seat booking details for ${selectedRoom} sharing.`;
+  const packageCanonicalUrl = buildCanonicalUrl(`/packages/${pkg.slug}`);
+  const whatsappMessage = `Assalamualaikum, I am interested in ${pkg.name} (${pkg.departureDate}) with ${companyTitle}. Package link: ${packageCanonicalUrl}. Please share seat booking details for ${selectedRoom} sharing.`;
   const whatsappUrl = buildWhatsAppLink(whatsappNum, whatsappMessage);
 
   let galleryImages: string[] = [];

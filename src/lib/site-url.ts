@@ -14,6 +14,7 @@
 
 export const CANONICAL_DOMAIN = "www.algafur.com";
 export const CANONICAL_SITE_URL = "https://www.algafur.com";
+export const APEX_SITE_URL = "https://algafur.com";
 export const VERCEL_SITE_URL = "https://algafur.vercel.app";
 
 export const ALLOWED_PRODUCTION_HOSTS = new Set<string>([
@@ -29,11 +30,16 @@ export const ALLOWED_PRODUCTION_ORIGINS = new Set<string>([
 ]);
 
 /**
- * Returns the canonical public base URL (`https://www.algafur.com`).
- * Used for SEO metadata (`metadataBase`, canonical tags, OpenGraph, JSON-LD,
- * sitemap.xml, robots.txt) and for generating shareable marketing & YouTube lead links.
+ * Returns the canonical public base URL.
+ * Strictly defaults to 'https://www.algafur.com' for production, public campaign links,
+ * YouTube lead share links, package sharing, OpenGraph, sitemap.xml, and canonical tags.
  *
- * Never returns `localhost` even if `NEXT_PUBLIC_APP_URL` is set to localhost in `.env`.
+ * Rules:
+ *  - Primary: NEXT_PUBLIC_SITE_URL if configured with custom domain.
+ *  - Default / Fallback: 'https://www.algafur.com'.
+ *  - Development fallback: 'http://localhost:3000' (only when NODE_ENV !== 'production' and host is localhost).
+ *  - NEVER falls back to 'algafur.vercel.app' in production when generating public campaign/share links.
+ *  - Never trusts unvalidated request headers.
  */
 export function getCanonicalSiteUrl(): string {
   const configured =
@@ -45,16 +51,32 @@ export function getCanonicalSiteUrl(): string {
     try {
       const parsed = new URL(configured);
       const host = parsed.hostname.toLowerCase();
-      // Only accept explicitly allowed production hosts; ignore localhost or old domains
-      if (ALLOWED_PRODUCTION_HOSTS.has(host)) {
-        if (host === "algafur.com") {
-          return CANONICAL_SITE_URL;
-        }
+
+      // Custom domain www.algafur.com or apex algafur.com -> always normalize to canonical https://www.algafur.com
+      if (host === "www.algafur.com" || host === "algafur.com") {
+        return CANONICAL_SITE_URL;
+      }
+
+      // If running in development on localhost
+      if (
+        process.env.NODE_ENV !== "production" &&
+        (host === "localhost" || host === "127.0.0.1")
+      ) {
         return `${parsed.protocol}//${parsed.host}`.replace(/\/+$/, "");
       }
+
+      // Explicitly reject vercel.app domains for public canonical URL in production
+      if (host.includes("vercel.app")) {
+        return CANONICAL_SITE_URL;
+      }
     } catch {
-      // Fallback to canonical URL below
+      // Fallback to CANONICAL_SITE_URL
     }
+  }
+
+  // Development fallback only if NODE_ENV is development and no URL configured
+  if (process.env.NODE_ENV === "development" && !configured) {
+    return "http://localhost:3000";
   }
 
   return CANONICAL_SITE_URL;

@@ -7,6 +7,7 @@ import {
   parseFormQuestions,
 } from "@/lib/youtube-leads";
 import PublicLeadFormClient from "@/components/lead/PublicLeadFormClient";
+import { buildCanonicalUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -27,13 +28,30 @@ export async function generateMetadata({
     };
   }
 
+  const canonicalPath = slug === "youtube-lead" ? "/youtube-lead" : `/lead/${slug}`;
+
   return {
     title: form.title,
     description:
       form.description ||
       "Submit your Hajj & Umrah enquiry to receive package details and a personal callback.",
     alternates: {
-      canonical: slug === "youtube-lead" ? "/youtube-lead" : `/lead/${slug}`,
+      canonical: canonicalPath,
+    },
+    openGraph: {
+      title: `${form.title} | AL GAFUR INTERNATIONAL TOURS AND TRAVELS`,
+      description:
+        form.description ||
+        "Submit your Hajj & Umrah enquiry to receive package details and a personal callback.",
+      url: buildCanonicalUrl(canonicalPath),
+      siteName: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+      type: "website",
+      images: [
+        {
+          url: "/brand/poster.jpg",
+          alt: form.title,
+        },
+      ],
     },
   };
 }

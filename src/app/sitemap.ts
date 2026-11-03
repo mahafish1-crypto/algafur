@@ -50,8 +50,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         });
       }
     }
+
+    const publishedForms = await prisma.leadForm.findMany({
+      where: { status: "PUBLISHED", isActive: true },
+      select: { slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    for (const form of publishedForms) {
+      if (form.slug && form.slug !== "youtube-lead") {
+        entries.push({
+          url: `${CANONICAL_SITE_URL}/lead/${form.slug}`,
+          lastModified: form.updatedAt || new Date(),
+          changeFrequency: "weekly",
+          priority: 0.8,
+        });
+      }
+    }
   } catch (err) {
-    console.error("Sitemap package lookup warning:", err);
+    console.error("Sitemap dynamic entity lookup warning:", err);
   }
 
   return entries;

@@ -44,6 +44,13 @@ export const metadata: Metadata = {
       },
     ],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "AL GAFUR INTERNATIONAL TOURS AND TRAVELS",
+    description:
+      "Your Sacred Journey, Handled With Care. Premium Hajj & Umrah Packages.",
+    images: ["/brand/poster.jpg"],
+  },
 };
 
 import MetaPixelTracker from "@/components/analytics/MetaPixelTracker";
