@@ -130,7 +130,35 @@ export default function PackageDetailClient({
   const companyTitle =
     settings.company_short_name || settings.company_name || "AL GAFUR INTERNATIONAL TOURS AND TRAVELS";
   const packageCanonicalUrl = buildCanonicalUrl(`/packages/${pkg.slug}`);
-  const whatsappMessage = `Assalamualaikum, I am interested in ${pkg.name} (${pkg.departureDate}) with ${companyTitle}. Package link: ${packageCanonicalUrl}. Please share seat booking details for ${selectedRoom} sharing.`;
+
+  const formatDepartureSchedule = () => {
+    if (pkg.hasSpecificDates) {
+      if (pkg.startDate && pkg.endDate) {
+        try {
+          const start = new Date(pkg.startDate);
+          const end = new Date(pkg.endDate);
+          const startStr = start.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          });
+          const endStr = end.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          });
+          return `${startStr} – ${endStr}`;
+        } catch {
+          // fallback
+        }
+      }
+      return pkg.departureDate || "Fixed Group Departure";
+    }
+    return pkg.departureCycle || "Departures: 1st & 3rd Week of Every Month";
+  };
+
+  const departureScheduleText = formatDepartureSchedule();
+  const whatsappMessage = `Assalamualaikum, I am interested in ${pkg.name} (${departureScheduleText}) with ${companyTitle}. Package link: ${packageCanonicalUrl}. Please share seat booking details for ${selectedRoom} sharing.`;
   const whatsappUrl = buildWhatsAppLink(whatsappNum, whatsappMessage);
 
   let galleryImages: string[] = [];
@@ -250,7 +278,8 @@ export default function PackageDetailClient({
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-gold-400" />
               <span>
-                Departure: <strong>{pkg.departureDate}</strong>
+                {pkg.hasSpecificDates ? "Departure Dates" : "Departures"}:{" "}
+                <strong>{departureScheduleText}</strong>
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -840,64 +869,232 @@ export default function PackageDetailClient({
               </div>
             )}
 
-            {/* Day by Day Detailed Timeline */}
+            {/* City Stay Split & Pilgrimage Schedule */}
             <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-serif font-bold text-forest-950 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-gold-600" />
-                  Complete {pkg.durationDays}-Day Pilgrimage Itinerary
-                </h2>
-                <span className="text-xs text-neutral-500">
-                  {(pkg.itineraries || []).length > 0
-                    ? `${pkg.itineraries.length} Scheduled Stages`
-                    : "Scheduled Stages Announced on Ticket Issuance"}
-                </span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-4">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 mb-1.5">
+                    <Clock className="w-3 h-3 text-emerald-600" />
+                    Pilgrimage Stay Schedule
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest-950">
+                    City Stay Split &amp; Duration Breakdown
+                  </h2>
+                </div>
+                <div className="text-xs text-neutral-600 font-medium bg-ivory-50 px-3.5 py-1.5 rounded-xl border border-neutral-200 self-start sm:self-auto">
+                  Total Duration: <strong className="text-forest-950 font-bold">{pkg.durationDays} Days</strong> ({pkg.durationDays > 1 ? `${pkg.durationDays - 1} Nights` : "Same Day"})
+                </div>
               </div>
 
-              {(pkg.itineraries || []).length > 0 ? (
-                <div className="space-y-4">
-                  {(pkg.itineraries || []).map((day: any) => (
-                    <div
-                      key={day.id}
-                      className="p-5 rounded-2xl border border-neutral-200 bg-neutral-50/40 hover:bg-white hover:border-gold-500/40 transition-colors space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold text-gold-700 bg-gold-100 px-2.5 py-0.5 rounded">
-                          Day {day.dayNumber}
-                        </span>
-                        <span className="text-xs font-semibold text-emerald-800 flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5" />
-                          {day.location}
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-serif font-bold text-forest-950">
-                        {day.title}
-                      </h3>
-                      <p className="text-xs text-neutral-600 leading-relaxed">
-                        {day.activities}
-                      </p>
-                      {day.meals && (
-                        <div className="text-[11px] text-neutral-500 pt-1 flex items-center gap-1">
-                          <Utensils className="w-3 h-3 text-emerald-700" />
-                          <span>Meals: {day.meals}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+              {/* Visual Proportion Bar */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-semibold text-neutral-700">
+                  <span className="flex items-center gap-1.5 text-forest-950">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
+                    Makkah Al-Mukarramah ({pkg.makkahNights} Nights)
+                  </span>
+                  <span className="flex items-center gap-1.5 text-forest-950">
+                    <span className="w-2.5 h-2.5 rounded-full bg-gold-500" />
+                    Madinah Al-Munawwarah ({pkg.madinahNights} Nights)
+                  </span>
+                </div>
+                <div className="w-full h-3 rounded-full overflow-hidden bg-neutral-200 flex">
+                  <div
+                    className="bg-emerald-700 h-full transition-all duration-500"
+                    style={{
+                      width: `${Math.round(
+                        (pkg.makkahNights / Math.max(1, pkg.durationDays - 1 || 1)) * 100
+                      )}%`,
+                    }}
+                    title={`Makkah: ${pkg.makkahNights} Nights`}
+                  />
+                  <div
+                    className="bg-gold-500 h-full transition-all duration-500"
+                    style={{
+                      width: `${Math.round(
+                        (pkg.madinahNights / Math.max(1, pkg.durationDays - 1 || 1)) * 100
+                      )}%`,
+                    }}
+                    title={`Madinah: ${pkg.madinahNights} Nights`}
+                  />
+                </div>
+              </div>
+
+              {/* City Stay Split Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Makkah Stay */}
+                <div className="p-5 rounded-2xl border border-neutral-200 bg-ivory-50/60 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-md">
+                      Makkah Al-Mukarramah
+                    </span>
+                    <span className="text-xs font-bold text-forest-950">
+                      {pkg.makkahNights} Nights Stay
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-serif font-bold text-forest-950">
+                      {makkahName || "Sanctuary Hotel Accommodation"}
+                    </h3>
+                    <p className="text-xs text-neutral-600 mt-0.5">
+                      {makkahDistance ? `${makkahDistance} from Haram` : "Convenient walking distance to Haram"}
+                    </p>
+                  </div>
+                  <ul className="text-xs text-neutral-600 space-y-1.5 pt-1">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Guided Umrah rituals with scholarly Muallim supervision</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Historical Holy Ziyarat tour across sacred Makkah landmarks</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Daily congregational prayers &amp; Tawaf at Masjid Al-Haram</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Madinah Stay */}
+                <div className="p-5 rounded-2xl border border-neutral-200 bg-ivory-50/60 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-gold-800 bg-gold-100/80 px-2.5 py-0.5 rounded-md">
+                      Madinah Al-Munawwarah
+                    </span>
+                    <span className="text-xs font-bold text-forest-950">
+                      {pkg.madinahNights} Nights Stay
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-serif font-bold text-forest-950">
+                      {madinahName || "Sanctuary Hotel Accommodation"}
+                    </h3>
+                    <p className="text-xs text-neutral-600 mt-0.5">
+                      {madinahDistance ? `${madinahDistance} from Masjid An-Nabawi` : "Convenient walking distance to Masjid Nabawi"}
+                    </p>
+                  </div>
+                  <ul className="text-xs text-neutral-600 space-y-1.5 pt-1">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Salam at Rawdah Mubarak &amp; Riyazul Jannah assistance</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Historical Ziyarat to Masjid Quba, Mount Uhud &amp; Saba Masajid</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Spiritual contemplation &amp; daily prayers at Masjid An-Nabawi</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Departure Schedule Cycle Callout */}
+              <div className="p-4 rounded-2xl bg-forest-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-gold-500/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-forest-900 border border-gold-500/40 text-gold-400 flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gold-400 block">
+                      {pkg.hasSpecificDates ? "Confirmed Travel Window" : "Recurring Departure Cycle"}
+                    </span>
+                    <p className="text-sm font-bold text-white">
+                      {departureScheduleText}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-xs text-emerald-200/80 sm:text-right">
+                  {pkg.hasSpecificDates
+                    ? "Fixed calendar departures reserved for this special season."
+                    : "Regular group departures operate bi-weekly throughout the year."}
+                </div>
+              </div>
+            </div>
+
+            {/* Package Highlights & Holy Ziyarat Details */}
+            <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-gold-700 bg-gold-50 px-2.5 py-1 rounded-full border border-gold-200 mb-1.5">
+                    <Sparkles className="w-3 h-3 text-gold-600" />
+                    Curated Experiences
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest-950">
+                    Package Highlights &amp; Holy Ziyarat Details
+                  </h2>
+                </div>
+              </div>
+
+              {pkg.highlights ? (
+                <div className="text-xs sm:text-sm text-neutral-700 leading-relaxed whitespace-pre-line bg-ivory-50/70 p-5 rounded-2xl border border-neutral-200">
+                  {pkg.highlights}
                 </div>
               ) : (
-                <div className="p-6 rounded-2xl border border-dashed border-gold-300 bg-ivory-50/80 space-y-3">
-                  <div className="flex items-center gap-2 text-forest-950 font-serif font-bold text-sm">
-                    <Sparkles className="w-4 h-4 text-gold-600" />
-                    Stage-by-Stage Pilgrimage Roadmap
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/50 space-y-2">
+                    <h3 className="text-sm font-serif font-bold text-forest-950 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-emerald-700" />
+                      Guided Makkah Ziyarat Tour
+                    </h3>
+                    <p className="text-xs text-neutral-600 leading-relaxed">
+                      Visit Jabal Al-Noor (Ghar Hira), Jabal Thawr, Mina tents, Plains of Arafat (Jabal Al-Rahmah), Muzdalifah, and Jamarat under scholar guidance.
+                    </p>
                   </div>
-                  <p className="text-xs text-neutral-600 leading-relaxed">
-                    Our experienced Muallim and Group Leaders guide you through every milestone: Mumbai airport departure, Ihram wearing guidance, Madinah arrival &amp; Riyazul Jannah ziyarat, transfer to Makkah Al-Mukarramah, performing 5 guided Umrahs under scholarly supervision, historical Ziyarat of holy sites, and Tawaf al-Wida farewell.
-                  </p>
-                  <p className="text-[11px] text-neutral-500 italic">
-                    Detailed stage timings and daily Bayan schedules are shared with group members 10 days before flight departure. Contact our pilgrimage advisor for an advance itinerary breakdown.
-                  </p>
+
+                  <div className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/50 space-y-2">
+                    <h3 className="text-sm font-serif font-bold text-forest-950 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-emerald-700" />
+                      Guided Madinah Ziyarat Tour
+                    </h3>
+                    <p className="text-xs text-neutral-600 leading-relaxed">
+                      Visit historic Masjid Quba (performing 2 Rakat Sunnah), Mount Uhud &amp; Martyrs’ Cemetery, Masjid Al-Qiblatain, and the Seven Mosques (Saba Masajid).
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/50 space-y-2">
+                    <h3 className="text-sm font-serif font-bold text-forest-950 flex items-center gap-2">
+                      <Utensils className="w-4 h-4 text-emerald-700" />
+                      Indian Buffet Catering
+                    </h3>
+                    <p className="text-xs text-neutral-600 leading-relaxed">
+                      Three wholesome, freshly prepared hot Indian meals daily (Breakfast, Lunch, and Dinner) catering to Indian pilgrim tastes.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/50 space-y-2">
+                    <h3 className="text-sm font-serif font-bold text-forest-950 flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                      End-to-End Operational Care
+                    </h3>
+                    <p className="text-xs text-neutral-600 leading-relaxed">
+                      Electronic Umrah visa with medical insurance, luxury air-conditioned bus transfers, complimentary 5L Zamzam container, and 24/7 dedicated group assistance.
+                    </p>
+                  </div>
                 </div>
+              )}
+
+              {/* Optional Collapsible for archived Day-by-Day Stages (Zero data loss) */}
+              {(pkg.itineraries || []).length > 0 && (
+                <details className="group border border-neutral-200 rounded-2xl p-4 bg-neutral-50/50">
+                  <summary className="cursor-pointer text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center justify-between">
+                    <span>View Day-by-Day Stage Archive ({pkg.itineraries.length} Stages)</span>
+                    <span className="text-[10px] text-neutral-400 group-open:rotate-90 transition-transform">▸</span>
+                  </summary>
+                  <div className="mt-3 space-y-3 pt-3 border-t border-neutral-200/70">
+                    {pkg.itineraries.map((day: any) => (
+                      <div key={day.id} className="p-3 bg-white rounded-xl border border-neutral-200 text-xs space-y-1">
+                        <div className="flex justify-between font-bold text-forest-950">
+                          <span>Day {day.dayNumber}: {day.title}</span>
+                          <span className="text-neutral-500 font-normal">{day.location}</span>
+                        </div>
+                        <p className="text-neutral-600 text-[11px] leading-relaxed">{day.activities}</p>
+                      </div>
+                    ))}
+                  </div>
+                </details>
               )}
             </div>
 
@@ -983,6 +1180,24 @@ export default function PackageDetailClient({
                     </div>
                   </button>
                 ))}
+              </div>
+
+              {/* Departure Schedule / Dates in Sidebar */}
+              <div className="bg-ivory-50 p-3.5 rounded-xl border border-neutral-200 text-xs space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
+                    {pkg.hasSpecificDates ? "Departure Dates" : "Departure Cycle"}
+                  </span>
+                  <span className="font-bold text-forest-950 text-right truncate max-w-[170px]">
+                    {departureScheduleText}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-neutral-600 pt-1 border-t border-neutral-200/60 text-[11px]">
+                  <span>Stay Breakdown:</span>
+                  <span className="font-semibold text-emerald-800">
+                    {pkg.durationDays} Days ({pkg.makkahNights}N / {pkg.madinahNights}N)
+                  </span>
+                </div>
               </div>
 
               {/* Quick Hotel Summary in Sticky Sidebar */}

@@ -105,6 +105,11 @@ export default function PackageFormModal({
     departureDate: initialPackage?.departureDate || "31 October 2026",
     returnDate: initialPackage?.returnDate || "19 November 2026",
     departureCity: initialPackage?.departureCity || "Mumbai",
+    hasSpecificDates: Boolean(initialPackage?.hasSpecificDates) || false,
+    departureCycle: initialPackage?.departureCycle || "1st & 3rd Week of Every Month",
+    startDate: initialPackage?.startDate ? new Date(initialPackage.startDate).toISOString().split("T")[0] : "",
+    endDate: initialPackage?.endDate ? new Date(initialPackage.endDate).toISOString().split("T")[0] : "",
+    highlights: initialPackage?.highlights || "",
 
     // Media
     featuredImage: initialPackage?.featuredImage || "/brand/poster.jpg",
@@ -244,6 +249,11 @@ export default function PackageFormModal({
           departureDate: initialPackage.departureDate || "31 October 2026",
           returnDate: initialPackage.returnDate || "19 November 2026",
           departureCity: initialPackage.departureCity || "Mumbai",
+          hasSpecificDates: Boolean(initialPackage.hasSpecificDates) || false,
+          departureCycle: initialPackage.departureCycle || "1st & 3rd Week of Every Month",
+          startDate: initialPackage.startDate ? new Date(initialPackage.startDate).toISOString().split("T")[0] : "",
+          endDate: initialPackage.endDate ? new Date(initialPackage.endDate).toISOString().split("T")[0] : "",
+          highlights: initialPackage.highlights || "",
 
           // Media
           featuredImage: initialPackage.featuredImage || "/brand/poster.jpg",
@@ -371,6 +381,11 @@ export default function PackageFormModal({
           departureDate: "31 October 2026",
           returnDate: "19 November 2026",
           departureCity: "Mumbai",
+          hasSpecificDates: false,
+          departureCycle: "1st & 3rd Week of Every Month",
+          startDate: "",
+          endDate: "",
+          highlights: "",
 
           // Media
           featuredImage: "/brand/poster.jpg",
@@ -640,7 +655,7 @@ export default function PackageFormModal({
     { id: "makkah", label: "5. Makkah Hotel" },
     { id: "madinah", label: "6. Madinah Hotel" },
     { id: "flight", label: "7. Flight Info" },
-    { id: "itinerary", label: "8. Itinerary" },
+    { id: "itinerary", label: "8. Highlights & Ziyarat" },
     { id: "inclusions", label: "9. Inclusions & Exclusions" },
     { id: "features", label: "10. Features & Amenities" },
     { id: "departure", label: "11. Seats & Departure" },
@@ -1079,12 +1094,52 @@ export default function PackageFormModal({
 
           {/* TAB 3: DURATION & DATES */}
           {activeTab === "duration" && (
-            <div className="space-y-5">
-              <h3 className="text-base font-serif font-bold text-slate-900 flex items-center gap-2 border-b pb-2">
-                <Clock className="w-5 h-5 text-gold-600" />
-                Duration, Nights &amp; Flight Dates
-              </h3>
+            <div className="space-y-6">
+              <div className="border-b pb-3">
+                <h3 className="text-base font-serif font-bold text-slate-900 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-gold-600" />
+                  Duration, Stay Split &amp; Departure Schedule
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Configure recurring departures for Regular Umrah, or set fixed calendar dates for Ramadan &amp; Hajj.
+                </p>
+              </div>
 
+              {/* Specific Dates Toggle */}
+              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <label className="text-sm font-bold text-slate-900 block">
+                    Use Specific Dates (Ramadan / Hajj)
+                  </label>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    {form.hasSpecificDates
+                      ? "ON: Fixed calendar start & end dates will be shown on public package cards and detail pages."
+                      : "OFF: For Regular Umrah. Fixed calendar dates are hidden; recurring departure cycle & total duration are displayed."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.hasSpecificDates}
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      hasSpecificDates: !prev.hasSpecificDates,
+                    }))
+                  }
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    form.hasSpecificDates ? "bg-emerald-600" : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      form.hasSpecificDates ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Duration & Stay Breakdown */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
@@ -1123,46 +1178,116 @@ export default function PackageFormModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                    Departure Date *
-                  </label>
-                  <input
-                    type="text"
-                    value={form.departureDate}
-                    onChange={(e) => handleTextChange("departureDate", e.target.value)}
-                    placeholder="31 October 2026"
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
-                  />
-                </div>
+              {/* Conditional Date / Cycle Inputs */}
+              {form.hasSpecificDates ? (
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    Fixed Pilgrimage Departure &amp; Return Dates
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Start Date (Departure) *
+                      </label>
+                      <input
+                        type="date"
+                        value={form.startDate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setForm((prev) => ({
+                            ...prev,
+                            startDate: val,
+                            departureDate: val
+                              ? new Date(val).toLocaleDateString("en-GB", {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                })
+                              : prev.departureDate,
+                          }));
+                        }}
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                    Return Date *
-                  </label>
-                  <input
-                    type="text"
-                    value={form.returnDate}
-                    onChange={(e) => handleTextChange("returnDate", e.target.value)}
-                    placeholder="19 November 2026"
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        End Date (Return) *
+                      </label>
+                      <input
+                        type="date"
+                        value={form.endDate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setForm((prev) => ({
+                            ...prev,
+                            endDate: val,
+                            returnDate: val
+                              ? new Date(val).toLocaleDateString("en-GB", {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                })
+                              : prev.returnDate,
+                          }));
+                        }}
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                    Departure City / Hub
-                  </label>
-                  <input
-                    type="text"
-                    value={form.departureCity}
-                    onChange={(e) => handleTextChange("departureCity", e.target.value)}
-                    placeholder="Mumbai (BOM)"
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
-                  />
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Departure City / Hub
+                      </label>
+                      <input
+                        type="text"
+                        value={form.departureCity}
+                        onChange={(e) => handleTextChange("departureCity", e.target.value)}
+                        placeholder="Mumbai"
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-forest-900 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-gold-600" />
+                    Recurring Departure Cycle (Regular Umrah)
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Departure Schedule / Cycle *
+                      </label>
+                      <input
+                        type="text"
+                        value={form.departureCycle}
+                        onChange={(e) => handleTextChange("departureCycle", e.target.value)}
+                        placeholder="1st &amp; 3rd Week of Every Month"
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        This recurring schedule replaces fixed calendar dates on public package cards and details.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Departure City / Hub
+                      </label>
+                      <input
+                        type="text"
+                        value={form.departureCity}
+                        onChange={(e) => handleTextChange("departureCity", e.target.value)}
+                        placeholder="Mumbai"
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:ring-2 focus:ring-gold-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1627,93 +1752,86 @@ export default function PackageFormModal({
             </div>
           )}
 
-          {/* TAB 8: ITINERARY */}
+          {/* TAB 8: HIGHLIGHTS & ZIYARAT DETAILS */}
           {activeTab === "itinerary" && (
-            <div className="space-y-5">
-              <div className="flex items-center justify-between border-b pb-2">
+            <div className="space-y-6">
+              <div className="border-b pb-3">
                 <h3 className="text-base font-serif font-bold text-slate-900 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-gold-600" />
-                  Day-by-Day Pilgrimage Timeline ({form.itineraries.length} Days)
+                  <Sparkles className="w-5 h-5 text-gold-600" />
+                  Package Highlights &amp; Ziyarat Details
                 </h3>
-                <button
-                  type="button"
-                  onClick={addItineraryDay}
-                  className="px-3.5 py-1.5 rounded-xl bg-forest-950 text-gold-300 font-bold text-xs flex items-center gap-1"
-                >
-                  <Plus className="w-3.5 h-3.5" /> + Add Day
-                </button>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Provide key spiritual highlights, sacred Ziyarat locations, scholarly guidance, and stay summary. Day-by-day itineraries are optional.
+                </p>
               </div>
 
-              <div className="space-y-4">
-                {form.itineraries.map((day: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded bg-gold-500 text-forest-950 text-xs font-extrabold">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                  Package Highlights &amp; Holy Ziyarat Locations (Rich Text / Bullet points)
+                </label>
+                <textarea
+                  rows={8}
+                  value={form.highlights}
+                  onChange={(e) => handleTextChange("highlights", e.target.value)}
+                  placeholder={`• Guided Holy Ziyarat in Makkah: Jabal an-Nour (Cave of Hira), Cave of Thawr, Mina, Arafat, Muzdalifah, Jabal ar-Rahmah, Jannat al-Mu'alla.
+• Guided Holy Ziyarat in Madinah: Masjid Quba, Masjid Qiblatayn, Mount Uhud & Shuhada Uhud cemetery, Seven Mosques (Khandaq), Date Gardens.
+• Scholarly guidance by esteemed religious scholars with pre-departure orientation in Mumbai and continuous guidance in Holy Harams.
+• Daily Indian buffet breakfast, lunch, and dinner prepared fresh by experienced Indian chefs.
+• Direct flights on Saudi Airlines with 46kg check-in baggage + 7kg cabin allowance.`}
+                  className="w-full text-sm rounded-xl border border-slate-300 p-3.5 bg-white text-slate-900 leading-relaxed focus:ring-2 focus:ring-gold-500 font-sans"
+                />
+              </div>
+
+              {/* Optional Day-by-Day Timeline */}
+              <details className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <summary className="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                  Optional Day-by-Day Timeline ({form.itineraries.length} Days defined) - Click to expand
+                </summary>
+                <div className="space-y-4 mt-4 pt-3 border-t border-slate-200">
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={addItineraryDay}
+                      className="px-3 py-1 rounded-lg bg-forest-950 text-gold-300 font-bold text-xs flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> + Add Day
+                    </button>
+                  </div>
+                  {form.itineraries.map((day: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 relative"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded bg-gold-500 text-forest-950 text-xs font-bold">
                           Day {day.dayNumber || idx + 1}
                         </span>
-                        <input
-                          type="text"
-                          value={day.location || "Makkah"}
-                          onChange={(e) => updateItineraryDay(idx, "location", e.target.value)}
-                          placeholder="City / Station"
-                          className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200"
-                        />
+                        <button
+                          type="button"
+                          onClick={() => removeItineraryDay(idx)}
+                          className="text-slate-400 hover:text-red-600 p-1 rounded"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeItineraryDay(idx)}
-                        className="text-slate-400 hover:text-red-600 p-1 rounded"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    <input
-                      type="text"
-                      value={day.title}
-                      onChange={(e) => updateItineraryDay(idx, "title", e.target.value)}
-                      placeholder="Day Title"
-                      className="w-full text-sm font-semibold rounded-lg border border-slate-300 px-3 py-1.5 bg-white text-slate-900"
-                    />
-
-                    <textarea
-                      rows={2}
-                      value={day.activities}
-                      onChange={(e) => updateItineraryDay(idx, "activities", e.target.value)}
-                      placeholder="Detailed schedule of prayers, historical visits, and rituals..."
-                      className="w-full text-xs rounded-lg border border-slate-300 px-3 py-1.5 bg-white text-slate-900 leading-relaxed"
-                    />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                       <input
                         type="text"
-                        value={day.meals || ""}
-                        onChange={(e) => updateItineraryDay(idx, "meals", e.target.value)}
-                        placeholder="Meals (e.g. Indian Buffet 3 Times)"
-                        className="text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900"
+                        value={day.title}
+                        onChange={(e) => updateItineraryDay(idx, "title", e.target.value)}
+                        placeholder="Day Title"
+                        className="w-full text-xs font-semibold rounded border border-slate-300 px-2 py-1 bg-white text-slate-900"
                       />
-                      <input
-                        type="text"
-                        value={day.hotel || ""}
-                        onChange={(e) => updateItineraryDay(idx, "hotel", e.target.value)}
-                        placeholder="Hotel (e.g. Makkah Hotel Stay)"
-                        className="text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900"
-                      />
-                      <input
-                        type="text"
-                        value={day.transport || ""}
-                        onChange={(e) => updateItineraryDay(idx, "transport", e.target.value)}
-                        placeholder="Transit (e.g. Luxury AC Bus)"
-                        className="text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-900"
+                      <textarea
+                        rows={2}
+                        value={day.activities}
+                        onChange={(e) => updateItineraryDay(idx, "activities", e.target.value)}
+                        placeholder="Activities..."
+                        className="w-full text-xs rounded border border-slate-300 px-2 py-1 bg-white text-slate-900"
                       />
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </details>
             </div>
           )}
 
@@ -2111,7 +2229,9 @@ export default function PackageFormModal({
                 </div>
                 <h1 className="text-3xl font-serif font-bold text-white">{form.name}</h1>
                 <div className="flex flex-wrap gap-4 text-xs text-emerald-100">
-                  <span>Departure: <strong>{form.departureDate}</strong></span>
+                  <span>
+                    Departure: <strong>{form.hasSpecificDates ? `${form.startDate || form.departureDate} - ${form.endDate || form.returnDate}` : (form.departureCycle || "1st & 3rd Week of Every Month")}</strong>
+                  </span>
                   <span>Duration: <strong>{form.durationDays} Days ({form.makkahNights}N Makkah / {form.madinahNights}N Madinah)</strong></span>
                   <span className="text-amber-300 font-bold">{availableSeats} Seats Available</span>
                 </div>

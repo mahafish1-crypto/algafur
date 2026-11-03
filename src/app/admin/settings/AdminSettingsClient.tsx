@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   Settings,
   Building,
@@ -24,6 +25,7 @@ import {
   Info,
   ShieldCheck,
   Code2,
+  MessageSquareCode,
 } from "lucide-react";
 import SafeImage from "@/components/ui/SafeImage";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
@@ -1820,6 +1822,29 @@ export default function AdminSettingsClient({
                   <p className="font-mono text-emerald-800">
                     https://www.algafur.com/api/webhooks/whatsapp
                   </p>
+                </div>
+
+                <div className="bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/40 p-5 rounded-2xl text-xs space-y-3 text-white shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-emerald-300 font-bold">
+                      <MessageSquareCode className="w-5 h-5 text-gold-400" />
+                      <span className="text-sm">WhatsApp Bot Automation (A to Z Summary API)</span>
+                    </div>
+                    <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded bg-gold-500 text-forest-950">
+                      AiSensy • Wati • Botpress
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Power your external WhatsApp chatbot with live A-to-Z package data, verified hotel proximities, direct flight specifications, and company helplines. View the public API endpoint, manage secret keys, and inspect the live JSON payload.
+                  </p>
+                  <div className="pt-1">
+                    <Link
+                      href="/admin/settings/whatsapp-api"
+                      className="inline-flex items-center gap-2 text-xs font-bold text-forest-950 bg-gradient-to-r from-gold-400 to-amber-300 hover:from-gold-300 hover:to-gold-400 px-4 py-2 rounded-xl transition-all shadow-sm"
+                    >
+                      Open WhatsApp Bot API Settings &rarr;
+                    </Link>
+                  </div>
                 </div>
               </div>
             )}

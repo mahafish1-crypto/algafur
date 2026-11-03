@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache";
 import prisma from "@/lib/db";
 
 export const SITE_SETTINGS_CACHE_TAG = "site-settings";
-export const SECRET_SETTING_KEYS = ["ai_gemini_api_key"];
+export const SECRET_SETTING_KEYS = ["ai_gemini_api_key", "whatsapp_api_key"];
 
 export function maskSecretSetting(val: string): string {
   if (!val || val.length < 8) return val ? "••••••••" : "";
@@ -70,6 +70,9 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   about_leader_3_desc: "Directs hotel contracting in Makkah & Madinah and airport transfer operations.",
   about_leader_3_phone: "+91 9764444044",
 
+  // WhatsApp Automation Bot API
+  whatsapp_api_key: "alg_live_wa_secret_2026_umrah",
+
   // AI Growth Studio & Gemini (Note: secret keys are never loaded into public shared cache)
   ai_gemini_api_key: "",
   ai_model_name: "gemini-2.5-flash",
@@ -114,3 +117,24 @@ export const getSiteSettings = cache(
   }
 );
 
+/**
+ * Retrieves the WhatsApp Bot Automation API key.
+ * Checks database SiteSetting first, then process.env.WHATSAPP_API_KEY, then default fallback.
+ */
+export async function getWhatsAppApiKey(): Promise<string> {
+  try {
+    const record = await prisma.siteSetting.findUnique({
+      where: { key: "whatsapp_api_key" },
+    });
+    if (record?.value && record.value.trim().length > 0) {
+      return record.value.trim();
+    }
+  } catch (err) {
+    console.error("Failed to query whatsapp_api_key from database:", err);
+  }
+  return (
+    process.env.WHATSAPP_API_KEY ||
+    DEFAULT_SITE_SETTINGS.whatsapp_api_key ||
+    "alg_live_wa_secret_2026_umrah"
+  );
+}

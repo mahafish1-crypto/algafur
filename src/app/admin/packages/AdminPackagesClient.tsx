@@ -234,9 +234,13 @@ export default function AdminPackagesClient({ initialPackages }: AdminPackagesCl
                   <div className="space-y-1.5 text-xs text-slate-400 bg-slate-900/60 p-3 rounded-2xl border border-slate-900">
                     <div className="flex justify-between items-center">
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-gold-500" /> Departure:
+                        <Calendar className="w-3.5 h-3.5 text-gold-500" /> {pkg.hasSpecificDates ? "Dates:" : "Schedule:"}
                       </span>
-                      <span className="font-semibold text-slate-200">{pkg.departureDate}</span>
+                      <span className="font-semibold text-slate-200">
+                        {pkg.hasSpecificDates && pkg.startDate
+                          ? `${new Date(pkg.startDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}${pkg.endDate ? ` - ${new Date(pkg.endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}`
+                          : (pkg.departureCycle || pkg.departureDate || "1st & 3rd Week Monthly")}
+                      </span>
                     </div>
 
                     <div className="flex justify-between items-center">

@@ -46,6 +46,10 @@ interface HeroProps {
     madinahNights: number;
     basePrice: number;
     departureDate: string;
+    hasSpecificDates?: boolean;
+    departureCycle?: string | null;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
     departureCity?: string;
     makkahHotelName?: string | null;
     madinahHotelName?: string | null;
@@ -122,6 +126,29 @@ export default function Hero({
 
   const seatsRemaining = Math.max(0, pkg.totalSeats - pkg.bookedSeats);
   const pkgTitle = localizeField(pkg as Record<string, unknown>, "name", pkg.name);
+
+  const formatDeparture = () => {
+    if (pkg.hasSpecificDates && pkg.startDate) {
+      try {
+        const start = new Date(pkg.startDate).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+        const end = pkg.endDate
+          ? new Date(pkg.endDate).toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })
+          : "";
+        return end ? `${start} – ${end}` : start;
+      } catch {
+        // fallback
+      }
+    }
+    return pkg.departureCycle || pkg.departureDate || "1st & 3rd Week Monthly";
+  };
 
   // Use Admin settings when configured (in default English), with localized fallback for other languages
   const isEnglish = language === "en";
@@ -300,7 +327,7 @@ export default function Hero({
                     {pkgTitle}
                   </h2>
                   <p className="text-xs text-emerald-300 mt-1">
-                    {t("card_departure", "Departure")}: <strong>{pkg.departureDate}</strong> • {pkg.departureCity || "Mumbai"} {t("card_direct_flight", "Direct Flight")}
+                    {pkg.hasSpecificDates ? t("card_departure", "Departure") : "Departures"}: <strong>{formatDeparture()}</strong> • {pkg.departureCity || "Mumbai"} {t("card_direct_flight", "Direct Flight")}
                   </p>
                 </div>
 

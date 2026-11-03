@@ -44,12 +44,36 @@ export default function BookingFlowClient({
   const selectedPkg =
     packages.find((p) => p.slug === selectedPkgSlug) || packages[0] || null;
 
+  const getPackageDepartureLabel = (p: any) => {
+    if (!p) return "";
+    if (p.hasSpecificDates && p.startDate) {
+      try {
+        const start = new Date(p.startDate).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+        const end = p.endDate
+          ? new Date(p.endDate).toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })
+          : "";
+        return end ? `${start} – ${end}` : start;
+      } catch {
+        // fallback
+      }
+    }
+    return p.departureCycle || p.departureDate || "1st & 3rd Week Monthly";
+  };
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     email: "",
     city: "Pune",
-    travelDate: selectedPkg?.departureDate || "",
+    travelDate: selectedPkg ? getPackageDepartureLabel(selectedPkg) : "",
     adults: 2,
     children: 0,
     roomPreference:
@@ -101,10 +125,10 @@ export default function BookingFlowClient({
   }, []);
 
   useEffect(() => {
-    if (selectedPkg?.departureDate) {
+    if (selectedPkg) {
       setFormData((prev) => ({
         ...prev,
-        travelDate: prev.travelDate || selectedPkg.departureDate,
+        travelDate: prev.travelDate || getPackageDepartureLabel(selectedPkg),
       }));
     }
   }, [selectedPkgSlug, selectedPkg]);
@@ -383,7 +407,7 @@ export default function BookingFlowClient({
                   >
                     {packages.map((p) => (
                       <option key={p.id} value={p.slug}>
-                        {p.name} ({p.departureDate} • {p.durationDays} Days — From ₹
+                        {p.name} ({getPackageDepartureLabel(p)} • {p.durationDays} Days — From ₹
                         {(p.priceQuad || p.basePrice).toLocaleString("en-IN")})
                       </option>
                     ))}
@@ -645,7 +669,8 @@ export default function BookingFlowClient({
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gold-600 shrink-0" />
                     <span>
-                      Departure: <strong>{selectedPkg.departureDate}</strong>
+                      {selectedPkg.hasSpecificDates ? "Departure Dates" : "Departure Cycle"}:{" "}
+                      <strong>{getPackageDepartureLabel(selectedPkg)}</strong>
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

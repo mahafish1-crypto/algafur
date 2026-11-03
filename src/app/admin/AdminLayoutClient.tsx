@@ -38,6 +38,7 @@ import {
   Receipt,
   FileSpreadsheet,
   MessageSquareQuote,
+  MessageSquareCode,
   Award,
   Globe,
   CheckCheck,
@@ -149,6 +150,7 @@ export default function AdminLayoutClient({
     { name: "AI Content Studio", href: "/admin/ai-studio/content-generator", icon: FileText, moduleKey: "ai_studio" },
     { name: "Media Asset Library", href: "/admin/media", icon: ImageIcon, moduleKey: "media" },
     { name: "Site Settings", href: "/admin/settings", icon: Settings, moduleKey: "settings" },
+    { name: "WhatsApp Bot API", href: "/admin/settings/whatsapp-api", icon: MessageSquareCode, moduleKey: "settings" },
     { name: "Audit Logs", href: "/admin/audit-logs", icon: History, moduleKey: "audit_logs" },
     { name: "User & Role Access", href: "/admin/users", icon: UserCheck, moduleKey: "users" },
   ];

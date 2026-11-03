@@ -26,7 +26,13 @@ export interface PackageCardData {
   madinahNights: number;
   basePrice: number;
   departureDate: string;
+  returnDate?: string;
   departureCity?: string;
+  hasSpecificDates?: boolean;
+  departureCycle?: string | null;
+  startDate?: string | Date | null;
+  endDate?: string | Date | null;
+  highlights?: string | null;
   airline?: string | null;
   flightType?: string | null;
   flightDetails?: string | null;
@@ -51,6 +57,30 @@ export default function PackageCard({ pkg }: PackageCardProps) {
   const seatsRemaining = Math.max(0, pkg.totalSeats - pkg.bookedSeats);
   const isLimited = seatsRemaining > 0 && seatsRemaining <= 18;
   const localizedName = localizeField(pkg, "name", pkg.name);
+
+  const formatDepartureInfo = () => {
+    if (pkg.hasSpecificDates) {
+      if (pkg.startDate && pkg.endDate) {
+        try {
+          const start = new Date(pkg.startDate);
+          const end = new Date(pkg.endDate);
+          const startStr = start.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+          });
+          const endStr = end.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+          });
+          return `${startStr} - ${endStr}`;
+        } catch {
+          // fallback
+        }
+      }
+      return pkg.departureDate || "Fixed Group Departure";
+    }
+    return pkg.departureCycle || "1st & 3rd Week Monthly";
+  };
 
   const hasFlight = Boolean(
     pkg.airline ||
@@ -138,11 +168,13 @@ export default function PackageCard({ pkg }: PackageCardProps) {
       {/* Body Content */}
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div>
-          {/* Departure Date */}
+          {/* Departure Date or Recurring Cycle */}
           <div className="flex items-center gap-1.5 text-xs text-emerald-800 font-semibold mb-1">
             <Calendar className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
-            <span>
-              {t("card_departure", "Departure")}: {pkg.departureDate}
+            <span className="truncate">
+              {pkg.hasSpecificDates
+                ? `${t("card_fixed_dates", "Dates")}: ${formatDepartureInfo()}`
+                : `${t("card_departures", "Departures")}: ${formatDepartureInfo()}`}
             </span>
           </div>
 

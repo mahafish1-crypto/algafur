@@ -168,3 +168,4 @@ To bring `www.algafur.com` and `algafur.com` online immediately:
 3. **Automatic Activation:**
    - The moment HostingRaja removes `clientHold`, Verisign will propagate `NS1.VERCEL-DNS.COM` and `NS2.VERCEL-DNS.COM`.
    - `https://www.algafur.com` and `https://algafur.com` will immediately go live with zero code changes needed.
+

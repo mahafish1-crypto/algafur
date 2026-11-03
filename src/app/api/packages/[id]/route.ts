@@ -92,6 +92,12 @@ async function handleUpdate(
     if (updateData.madinahHotelRating !== undefined) updateData.madinahHotelRating = updateData.madinahHotelRating ? Number(updateData.madinahHotelRating) : 4;
     if (updateData.sortOrder !== undefined) updateData.sortOrder = Number(updateData.sortOrder) || 0;
 
+    if (updateData.hasSpecificDates !== undefined) updateData.hasSpecificDates = Boolean(updateData.hasSpecificDates);
+    if (updateData.departureCycle !== undefined) updateData.departureCycle = updateData.departureCycle ? String(updateData.departureCycle).trim() : null;
+    if (updateData.startDate !== undefined) updateData.startDate = updateData.startDate ? new Date(updateData.startDate) : null;
+    if (updateData.endDate !== undefined) updateData.endDate = updateData.endDate ? new Date(updateData.endDate) : null;
+    if (updateData.highlights !== undefined) updateData.highlights = updateData.highlights ? String(updateData.highlights).trim() : null;
+
     if (updateData.gallery && typeof updateData.gallery !== "string") {
       updateData.gallery = JSON.stringify(updateData.gallery);
     }

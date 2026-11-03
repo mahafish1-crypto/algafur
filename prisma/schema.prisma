@@ -216,6 +216,11 @@ model Package {
   departureDate      String             @default("31 October 2026")
   returnDate         String             @default("19 November 2026")
   departureCity      String             @default("Mumbai")
+  hasSpecificDates   Boolean            @default(false)
+  departureCycle     String?            @default("1st & 3rd Week of Every Month")
+  startDate          DateTime?
+  endDate            DateTime?
+  highlights         String?
   
   makkahHotelId      String?
   madinahHotelId     String?
