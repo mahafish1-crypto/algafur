@@ -20,6 +20,7 @@ import {
   Trash2,
   Archive,
   Compass,
+  Sparkles,
 } from "lucide-react";
 import PackageFormModal from "@/components/admin/PackageFormModal";
 
@@ -126,13 +127,13 @@ export default function AdminPackagesClient({ initialPackages }: AdminPackagesCl
             <span>Public Catalog ↗</span>
           </Link>
 
-          <button
-            onClick={handleOpenCreate}
+          <Link
+            href="/admin/packages/create"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 hover:from-gold-300 hover:to-gold-400 text-forest-950 font-bold text-xs shadow-gold transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>+ Add New Package</span>
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -302,13 +303,21 @@ export default function AdminPackagesClient({ initialPackages }: AdminPackagesCl
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => handleOpenEdit(pkg)}
+                    <Link
+                      href={`/admin/packages/${pkg.id}/edit`}
                       className="py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl border border-slate-800 text-xs font-semibold flex items-center gap-1 transition-colors"
-                      title="Edit Entire Package"
+                      title="Edit in Full Wizard"
                     >
                       <Edit className="w-3.5 h-3.5 text-gold-400" />
                       <span>Edit</span>
+                    </Link>
+
+                    <button
+                      onClick={() => handleOpenEdit(pkg)}
+                      className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-gold-400 rounded-xl border border-slate-800 transition-colors"
+                      title="Quick Edit Modal"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
                     </button>
 
                     <Link
