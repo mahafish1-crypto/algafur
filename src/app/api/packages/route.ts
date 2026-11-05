@@ -12,23 +12,88 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const status = searchParams.get("status");
     const type = searchParams.get("type");
+    const search = searchParams.get("q") || searchParams.get("search");
+    const featured = searchParams.get("featured") || searchParams.get("isFeatured");
+    const departureCity = searchParams.get("departureCity") || searchParams.get("city");
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
+    const duration = searchParams.get("duration") || searchParams.get("durationDays");
+    const slug = searchParams.get("slug");
+    const sort = searchParams.get("sort") || "newest";
+    const limitParam = searchParams.get("limit");
+    const limit = limitParam ? Math.min(100, Math.max(1, Number(limitParam))) : undefined;
+    const pageParam = searchParams.get("page");
+    const page = pageParam ? Math.max(1, Number(pageParam)) : 1;
 
     const where: any = {};
     if (status && status !== "ALL") where.status = status;
     if (type && type !== "ALL") where.type = type;
+    if (slug) where.slug = slug;
+    if (featured !== null && featured !== undefined && featured !== "") {
+      where.isFeatured = featured === "true" || featured === "1";
+    }
+    if (departureCity && departureCity !== "ALL") {
+      where.departureCity = { contains: departureCity, mode: "insensitive" };
+    }
+    if (duration && !isNaN(Number(duration))) {
+      where.durationDays = Number(duration);
+    }
+    if (minPrice || maxPrice) {
+      where.basePrice = {};
+      if (minPrice && !isNaN(Number(minPrice))) where.basePrice.gte = Number(minPrice);
+      if (maxPrice && !isNaN(Number(maxPrice))) where.basePrice.lte = Number(maxPrice);
+    }
+    if (search && search.trim() !== "") {
+      const q = search.trim();
+      where.OR = [
+        { name: { contains: q, mode: "insensitive" } },
+        { overview: { contains: q, mode: "insensitive" } },
+        { badge: { contains: q, mode: "insensitive" } },
+        { makkahHotelName: { contains: q, mode: "insensitive" } },
+        { madinahHotelName: { contains: q, mode: "insensitive" } },
+        { airline: { contains: q, mode: "insensitive" } },
+        { departureCity: { contains: q, mode: "insensitive" } },
+      ];
+    }
 
-    const packages = await prisma.package.findMany({
-      where,
-      include: {
-        inclusions: true,
-        itineraries: { orderBy: { dayNumber: "asc" } },
-        departureGroups: true,
-        _count: { select: { bookings: true } },
-      },
-      orderBy: { createdAt: "desc" },
+    let orderBy: any = [{ isFeatured: "desc" }, { createdAt: "desc" }];
+    if (sort === "price_asc" || sort === "price-low") orderBy = { basePrice: "asc" };
+    else if (sort === "price_desc" || sort === "price-high") orderBy = { basePrice: "desc" };
+    else if (sort === "duration" || sort === "duration_desc") orderBy = { durationDays: "desc" };
+    else if (sort === "duration_asc") orderBy = { durationDays: "asc" };
+    else if (sort === "popular") orderBy = [{ isPopular: "desc" }, { createdAt: "desc" }];
+    else if (sort === "newest") orderBy = { createdAt: "desc" };
+    else if (sort === "oldest") orderBy = { createdAt: "asc" };
+
+    const take = limit;
+    const skip = limit ? (page - 1) * limit : undefined;
+
+    const [totalCount, packages] = await Promise.all([
+      prisma.package.count({ where }),
+      prisma.package.findMany({
+        where,
+        include: {
+          inclusions: true,
+          itineraries: { orderBy: { dayNumber: "asc" } },
+          departureGroups: true,
+          makkahHotel: true,
+          madinahHotel: true,
+          _count: { select: { bookings: true } },
+        },
+        orderBy,
+        take,
+        skip,
+      }),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      count: packages.length,
+      total: totalCount,
+      page: limit ? page : 1,
+      totalPages: limit ? Math.ceil(totalCount / limit) : 1,
+      packages,
     });
-
-    return NextResponse.json({ success: true, packages });
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMsg }, { status: 500 });
