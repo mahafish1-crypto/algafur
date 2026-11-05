@@ -97,6 +97,14 @@ async function handleUpdate(
     if (updateData.startDate !== undefined) updateData.startDate = updateData.startDate ? new Date(updateData.startDate) : null;
     if (updateData.endDate !== undefined) updateData.endDate = updateData.endDate ? new Date(updateData.endDate) : null;
     if (updateData.highlights !== undefined) updateData.highlights = updateData.highlights ? String(updateData.highlights).trim() : null;
+    if (body.overview !== undefined || body.description !== undefined) {
+      updateData.overview = body.overview !== undefined ? String(body.overview).trim() : String(body.description).trim();
+    }
+    if (body.ziyaratLandmarks !== undefined) {
+      updateData.highlights = typeof body.ziyaratLandmarks === "string"
+        ? body.ziyaratLandmarks
+        : JSON.stringify(body.ziyaratLandmarks);
+    }
 
     if (updateData.gallery && typeof updateData.gallery !== "string") {
       updateData.gallery = JSON.stringify(updateData.gallery);

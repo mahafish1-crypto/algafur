@@ -37,6 +37,7 @@ import {
   parseHotelAmenities,
   formatHotelCityLabel,
 } from "@/lib/hotel-helpers";
+import { parseZiyaratLandmarks } from "@/lib/ziyarat-helpers";
 import type { TeamMemberProfile } from "@/lib/team-data";
 
 interface PackageDetailClientProps {
@@ -100,6 +101,8 @@ export default function PackageDetailClient({
         typeof pkg.features === "string" ? pkg.features.split(",") : [];
     }
   }
+
+  const ziyaratLandmarks = parseZiyaratLandmarks(pkg.highlights);
 
   const rawInclusions = (pkg.inclusions || []).filter((i: any) => i.isIncluded);
   const rawExclusions = (pkg.inclusions || []).filter((i: any) => !i.isIncluded);
@@ -650,8 +653,10 @@ export default function PackageDetailClient({
                   <Compass className="w-5 h-5 text-gold-600" />
                   Package Overview
                 </h2>
-                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
-                  {pkg.overview}
+                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed whitespace-pre-line">
+                  {pkg.overview ||
+                    pkg.description ||
+                    "Experience a blessed pilgrimage with AL GAFUR INTERNATIONAL TOURS AND TRAVELS."}
                 </p>
               </div>
 
@@ -853,27 +858,6 @@ export default function PackageDetailClient({
               )}
             </div>
 
-            {/* Features Highlights */}
-            {packageFeatures.length > 0 && (
-              <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-4">
-                <h2 className="text-xl font-serif font-bold text-forest-950 flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-gold-600" />
-                  Package Key Highlights &amp; Features
-                </h2>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {packageFeatures.map((feat, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3.5 py-1.5 rounded-xl bg-ivory-100 text-forest-950 font-semibold text-xs border border-gold-500/30 flex items-center gap-2 shadow-xs"
-                    >
-                      <span className="w-2 h-2 rounded-full bg-emerald-600" />
-                      {feat}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* City Stay Split & Pilgrimage Schedule */}
             <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-4">
@@ -1019,89 +1003,104 @@ export default function PackageDetailClient({
               </div>
             </div>
 
-            {/* Package Highlights & Holy Ziyarat Details */}
-            <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
-                <div>
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-gold-700 bg-gold-50 px-2.5 py-1 rounded-full border border-gold-200 mb-1.5">
-                    <Sparkles className="w-3 h-3 text-gold-600" />
-                    Curated Experiences
+            {/* HOLY ZIYARAT LANDMARKS COVERED SECTION */}
+            {(ziyaratLandmarks.makkah.length > 0 || ziyaratLandmarks.madinah.length > 0) && (
+              <div
+                id="ziyarat-landmarks"
+                className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 pb-4">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-gold-700 bg-gold-50 px-2.5 py-1 rounded-full border border-gold-200 mb-1.5">
+                      <Compass className="w-3 h-3 text-gold-600" />
+                      Guided Sacred Heritage
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest-950 flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-emerald-700" />
+                      Holy Ziyarat Landmarks Covered
+                    </h2>
+                  </div>
+                  <span className="text-xs text-neutral-500 font-medium">
+                    Total: {ziyaratLandmarks.makkah.length + ziyaratLandmarks.madinah.length} Sacred Sites
                   </span>
-                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest-950">
-                    Package Highlights &amp; Holy Ziyarat Details
-                  </h2>
                 </div>
-              </div>
 
-              {pkg.highlights ? (
-                <div className="text-xs sm:text-sm text-neutral-700 leading-relaxed whitespace-pre-line bg-ivory-50/70 p-5 rounded-2xl border border-neutral-200">
-                  {pkg.highlights}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/50 space-y-2">
-                    <h3 className="text-sm font-serif font-bold text-forest-950 flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-emerald-700" />
-                      Guided Makkah Ziyarat Tour
-                    </h3>
-                    <p className="text-xs text-neutral-600 leading-relaxed">
-                      Visit Jabal Al-Noor (Ghar Hira), Jabal Thawr, Mina tents, Plains of Arafat (Jabal Al-Rahmah), Muzdalifah, and Jamarat under scholar guidance.
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/50 space-y-2">
-                    <h3 className="text-sm font-serif font-bold text-forest-950 flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-emerald-700" />
-                      Guided Madinah Ziyarat Tour
-                    </h3>
-                    <p className="text-xs text-neutral-600 leading-relaxed">
-                      Visit historic Masjid Quba (performing 2 Rakat Sunnah), Mount Uhud &amp; Martyrs’ Cemetery, Masjid Al-Qiblatain, and the Seven Mosques (Saba Masajid).
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/50 space-y-2">
-                    <h3 className="text-sm font-serif font-bold text-forest-950 flex items-center gap-2">
-                      <Utensils className="w-4 h-4 text-emerald-700" />
-                      Indian Buffet Catering
-                    </h3>
-                    <p className="text-xs text-neutral-600 leading-relaxed">
-                      Three wholesome, freshly prepared hot Indian meals daily (Breakfast, Lunch, and Dinner) catering to Indian pilgrim tastes.
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl border border-neutral-200 bg-ivory-50/50 space-y-2">
-                    <h3 className="text-sm font-serif font-bold text-forest-950 flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                      End-to-End Operational Care
-                    </h3>
-                    <p className="text-xs text-neutral-600 leading-relaxed">
-                      Electronic Umrah visa with medical insurance, luxury air-conditioned bus transfers, complimentary 5L Zamzam container, and 24/7 dedicated group assistance.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Optional Collapsible for archived Day-by-Day Stages (Zero data loss) */}
-              {(pkg.itineraries || []).length > 0 && (
-                <details className="group border border-neutral-200 rounded-2xl p-4 bg-neutral-50/50">
-                  <summary className="cursor-pointer text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center justify-between">
-                    <span>View Day-by-Day Stage Archive ({pkg.itineraries.length} Stages)</span>
-                    <span className="text-[10px] text-neutral-400 group-open:rotate-90 transition-transform">▸</span>
-                  </summary>
-                  <div className="mt-3 space-y-3 pt-3 border-t border-neutral-200/70">
-                    {pkg.itineraries.map((day: any) => (
-                      <div key={day.id} className="p-3 bg-white rounded-xl border border-neutral-200 text-xs space-y-1">
-                        <div className="flex justify-between font-bold text-forest-950">
-                          <span>Day {day.dayNumber}: {day.title}</span>
-                          <span className="text-neutral-500 font-normal">{day.location}</span>
-                        </div>
-                        <p className="text-neutral-600 text-[11px] leading-relaxed">{day.activities}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Makkah Ziyarat Landmarks */}
+                  {ziyaratLandmarks.makkah.length > 0 && (
+                    <div className="p-5 rounded-2xl border border-emerald-100 bg-emerald-50/40 space-y-3">
+                      <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2.5">
+                        <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-700" />
+                          Makkah Mukarrama Landmarks
+                        </span>
+                        <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          {ziyaratLandmarks.makkah.length} Sites
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </details>
-              )}
-            </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {ziyaratLandmarks.makkah.map((landmark, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1.5 text-xs bg-white text-forest-950 px-3 py-1.5 rounded-xl border border-emerald-200/80 font-medium shadow-2xs"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
+                            {landmark}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Madinah Ziyarat Landmarks */}
+                  {ziyaratLandmarks.madinah.length > 0 && (
+                    <div className="p-5 rounded-2xl border border-gold-200/80 bg-gold-50/40 space-y-3">
+                      <div className="flex items-center justify-between border-b border-gold-200/60 pb-2.5">
+                        <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-gold-600" />
+                          Madinah Munawwara Landmarks
+                        </span>
+                        <span className="text-[11px] font-bold text-amber-800 bg-gold-100 px-2 py-0.5 rounded-full">
+                          {ziyaratLandmarks.madinah.length} Sites
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {ziyaratLandmarks.madinah.map((landmark, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1.5 text-xs bg-white text-forest-950 px-3 py-1.5 rounded-xl border border-gold-200 font-medium shadow-2xs"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-gold-500 shrink-0" />
+                            {landmark}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Optional Collapsible for archived Day-by-Day Stages (Zero data loss) */}
+                {(pkg.itineraries || []).length > 0 && (
+                  <details className="group border border-neutral-200 rounded-2xl p-4 bg-neutral-50/50">
+                    <summary className="cursor-pointer text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center justify-between">
+                      <span>View Day-by-Day Stage Archive ({pkg.itineraries.length} Stages)</span>
+                      <span className="text-[10px] text-neutral-400 group-open:rotate-90 transition-transform">▸</span>
+                    </summary>
+                    <div className="mt-3 space-y-3 pt-3 border-t border-neutral-200/70">
+                      {pkg.itineraries.map((day: any) => (
+                        <div key={day.id} className="p-3 bg-white rounded-xl border border-neutral-200 text-xs space-y-1">
+                          <div className="flex justify-between font-bold text-forest-950">
+                            <span>Day {day.dayNumber}: {day.title}</span>
+                            <span className="text-neutral-500 font-normal">{day.location}</span>
+                          </div>
+                          <p className="text-neutral-600 text-[11px] leading-relaxed">{day.activities}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </div>
+            )}
 
             {/* Travel Requirements & Terms */}
             <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-4">

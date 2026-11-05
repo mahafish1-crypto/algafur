@@ -252,7 +252,13 @@ export async function POST(req: NextRequest) {
         departureCycle: departureCycle ? String(departureCycle).trim() : "1st & 3rd Week of Every Month",
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
-        highlights: highlights ? String(highlights).trim() : null,
+        highlights: highlights
+          ? String(highlights).trim()
+          : body.ziyaratLandmarks
+          ? typeof body.ziyaratLandmarks === "string"
+            ? body.ziyaratLandmarks
+            : JSON.stringify(body.ziyaratLandmarks)
+          : null,
         featuredImage: featuredImage || "/brand/poster.jpg",
         heroImage,
         thumbnailImage,
@@ -286,7 +292,7 @@ export async function POST(req: NextRequest) {
         status,
         isFeatured: Boolean(isFeatured),
         isPopular: Boolean(isPopular),
-        overview,
+        overview: overview ? String(overview).trim() : body.description ? String(body.description).trim() : null,
         travelRequirements,
         termsAndConditions,
         cancellationPolicy,
