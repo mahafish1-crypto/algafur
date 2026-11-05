@@ -124,6 +124,55 @@ async function handleUpdate(
         data: updateData,
       });
 
+      // 1b. Automatically keep linked Hotel records in sync if hotel name/distance was updated
+      const targetMakkahId = updateData.makkahHotelId || existing.makkahHotelId;
+      if (
+        targetMakkahId &&
+        (updateData.makkahHotelName ||
+          updateData.makkahDistance ||
+          updateData.makkahHotelRating !== undefined)
+      ) {
+        await tx.hotel
+          .update({
+            where: { id: targetMakkahId },
+            data: {
+              name: updateData.makkahHotelName || undefined,
+              distanceFromHaram: updateData.makkahDistance || undefined,
+              starRating:
+                updateData.makkahHotelRating !== undefined
+                  ? Number(updateData.makkahHotelRating)
+                  : undefined,
+            },
+          })
+          .catch((err) => {
+            console.warn("Could not sync linked Makkah hotel:", err);
+          });
+      }
+
+      const targetMadinahId = updateData.madinahHotelId || existing.madinahHotelId;
+      if (
+        targetMadinahId &&
+        (updateData.madinahHotelName ||
+          updateData.madinahDistance ||
+          updateData.madinahHotelRating !== undefined)
+      ) {
+        await tx.hotel
+          .update({
+            where: { id: targetMadinahId },
+            data: {
+              name: updateData.madinahHotelName || undefined,
+              distanceFromHaram: updateData.madinahDistance || undefined,
+              starRating:
+                updateData.madinahHotelRating !== undefined
+                  ? Number(updateData.madinahHotelRating)
+                  : undefined,
+            },
+          })
+          .catch((err) => {
+            console.warn("Could not sync linked Madinah hotel:", err);
+          });
+      }
+
       // 2. Update Inclusions / Exclusions if provided
       if (inclusions !== undefined || exclusions !== undefined) {
         await tx.packageInclusion.deleteMany({ where: { packageId: id } });
@@ -208,6 +257,8 @@ async function handleUpdate(
         inclusions: true,
         itineraries: { orderBy: { dayNumber: "asc" } },
         departureGroups: true,
+        makkahHotel: true,
+        madinahHotel: true,
       },
     });
 

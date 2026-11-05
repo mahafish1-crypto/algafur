@@ -194,15 +194,15 @@ export default function Hero({
   const stat2Subtitle =
     (isEnglish && settings.hero_stat_2_subtitle) || t("hero_pilgrims_served", "Guided Across Maharashtra");
 
-  // Resolved Makkah & Madinah Hotel details from linked DB relation or package fields
-  const makkahName = pkg.makkahHotel?.name || pkg.makkahHotelName || "Diyafa Jamal";
-  const makkahDist = pkg.makkahHotel?.distanceFromHaram || pkg.makkahDistance || "500m";
-  const makkahStars = pkg.makkahHotel?.starRating || pkg.makkahHotelRating || 4;
+  // Resolved Makkah & Madinah Hotel details from package fields or linked DB relation
+  const makkahName = pkg.makkahHotelName || pkg.makkahHotel?.name || "Diyafa Jamal";
+  const makkahDist = pkg.makkahDistance || pkg.makkahHotel?.distanceFromHaram || "500m";
+  const makkahStars = pkg.makkahHotelRating || pkg.makkahHotel?.starRating || 4;
   const makkahThumb = extractMainHotelImage(pkg.makkahHotel?.images, pkg.makkahImage);
 
-  const madinahName = pkg.madinahHotel?.name || pkg.madinahHotelName || "Ilaf Kuba";
-  const madinahDist = pkg.madinahHotel?.distanceFromHaram || pkg.madinahDistance || "400m";
-  const madinahStars = pkg.madinahHotel?.starRating || pkg.madinahHotelRating || 4;
+  const madinahName = pkg.madinahHotelName || pkg.madinahHotel?.name || "Ilaf Kuba";
+  const madinahDist = pkg.madinahDistance || pkg.madinahHotel?.distanceFromHaram || "400m";
+  const madinahStars = pkg.madinahHotelRating || pkg.madinahHotel?.starRating || 4;
   const madinahThumb = extractMainHotelImage(pkg.madinahHotel?.images, pkg.madinahImage);
 
   const guidesLabel =

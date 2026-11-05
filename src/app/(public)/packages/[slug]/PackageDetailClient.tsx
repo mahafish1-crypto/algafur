@@ -186,31 +186,38 @@ export default function PackageDetailClient({
     pkg.madinahImage
   );
 
-  const makkahName = makkahHotel?.name || pkg.makkahHotelName || "";
-  const madinahName = madinahHotel?.name || pkg.madinahHotelName || "";
+  const makkahName = pkg.makkahHotelName?.trim() || makkahHotel?.name || "";
+  const madinahName = pkg.madinahHotelName?.trim() || madinahHotel?.name || "";
 
   const makkahDistance =
+    pkg.makkahDistance?.trim() ||
     makkahHotel?.distanceFromHaram ||
     makkahHotel?.distanceToHaram ||
-    pkg.makkahDistance ||
     "";
   const madinahDistance =
+    pkg.madinahDistance?.trim() ||
     madinahHotel?.distanceFromHaram ||
     madinahHotel?.distanceToHaram ||
-    pkg.madinahDistance ||
     "";
 
   const makkahWalkingTime = makkahHotel?.walkingTime || "";
   const madinahWalkingTime = madinahHotel?.walkingTime || "";
 
   const makkahStars =
-    typeof makkahHotel?.starRating === "number" && makkahHotel.starRating > 0
+    typeof pkg.makkahHotelRating === "number" && pkg.makkahHotelRating > 0
+      ? Math.min(5, pkg.makkahHotelRating)
+      : typeof makkahHotel?.starRating === "number" && makkahHotel.starRating > 0
       ? Math.min(5, makkahHotel.starRating)
-      : 0;
+      : 4;
   const madinahStars =
-    typeof madinahHotel?.starRating === "number" && madinahHotel.starRating > 0
+    typeof pkg.madinahHotelRating === "number" && pkg.madinahHotelRating > 0
+      ? Math.min(5, pkg.madinahHotelRating)
+      : typeof madinahHotel?.starRating === "number" && madinahHotel.starRating > 0
       ? Math.min(5, madinahHotel.starRating)
-      : 0;
+      : 4;
+
+  const makkahDesc = pkg.makkahDescription?.trim() || makkahHotel?.description || "";
+  const madinahDesc = pkg.madinahDescription?.trim() || madinahHotel?.description || "";
 
   const makkahAmenities = parseHotelAmenities(
     makkahHotel?.amenities || pkg.makkahAmenities
@@ -346,23 +353,21 @@ export default function PackageDetailClient({
                 id="package-hotels"
                 className="bg-white p-7 sm:p-9 rounded-3xl border-2 border-gold-500/40 shadow-md space-y-6 scroll-mt-28"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-neutral-100 pb-4">
                   <div>
-                    <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-gold-700 bg-gold-50 px-2.5 py-1 rounded-full border border-gold-200 mb-1.5">
-                      <Sparkles className="w-3 h-3" />
-                      Featured Sanctuary Stays
+                    <span className="text-xs uppercase text-[#d4af37] font-semibold tracking-wider block">
+                      FEATURED SANCTUARY STAYS
                     </span>
-                    <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest-950 flex items-center gap-2">
-                      <Building className="w-5 h-5 text-gold-600" />
+                    <h2 className="text-2xl font-serif text-gray-900 mt-1 flex items-center gap-2 font-bold">
+                      <Building className="w-5 h-5 text-[#d4af37]" />
                       Hotel Accommodations in Makkah &amp; Madinah
                     </h2>
                   </div>
                   <Link
+                    className="text-sm text-[#081d12] hover:text-[#d4af37] font-medium flex items-center gap-1 shrink-0 self-start sm:self-auto"
                     href="/hotels"
-                    className="text-xs font-bold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1"
                   >
-                    Explore All Hotels
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    Explore All Hotels &rarr;
                   </Link>
                 </div>
 
@@ -436,9 +441,9 @@ export default function PackageDetailClient({
                           {makkahName}
                         </h3>
 
-                        {makkahHotel?.description && (
+                        {makkahDesc && (
                           <p className="text-xs text-neutral-600 leading-relaxed">
-                            {makkahHotel.description}
+                            {makkahDesc}
                           </p>
                         )}
 
@@ -570,9 +575,9 @@ export default function PackageDetailClient({
                           {madinahName}
                         </h3>
 
-                        {madinahHotel?.description && (
+                        {madinahDesc && (
                           <p className="text-xs text-neutral-600 leading-relaxed">
-                            {madinahHotel.description}
+                            {madinahDesc}
                           </p>
                         )}
 
@@ -1183,18 +1188,18 @@ export default function PackageDetailClient({
               </div>
 
               {/* Departure Schedule / Dates in Sidebar */}
-              <div className="bg-ivory-50 p-3.5 rounded-xl border border-neutral-200 text-xs space-y-1.5">
-                <div className="flex items-center justify-between">
+              <div className="bg-ivory-50 p-3.5 rounded-xl border border-neutral-200 text-xs space-y-2">
+                <div className="flex flex-col gap-0.5">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
                     {pkg.hasSpecificDates ? "Departure Dates" : "Departure Cycle"}
                   </span>
-                  <span className="font-bold text-forest-950 text-right truncate max-w-[170px]">
+                  <span className="font-bold text-forest-950 text-xs whitespace-normal break-words">
                     {departureScheduleText}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-neutral-600 pt-1 border-t border-neutral-200/60 text-[11px]">
-                  <span>Stay Breakdown:</span>
-                  <span className="font-semibold text-emerald-800">
+                <div className="flex items-center justify-between text-neutral-600 pt-1.5 border-t border-neutral-200/60 text-[11px] whitespace-normal gap-2">
+                  <span className="shrink-0 font-medium">Stay Breakdown:</span>
+                  <span className="font-semibold text-emerald-800 text-right whitespace-normal">
                     {pkg.durationDays} Days ({pkg.makkahNights}N / {pkg.madinahNights}N)
                   </span>
                 </div>
@@ -1215,17 +1220,17 @@ export default function PackageDetailClient({
                     </a>
                   </div>
                   {makkahName && (
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-neutral-500">Makkah:</span>
-                      <span className="font-bold text-forest-950 truncate">
+                    <div className="flex items-start justify-between gap-2 text-[11px]">
+                      <span className="text-neutral-500 shrink-0">Makkah:</span>
+                      <span className="font-bold text-forest-950 text-right whitespace-normal break-words">
                         {makkahName}
                       </span>
                     </div>
                   )}
                   {madinahName && (
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-neutral-500">Madinah:</span>
-                      <span className="font-bold text-forest-950 truncate">
+                    <div className="flex items-start justify-between gap-2 text-[11px]">
+                      <span className="text-neutral-500 shrink-0">Madinah:</span>
+                      <span className="font-bold text-forest-950 text-right whitespace-normal break-words">
                         {madinahName}
                       </span>
                     </div>

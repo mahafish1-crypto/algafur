@@ -150,26 +150,30 @@ export async function GET(req: NextRequest) {
 
       // Hotel Distances & Addresses
       const makkahHotelName =
-        pkg.makkahHotel?.name || pkg.makkahHotelName || "Diyafa Jamal or similar";
+        pkg.makkahHotelName || pkg.makkahHotel?.name || "Diyafa Jamal or similar";
       const makkahDistance =
-        pkg.makkahHotel?.distanceFromHaram ||
         pkg.makkahDistance ||
+        pkg.makkahHotel?.distanceFromHaram ||
         "500m walking";
       const makkahAddress =
-        pkg.makkahHotel?.address || "Ajyad / Ibrahim Khalil Road, Makkah Al-Mukarramah";
+        pkg.makkahDescription ||
+        pkg.makkahHotel?.address ||
+        "Ajyad / Ibrahim Khalil Road, Makkah Al-Mukarramah";
       const makkahStars =
-        pkg.makkahHotel?.starRating || pkg.makkahHotelRating || 4;
+        pkg.makkahHotelRating || pkg.makkahHotel?.starRating || 4;
 
       const madinahHotelName =
-        pkg.madinahHotel?.name || pkg.madinahHotelName || "Ilaf Kuba or similar";
+        pkg.madinahHotelName || pkg.madinahHotel?.name || "Ilaf Kuba or similar";
       const madinahDistance =
-        pkg.madinahHotel?.distanceFromHaram ||
         pkg.madinahDistance ||
+        pkg.madinahHotel?.distanceFromHaram ||
         "400m walking";
       const madinahAddress =
-        pkg.madinahHotel?.address || "Central Northern Area, Madinah Al-Munawwarah";
+        pkg.madinahDescription ||
+        pkg.madinahHotel?.address ||
+        "Central Northern Area, Madinah Al-Munawwarah";
       const madinahStars =
-        pkg.madinahHotel?.starRating || pkg.madinahHotelRating || 4;
+        pkg.madinahHotelRating || pkg.madinahHotel?.starRating || 4;
 
       // Flight Details
       const isDirect =
