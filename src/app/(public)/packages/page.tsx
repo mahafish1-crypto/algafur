@@ -1,6 +1,9 @@
 import PackagesClientView from "./PackagesClientView";
 import { getPublishedPackagesCatalog } from "@/lib/packages-data";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function PackagesPage({
   searchParams,
 }: {

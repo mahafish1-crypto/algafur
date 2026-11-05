@@ -5,7 +5,8 @@ import PosterSpotlight from "@/components/home/PosterSpotlight";
 import { getPublishedPackagesCatalog } from "@/lib/packages-data";
 import { getSiteSettings } from "@/lib/settings";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   title: "Umrah Packages 2026 / 1448 Hijri",

@@ -10,7 +10,8 @@ import PackageDetailClient from "./PackageDetailClient";
 
 import { buildCanonicalUrl } from "@/lib/site-url";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function generateMetadata({
   params,

@@ -3,7 +3,7 @@ import prisma from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAuth } from "@/lib/api-auth";
-import { PACKAGES_CACHE_TAG } from "@/lib/packages-data";
+import { PACKAGES_CACHE_TAG, revalidatePackagesCache } from "@/lib/packages-data";
 
 export const dynamic = "force-dynamic";
 
@@ -211,20 +211,8 @@ async function handleUpdate(
       },
     });
 
-    try {
-      revalidateTag(PACKAGES_CACHE_TAG);
-      revalidatePath("/");
-      revalidatePath("/packages");
-      revalidatePath("/booking");
-      if (existing.slug) {
-        revalidatePath(`/packages/${existing.slug}`);
-      }
-      if (fullPackage?.slug && fullPackage.slug !== existing.slug) {
-        revalidatePath(`/packages/${fullPackage.slug}`);
-      }
-    } catch (e) {
-      console.warn("revalidatePath warning:", e);
-    }
+    // Instant cache purge across all public and admin routes, handling old and new slugs
+    revalidatePackagesCache([existing.slug, fullPackage?.slug]);
 
     return NextResponse.json({ success: true, package: fullPackage });
   } catch (error: unknown) {
@@ -267,15 +255,8 @@ export async function DELETE(
         where: { id },
         data: { status: "ARCHIVED" },
       });
-      try {
-        revalidateTag(PACKAGES_CACHE_TAG);
-        revalidatePath("/");
-        revalidatePath("/packages");
-        revalidatePath("/booking");
-        revalidatePath(`/packages/${existing.slug}`);
-      } catch (e) {
-        console.warn("revalidatePath warning:", e);
-      }
+      // Instant cache purge across all public and admin routes
+      revalidatePackagesCache([existing.slug, archived.slug]);
       return NextResponse.json({
         success: true,
         message: "Package has existing pilgrim bookings and was archived instead of deleted.",
@@ -294,15 +275,8 @@ export async function DELETE(
       details: { name: existing.name, slug: existing.slug },
     });
 
-    try {
-      revalidateTag(PACKAGES_CACHE_TAG);
-      revalidatePath("/");
-      revalidatePath("/packages");
-      revalidatePath("/booking");
-      revalidatePath(`/packages/${existing.slug}`);
-    } catch (e) {
-      console.warn("revalidatePath warning:", e);
-    }
+    // Instant cache purge across all public and admin routes
+    revalidatePackagesCache([existing.slug]);
 
     return NextResponse.json({ success: true, message: "Package deleted successfully" });
   } catch (error: unknown) {

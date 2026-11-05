@@ -4,7 +4,8 @@ import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
 import { getPublishedPackagesCatalog } from "@/lib/packages-data";
 import { getSiteSettings } from "@/lib/settings";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   title: "Ramadan Umrah 2027 / 1448 Hijri",

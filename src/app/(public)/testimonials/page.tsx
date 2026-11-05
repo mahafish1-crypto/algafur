@@ -2,7 +2,8 @@ import React from "react";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import { getPublishedTestimonials } from "@/lib/packages-data";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   title: "Pilgrim Testimonials & Reviews",

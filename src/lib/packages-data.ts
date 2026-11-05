@@ -1,217 +1,193 @@
 import { cache } from "react";
-import { unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import prisma from "@/lib/db";
 
 export const PACKAGES_CACHE_TAG = "packages";
+export const HOTELS_CACHE_TAG = "hotels";
 
 export const LEGACY_PACKAGE_SLUGS: Record<string, string> = {
   u: "umrah-standard-package-15-days",
   "u-6338": "umrah-super-deluxe-package-15-days",
 };
 
-const fetchPublishedPackagesCatalog = unstable_cache(
-  async () => {
-    return prisma.package.findMany({
-      where: { status: "PUBLISHED" },
-      include: {
-        inclusions: true,
-        makkahHotel: true,
-        madinahHotel: true,
-      },
-      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-    });
-  },
-  ["public-packages-catalog"],
-  {
-    revalidate: 60,
-    tags: [PACKAGES_CACHE_TAG],
+/**
+ * Trigger instant cache purge across all public and admin routes whenever
+ * a package is created, updated, archived, or deleted.
+ */
+export function revalidatePackagesCache(slugs: (string | null | undefined)[] = []) {
+  try {
+    revalidateTag(PACKAGES_CACHE_TAG);
+  } catch (err) {
+    console.warn("revalidateTag warning:", err);
   }
-);
 
-export const getPublishedPackagesCatalog = cache(async () => {
-  return fetchPublishedPackagesCatalog();
-});
+  const targetPages = [
+    "/",
+    "/packages",
+    "/umrah",
+    "/ramadan-umrah",
+    "/hajj",
+    "/booking",
+    "/admin/packages",
+  ];
 
-const fetchPublishedPackageBySlug = unstable_cache(
-  async (slug: string) => {
-    const canonicalSlug = LEGACY_PACKAGE_SLUGS[slug] || slug;
-    const pkg = await prisma.package.findUnique({
-      where: { slug: canonicalSlug },
-      include: {
-        inclusions: true,
-        itineraries: {
-          orderBy: { dayNumber: "asc" },
-        },
-        makkahHotel: true,
-        madinahHotel: true,
-        departureGroups: {
-          where: { status: "OPEN" },
-          take: 1,
-        },
-      },
-    });
-    if (!pkg || pkg.status !== "PUBLISHED") {
-      return null;
+  for (const pagePath of targetPages) {
+    try {
+      revalidatePath(pagePath, "page");
+    } catch {}
+    try {
+      revalidatePath(pagePath);
+    } catch {}
+  }
+
+  for (const slug of slugs) {
+    if (slug) {
+      const detailPath = `/packages/${slug}`;
+      try {
+        revalidatePath(detailPath, "page");
+      } catch {}
+      try {
+        revalidatePath(detailPath);
+      } catch {}
     }
-    return pkg;
-  },
-  ["public-package-detail-by-slug"],
-  {
-    revalidate: 60,
-    tags: [PACKAGES_CACHE_TAG],
   }
-);
 
+  // Flush root layout to ensure no nested static layout holds stale data
+  try {
+    revalidatePath("/", "layout");
+  } catch {}
+}
+
+/**
+ * Fetches all published packages for the public catalog and homepage.
+ * Uses React request cache to deduplicate within a single request while ensuring
+ * instant real-time freshness across requests.
+ */
+export const getPublishedPackagesCatalog = cache(async () => {
+  return prisma.package.findMany({
+    where: { status: "PUBLISHED" },
+    include: {
+      inclusions: true,
+      makkahHotel: true,
+      madinahHotel: true,
+    },
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+  });
+});
+
+/**
+ * Fetches single package detail by slug.
+ */
 export const getPublishedPackageBySlug = cache(async (slug: string) => {
-  return fetchPublishedPackageBySlug(slug);
+  const canonicalSlug = LEGACY_PACKAGE_SLUGS[slug] || slug;
+  const pkg = await prisma.package.findUnique({
+    where: { slug: canonicalSlug },
+    include: {
+      inclusions: true,
+      itineraries: {
+        orderBy: { dayNumber: "asc" },
+      },
+      makkahHotel: true,
+      madinahHotel: true,
+      departureGroups: {
+        where: { status: "OPEN" },
+        take: 1,
+      },
+    },
+  });
+  if (!pkg || pkg.status !== "PUBLISHED") {
+    return null;
+  }
+  return pkg;
 });
 
-const fetchRelatedPublishedPackages = unstable_cache(
-  async (excludeSlug: string) => {
-    return prisma.package.findMany({
-      where: {
-        status: "PUBLISHED",
-        slug: { not: excludeSlug },
-      },
-      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-      take: 3,
-    });
-  },
-  ["public-related-packages"],
-  {
-    revalidate: 60,
-    tags: [PACKAGES_CACHE_TAG],
-  }
-);
-
+/**
+ * Fetches related published packages excluding current slug.
+ */
 export const getRelatedPublishedPackages = cache(async (excludeSlug: string) => {
-  return fetchRelatedPublishedPackages(excludeSlug);
+  return prisma.package.findMany({
+    where: {
+      status: "PUBLISHED",
+      slug: { not: excludeSlug },
+    },
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    take: 3,
+  });
 });
 
-const fetchPublishedPackagesForBooking = unstable_cache(
-  async () => {
-    return prisma.package.findMany({
-      where: { status: "PUBLISHED" },
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        durationDays: true,
-        basePrice: true,
-        priceQuad: true,
-        priceTriple: true,
-        priceDouble: true,
-        departureDate: true,
-        departureCity: true,
-        hasSpecificDates: true,
-        departureCycle: true,
-        startDate: true,
-        endDate: true,
-        totalSeats: true,
-        bookedSeats: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
-  },
-  ["public-packages-for-booking"],
-  {
-    revalidate: 60,
-    tags: [PACKAGES_CACHE_TAG],
-  }
-);
-
+/**
+ * Fetches published packages for booking dropdowns.
+ */
 export const getPublishedPackagesForBooking = cache(async () => {
-  return fetchPublishedPackagesForBooking();
+  return prisma.package.findMany({
+    where: { status: "PUBLISHED" },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      durationDays: true,
+      basePrice: true,
+      priceQuad: true,
+      priceTriple: true,
+      priceDouble: true,
+      departureDate: true,
+      departureCity: true,
+      hasSpecificDates: true,
+      departureCycle: true,
+      startDate: true,
+      endDate: true,
+      totalSeats: true,
+      bookedSeats: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
 });
 
-export const HOTELS_CACHE_TAG = "hotels";
-
-const fetchPublishedHotels = unstable_cache(
-  async () => {
-    return prisma.hotel.findMany({
-      where: { isAvailable: true },
-      orderBy: { starRating: "desc" },
-    });
-  },
-  ["public-hotels-list"],
-  {
-    revalidate: 60,
-    tags: [HOTELS_CACHE_TAG],
-  }
-);
-
+/**
+ * Public hotels list
+ */
 export const getPublishedHotels = cache(async () => {
-  return fetchPublishedHotels();
+  return prisma.hotel.findMany({
+    where: { isAvailable: true },
+    orderBy: { starRating: "desc" },
+  });
 });
 
-const fetchPublishedTestimonials = unstable_cache(
-  async () => {
-    return prisma.testimonial.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-    });
-  },
-  ["public-testimonials-list"],
-  {
-    revalidate: 60,
-    tags: ["testimonials"],
-  }
-);
-
+/**
+ * Public approved testimonials
+ */
 export const getPublishedTestimonials = cache(async () => {
-  return fetchPublishedTestimonials();
+  return prisma.testimonial.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+  });
 });
 
-const fetchPublishedFaqs = unstable_cache(
-  async () => {
-    return prisma.fAQ.findMany({
-      where: { isPublished: true },
-      orderBy: { sortOrder: "asc" },
-    });
-  },
-  ["public-faqs-list"],
-  {
-    revalidate: 60,
-    tags: ["faqs"],
-  }
-);
-
+/**
+ * Public published FAQs
+ */
 export const getPublishedFaqs = cache(async () => {
-  return fetchPublishedFaqs();
+  return prisma.fAQ.findMany({
+    where: { isPublished: true },
+    orderBy: { sortOrder: "asc" },
+  });
 });
 
-const fetchPublishedBlogPosts = unstable_cache(
-  async () => {
-    return prisma.blogPost.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { createdAt: "desc" },
-    });
-  },
-  ["public-blog-posts"],
-  {
-    revalidate: 60,
-    tags: ["blog-posts"],
-  }
-);
-
+/**
+ * Public blog posts
+ */
 export const getPublishedBlogPosts = cache(async () => {
-  return fetchPublishedBlogPosts();
+  return prisma.blogPost.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: { createdAt: "desc" },
+  });
 });
 
-const fetchPublishedBlogPostBySlug = unstable_cache(
-  async (slug: string) => {
-    return prisma.blogPost.findUnique({
-      where: { slug },
-    });
-  },
-  ["public-blog-post-by-slug"],
-  {
-    revalidate: 60,
-    tags: ["blog-posts"],
-  }
-);
-
+/**
+ * Public blog post by slug
+ */
 export const getPublishedBlogPostBySlug = cache(async (slug: string) => {
-  return fetchPublishedBlogPostBySlug(slug);
+  return prisma.blogPost.findUnique({
+    where: { slug },
+  });
 });
-

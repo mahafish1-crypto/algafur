@@ -2,6 +2,9 @@ import BookingFlowClient from "./BookingFlowClient";
 import { getPublishedPackagesForBooking, LEGACY_PACKAGE_SLUGS } from "@/lib/packages-data";
 import { getSiteSettings } from "@/lib/settings";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Book Your Pilgrimage",
   description:

@@ -3,7 +3,7 @@ import prisma from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAuth } from "@/lib/api-auth";
-import { PACKAGES_CACHE_TAG } from "@/lib/packages-data";
+import { PACKAGES_CACHE_TAG, revalidatePackagesCache } from "@/lib/packages-data";
 
 export const dynamic = "force-dynamic";
 
@@ -293,15 +293,8 @@ export async function POST(req: NextRequest) {
       details: { name: newPackage.name, slug: newPackage.slug, price: newPackage.basePrice },
     });
 
-    try {
-      revalidateTag(PACKAGES_CACHE_TAG);
-      revalidatePath("/");
-      revalidatePath("/packages");
-      revalidatePath("/booking");
-      revalidatePath(`/packages/${newPackage.slug}`);
-    } catch (e) {
-      console.warn("revalidatePath warning:", e);
-    }
+    // Instant cache purge across all public and admin routes
+    revalidatePackagesCache([newPackage.slug]);
 
     return NextResponse.json({ success: true, package: newPackage });
   } catch (error: unknown) {

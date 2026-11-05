@@ -5,7 +5,8 @@ import { Compass, ShieldCheck, Sparkles } from "lucide-react";
 import { getPublishedPackagesCatalog } from "@/lib/packages-data";
 import { getSiteSettings } from "@/lib/settings";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   title: "Hajj 1448 / 2027 Registration",

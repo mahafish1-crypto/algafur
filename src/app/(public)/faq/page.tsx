@@ -5,7 +5,8 @@ import { getPublishedFaqs } from "@/lib/packages-data";
 import { getSiteSettings } from "@/lib/settings";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   title: "Frequently Asked Questions",
