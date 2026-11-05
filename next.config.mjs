@@ -1,4 +1,19 @@
 /** @type {import('next').NextConfig} */
+const ContentSecurityPolicy = `
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://va.vercel-scripts.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  img-src 'self' blob: data: https: https://*.supabase.co https://images.unsplash.com https://www.facebook.com;
+  font-src 'self' data: https://fonts.gstatic.com;
+  connect-src 'self' https: https://*.supabase.co https://va.vercel-scripts.com https://vitals.vercel-insights.com https://www.facebook.com https://connect.facebook.net;
+  frame-ancestors 'none';
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+`
+  .replace(/\s{2,}/g, ' ')
+  .trim();
+
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -25,6 +40,14 @@ const nextConfig = {
         source: '/:path*',
         headers: [
           {
+            key: 'Content-Security-Policy',
+            value: ContentSecurityPolicy,
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
@@ -33,8 +56,8 @@ const nextConfig = {
             value: 'strict-origin-when-cross-origin',
           },
           {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(self)',
           },
         ],
       },

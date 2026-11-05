@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import prisma from "@/lib/db";
 import { getSiteSettings, getWhatsAppApiKey } from "@/lib/settings";
 import { buildCanonicalUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
+
+function safeCompare(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     const expectedKey = await getWhatsAppApiKey();
 
-    if (!providedKey || providedKey !== expectedKey) {
+    if (!providedKey || !safeCompare(providedKey, expectedKey)) {
       return NextResponse.json(
         {
           success: false,

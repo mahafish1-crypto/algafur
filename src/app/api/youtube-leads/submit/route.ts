@@ -8,10 +8,13 @@ import {
   validateAndSanitizeSubmission,
 } from "@/lib/youtube-leads";
 import { calculateLeadScore } from "@/lib/lead-scoring";
+import {
+  checkRateLimit,
+  isHoneypotTriggered,
+  getClientIp,
+} from "@/lib/security";
 
 export const dynamic = "force-dynamic";
-
-const ipRateMap = new Map<string, number[]>();
 
 // In-memory staff cache to avoid repeated queries on rapid submits (TTL 60s)
 let cachedStaffUsers: Array<{ id: string; name: string; role: string }> | null = null;
@@ -42,17 +45,11 @@ async function getCachedStaffUsers() {
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   try {
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
+    const ip = getClientIp(req);
 
-    // 1. IP Rate limiting: max 20 submissions per 10 minutes per IP
-    const now = Date.now();
-    const recentHits = (ipRateMap.get(ip) || []).filter(
-      (t) => now - t < 10 * 60 * 1000
-    );
-    if (recentHits.length >= 20) {
+    // 1. IP Rate limiting: max 5 submissions per 10 minutes per IP
+    const rateCheck = checkRateLimit(`yt_lead_submit_${ip}`, 5, 10 * 60 * 1000);
+    if (!rateCheck.allowed) {
       return NextResponse.json(
         {
           error:
@@ -65,7 +62,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // 2. Honeypot spam protection (returns immediate faux success to trap bots)
-    if (body.website_url && String(body.website_url).trim().length > 0) {
+    if (isHoneypotTriggered(body, ["website_url", "honeypot", "hp_field", "hp_check", "company_fax"])) {
       return NextResponse.json({
         success: true,
         submissionCode: "YTL-2026-0000",
@@ -171,9 +168,6 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-
-    recentHits.push(now);
-    ipRateMap.set(ip, recentHits);
 
     // 8. Extract truthful YouTube & UTM campaign attribution
     const headerReferer = req.headers.get("referer") || null;

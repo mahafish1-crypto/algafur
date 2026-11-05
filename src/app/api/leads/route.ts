@@ -3,8 +3,12 @@ import prisma from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/api-auth";
 import { calculateLeadScore } from "@/lib/lead-scoring";
-
-const ipSubmissionMap = new Map<string, number[]>();
+import {
+  checkRateLimit,
+  isHoneypotTriggered,
+  sanitizeString,
+  getClientIp,
+} from "@/lib/security";
 
 function normalizePhone(raw: string): string {
   const trimmed = raw.trim();
@@ -20,27 +24,19 @@ function normalizePhone(raw: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
+    const ip = getClientIp(req);
 
-    // Basic IP rate limiting (max 20 inquiries per 10 minutes per IP)
-    const now = Date.now();
-    const recentTimestamps = (ipSubmissionMap.get(ip) || []).filter(
-      (t) => now - t < 10 * 60 * 1000
-    );
-    if (recentTimestamps.length >= 20) {
+    // 1. Strict IP Rate Limiting (max 5 lead inquiries per 10 minutes per IP)
+    const rateCheck = checkRateLimit(`lead_submit_${ip}`, 5, 10 * 60 * 1000);
+    if (!rateCheck.allowed) {
       return NextResponse.json(
         {
           error:
-            "Too many inquiries submitted recently. Please wait a few minutes or contact us on WhatsApp.",
+            "Too many inquiries submitted recently. Please wait a few minutes or contact us directly on WhatsApp.",
         },
         { status: 429 }
       );
     }
-    recentTimestamps.push(now);
-    ipSubmissionMap.set(ip, recentTimestamps);
 
     const body = await req.json();
     const {
@@ -75,15 +71,31 @@ export async function POST(req: NextRequest) {
       utmCampaign,
     } = body;
 
-    // Honeypot check: silently succeed without polluting CRM
-    if (website_url && String(website_url).trim().length > 0) {
+    // 2. Honeypot check: silently drop automated spam without polluting CRM
+    if (isHoneypotTriggered(body, ["website_url", "honeypot", "hp_field", "hp_check", "company_fax"])) {
       return NextResponse.json({
         success: true,
         leadNumber: "ALL-2026-0000",
       });
     }
 
-    if (!name || typeof name !== "string" || name.trim().length < 2) {
+    // 3. Text Input Sanitization (strip HTML, control characters, scripts)
+    const cleanName = sanitizeString(name, 120);
+    const cleanCity = city ? sanitizeString(city, 100) : "Not Specified";
+    const cleanMessage = sanitizeString(message || notes || "", 1500);
+    const cleanCategory = sanitizeString(category || journeyType || "UMRAH", 50);
+    const cleanPackageInterest = sanitizeString(packageInterest, 160);
+    const cleanTravelTimeline = sanitizeString(travelTimeline || travelMonth || travelDate, 120);
+    const cleanRoomPreference = sanitizeString(roomPreference, 50);
+    const cleanPreferredContact = sanitizeString(preferredContactMethod || preferredContact || "WHATSAPP", 30);
+    const cleanBudget = sanitizeString(budget, 80);
+    const cleanSource = sanitizeString(source || utmSource || "WEBSITE_INQUIRY", 60);
+    const cleanSourcePage = sanitizeString(sourcePage || "/", 250);
+    const cleanUtmSource = utmSource ? sanitizeString(utmSource, 100) : null;
+    const cleanUtmMedium = utmMedium ? sanitizeString(utmMedium, 100) : null;
+    const cleanUtmCampaign = utmCampaign ? sanitizeString(utmCampaign, 150) : null;
+
+    if (!cleanName || cleanName.length < 2) {
       return NextResponse.json(
         { error: "Full Name (at least 2 characters) is required." },
         { status: 400 }
@@ -236,31 +248,31 @@ export async function POST(req: NextRequest) {
     const newLead = await prisma.lead.create({
       data: {
         leadNumber,
-        name: name.trim(),
+        name: cleanName,
         mobile: cleanMobile,
         whatsapp:
           whatsapp && String(whatsapp).trim()
             ? normalizePhone(String(whatsapp))
             : cleanMobile,
         email: cleanEmail,
-        city: city ? String(city).trim() : "Not Specified",
-        journeyType: journeyType || category || matchedPkg?.type || "UMRAH",
-        packageInterest: resolvedPackageInterest,
+        city: cleanCity,
+        journeyType: cleanCategory || matchedPkg?.type || "UMRAH",
+        packageInterest: cleanPackageInterest || resolvedPackageInterest,
         travelDate: resolvedTravelDate,
-        travelTimeline: travelTimeline || resolvedTravelDate || null,
+        travelTimeline: cleanTravelTimeline || resolvedTravelDate || null,
         leadScore: scoreResult.score,
         priority: scoreResult.priority,
         scoreExplanation: scoreResult.explanation,
         adults: adultsCount,
         children: childrenCount,
-        budget: roomPreference
-          ? `${roomPreference}${budget ? ` • ${budget}` : ""}`
-          : budget || null,
+        budget: cleanRoomPreference
+          ? `${cleanRoomPreference}${cleanBudget ? ` • ${cleanBudget}` : ""}`
+          : cleanBudget || null,
         notes: enrichedNotes,
-        source: resolvedSource,
-        utmSource: utmSource || resolvedSourcePage,
-        utmMedium: utmMedium || resolvedContactMethod,
-        utmCampaign: utmCampaign || (packageId ? String(packageId) : null),
+        source: cleanSource,
+        utmSource: cleanUtmSource || cleanSourcePage,
+        utmMedium: cleanUtmMedium || cleanPreferredContact,
+        utmCampaign: cleanUtmCampaign || (packageId ? String(packageId) : null),
         assignedToId: assignee?.id || null,
         customerId: existingCustomer?.id || null,
         status: "NEW",

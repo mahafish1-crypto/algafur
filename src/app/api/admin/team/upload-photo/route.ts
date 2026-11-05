@@ -12,6 +12,7 @@ import {
   parseTeamProfilesFromSettings,
   TeamMemberProfile,
 } from "@/lib/team-data";
+import { sanitizeString } from "@/lib/security";
 import fs from "fs";
 import path from "path";
 
@@ -21,9 +22,8 @@ const ALLOWED_MIME_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
-  "image/jpg",
 ];
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB limit
 
 /**
  * Attempt to upload to Supabase Storage REST API if credentials exist.
@@ -101,6 +101,20 @@ export async function POST(req: NextRequest) {
     if (!auth.authorized) return auth.response;
     const session = auth.session;
 
+    // Enforce Admin privilege check
+    if (
+      session.role !== "SUPER_ADMIN" &&
+      session.role !== "ADMIN" &&
+      !session.permissions?.some((p) =>
+        ["manage:settings", "manage:media", "settings:manage", "settings:edit"].includes(p)
+      )
+    ) {
+      return NextResponse.json(
+        { error: "Forbidden. Admin privileges required for staff photo uploads." },
+        { status: 403 }
+      );
+    }
+
     const contentType = req.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {
       return NextResponse.json(
@@ -150,11 +164,14 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
     const base64DataUri = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-    const originalName =
-      customName ||
-      file.name.replace(/\.[^/.]+$/, "") ||
-      "Team Member Photo";
-    const fileExt = path.extname(file.name) || ".jpg";
+    const originalName = sanitizeString(
+      customName || file.name.replace(/\.[^/.]+$/, "") || "Team Member Photo",
+      100
+    );
+    const rawExt = path.extname(file.name).toLowerCase();
+    const fileExt = [".jpg", ".jpeg", ".png", ".webp"].includes(rawExt)
+      ? rawExt
+      : ".jpg";
     const uniqueFileName = `team-${Date.now()}-${Math.random()
       .toString(36)
       .substring(2, 8)}${fileExt}`;

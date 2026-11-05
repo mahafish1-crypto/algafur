@@ -122,11 +122,12 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
 export async function setSessionCookie(user: SessionUser) {
   const token = signSessionToken(user);
   const cookieStore = await cookies();
+  const isSecure = process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
   // Host-only cookie (no `domain` attribute) so sessions work independently and securely
   // on both https://www.algafur.com and https://algafur.vercel.app
   cookieStore.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecure,
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7 days
@@ -135,9 +136,10 @@ export async function setSessionCookie(user: SessionUser) {
 
 export async function clearSessionCookie() {
   const cookieStore = await cookies();
+  const isSecure = process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
   cookieStore.set(AUTH_COOKIE_NAME, "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecure,
     sameSite: "lax",
     path: "/",
     maxAge: 0,

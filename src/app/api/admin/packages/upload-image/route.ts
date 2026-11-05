@@ -64,8 +64,27 @@ async function uploadToSupabaseStorage(
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth(req, "manage:packages");
+    const auth = await requireAuth(req, [
+      "manage:packages",
+      "packages:create",
+      "packages:edit",
+      "manage:media",
+    ]);
     if (!auth.authorized) return auth.response;
+
+    const session = auth.session;
+    if (
+      session.role !== "SUPER_ADMIN" &&
+      session.role !== "ADMIN" &&
+      !session.permissions?.some((p) =>
+        ["manage:packages", "packages:create", "packages:edit", "manage:media"].includes(p)
+      )
+    ) {
+      return NextResponse.json(
+        { error: "Forbidden. Admin privileges required for package media uploads." },
+        { status: 403 }
+      );
+    }
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -100,11 +119,15 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const fileExt = path.extname(file.name) || ".jpg";
+    const rawExt = path.extname(file.name).toLowerCase();
+    const fileExt = [".jpg", ".jpeg", ".png", ".webp", ".avif"].includes(rawExt)
+      ? rawExt
+      : ".jpg";
     const cleanBaseName = file.name
-      .replace(fileExt, "")
+      .replace(path.extname(file.name), "")
       .replace(/[^a-zA-Z0-9_-]/g, "_")
-      .toLowerCase();
+      .toLowerCase()
+      .slice(0, 50);
     const uniqueFileName = `pkg_${Date.now()}_${cleanBaseName}${fileExt}`;
 
     // 1. Try direct Supabase Storage upload

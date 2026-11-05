@@ -3,9 +3,26 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import prisma from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { PACKAGES_CACHE_TAG } from "@/lib/packages-data";
+import { checkRateLimit, getClientIp, sanitizeString } from "@/lib/security";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+
+    // Rate limit: Max 5 booking creation requests per 10 minutes per IP
+    const rateCheck = checkRateLimit(`booking_submit_${ip}`, 5, 10 * 60 * 1000);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error:
+            "Too many reservation attempts. Please wait a few minutes or contact us directly on WhatsApp.",
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const {
       packageId,
@@ -29,7 +46,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const cleanPhone = customer.phone.trim();
+    const cleanCustomerName = sanitizeString(customer.name, 120);
+    const cleanCustomerCity = sanitizeString(customer.city || "Pune", 80);
+    const cleanCustomerAddress = sanitizeString(customer.address || "", 300);
+    const cleanCustomerEmail = customer.email
+      ? sanitizeString(customer.email, 120).toLowerCase()
+      : null;
+    const cleanPhone = String(customer.phone).trim();
 
     // 1. Find or create Customer
     let dbCustomer = await prisma.customer.findFirst({
@@ -42,13 +65,15 @@ export async function POST(req: NextRequest) {
       dbCustomer = await prisma.customer.create({
         data: {
           customerCode,
-          name: customer.name.trim(),
+          name: cleanCustomerName,
           phone: cleanPhone,
-          whatsapp: customer.whatsapp || cleanPhone,
-          email: customer.email || null,
-          city: customer.city || "Pune",
-          address: customer.address || null,
-          passportNumber: travellers?.[0]?.passportNumber || null,
+          whatsapp: customer.whatsapp ? String(customer.whatsapp).trim() : cleanPhone,
+          email: cleanCustomerEmail,
+          city: cleanCustomerCity,
+          address: cleanCustomerAddress || null,
+          passportNumber: travellers?.[0]?.passportNumber
+            ? sanitizeString(travellers[0].passportNumber, 30)
+            : null,
         },
       });
     }
@@ -128,8 +153,10 @@ export async function POST(req: NextRequest) {
         await tx.bookingTraveller.createMany({
           data: validTravellers.map((t: any) => ({
             bookingId: createdBooking.id,
-            fullName: t.fullName,
-            passportNumber: t.passportNumber || null,
+            fullName: sanitizeString(t.fullName, 120),
+            passportNumber: t.passportNumber
+              ? sanitizeString(t.passportNumber, 30)
+              : null,
             gender: t.gender || "MALE",
             roomType: roomType || "QUAD",
             visaStatus: "NOT_STARTED",
@@ -167,9 +194,9 @@ export async function POST(req: NextRequest) {
             customerId: dbCustomer.id,
             amount: Number(paidAmount),
             paymentMethod: paymentMethod || "BANK_TRANSFER",
-            transactionId: transactionId || null,
+            transactionId: transactionId ? sanitizeString(transactionId, 100) : null,
             status: "PAID",
-            notes: `Online reservation payment (${paymentOption})`,
+            notes: `Online reservation payment (${sanitizeString(paymentOption || "", 50)})`,
           },
         });
       }
@@ -235,4 +262,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

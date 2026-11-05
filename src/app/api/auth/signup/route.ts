@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
-
-const signupRateMap = new Map<string, number[]>();
+import { checkRateLimit, getClientIp, sanitizeString } from "@/lib/security";
 
 function normalizePhone(raw: string): string {
   const trimmed = raw.trim();
@@ -19,21 +18,16 @@ function normalizePhone(raw: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
+    const ip = getClientIp(req);
 
-    const now = Date.now();
-    const recentAttempts = (signupRateMap.get(ip) || []).filter((t) => now - t < 15 * 60 * 1000);
-    if (recentAttempts.length >= 10) {
+    // Rate limit: max 5 signup attempts per 15 minutes per IP
+    const rateCheck = checkRateLimit(`signup_${ip}`, 5, 15 * 60 * 1000);
+    if (!rateCheck.allowed) {
       return NextResponse.json(
-        { error: "Too many signup attempts. Please try again in a few minutes." },
+        { error: "Too many signup attempts. Please try again in 15 minutes." },
         { status: 429 }
       );
     }
-    recentAttempts.push(now);
-    signupRateMap.set(ip, recentAttempts);
 
     const body = await req.json();
     const {

@@ -83,6 +83,7 @@ export default function BookingFlowClient({
     preferredContactMethod: "WHATSAPP" as "WHATSAPP" | "CALL" | "EMAIL",
     notes: "",
     consentAccepted: false,
+    website_url: "", // Honeypot field for bot mitigation
   });
 
   const [loading, setLoading] = useState(false);
@@ -205,6 +206,7 @@ export default function BookingFlowClient({
         language,
         notes: formData.notes.trim(),
         consentAccepted: true,
+        website_url: formData.website_url || undefined,
       };
 
       const res = await fetch("/api/leads", {
@@ -412,6 +414,21 @@ export default function BookingFlowClient({
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Honeypot field for bot mitigation */}
+                <div className="hidden" aria-hidden="true">
+                  <label htmlFor="booking-website-url">Website URL</label>
+                  <input
+                    id="booking-website-url"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={formData.website_url || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, website_url: e.target.value })
+                    }
+                  />
                 </div>
 
                 <div>

@@ -3,19 +3,33 @@ import prisma from "@/lib/db";
 import { verifyPassword, setSessionCookie } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { resolveUserPermissions, getAuthorizedModules } from "@/lib/rbac";
+import { checkRateLimit, getClientIp, sanitizeString } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const ip = getClientIp(req);
 
-    if (!email || !password) {
+    // Rate limit: Max 10 login requests per 15 minutes per IP
+    const rateCheck = checkRateLimit(`login_${ip}`, 10, 15 * 60 * 1000);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Too many login attempts. Please wait 15 minutes before trying again." },
+        { status: 429 }
+      );
+    }
+
+    const body = await req.json();
+    const rawEmail = body.email;
+    const password = body.password;
+
+    if (!rawEmail || !password) {
       return NextResponse.json(
         { error: "Email and password are required." },
         { status: 400 }
       );
     }
 
-    const cleanEmail = email.toLowerCase().trim();
+    const cleanEmail = sanitizeString(rawEmail, 120).toLowerCase();
     const user = await prisma.user.findUnique({
       where: { email: cleanEmail },
       include: {
