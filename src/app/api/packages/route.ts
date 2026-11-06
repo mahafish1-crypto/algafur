@@ -268,7 +268,11 @@ export async function POST(req: NextRequest) {
         makkahHotelRating: Number(makkahHotelRating) || 4,
         makkahRoomType,
         makkahMealPlan,
-        makkahDescription,
+        makkahDescription: makkahDescription
+          ? String(makkahDescription).trim()
+          : body.makkahAddress
+          ? String(body.makkahAddress).trim()
+          : null,
         makkahAmenities,
         makkahImage,
         madinahHotelName: madinahHotelName || "Ilaf Kuba or similar",
@@ -276,7 +280,11 @@ export async function POST(req: NextRequest) {
         madinahHotelRating: Number(madinahHotelRating) || 4,
         madinahRoomType,
         madinahMealPlan,
-        madinahDescription,
+        madinahDescription: madinahDescription
+          ? String(madinahDescription).trim()
+          : body.madinahAddress
+          ? String(body.madinahAddress).trim()
+          : null,
         madinahAmenities,
         madinahImage,
         airline,

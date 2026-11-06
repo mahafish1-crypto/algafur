@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import SafeImage from "@/components/ui/SafeImage";
 import { parseZiyaratLandmarks } from "@/lib/ziyarat-helpers";
 import {
+  MAKKAH_MAIN_ZIYARAT,
+  MAKKAH_SPECIAL_ZIYARAT,
+  MADINAH_MAIN_ZIYARAT,
+  MADINAH_SPECIAL_ZIYARAT,
+} from "@/lib/constants/ziyarats";
+import {
   Sparkles,
   Building,
   Plane,
@@ -62,26 +68,13 @@ const PRESET_EXCLUSIONS = [
 ];
 
 const MAKKAH_ZIYARAT_PRESETS = [
-  "Ghar Hira (Jabal al-Noor)",
-  "Ghar Thawr (Jabal Thawr)",
-  "Mina Camps",
-  "Plains of Arafat (Jabal al-Rahmah)",
-  "Muzdalifah",
-  "Jamarat",
-  "Masjid Ayesha (Tan'eem Meeqat)",
-  "Masjid Ji'ranah Meeqat",
-  "Taif Historic Sites & Meeqat",
+  ...MAKKAH_MAIN_ZIYARAT,
+  ...MAKKAH_SPECIAL_ZIYARAT,
 ];
 
 const MADINAH_ZIYARAT_PRESETS = [
-  "Masjid Quba (First Mosque)",
-  "Mount Uhud & Martyrs' Cemetery (Shuhada)",
-  "Masjid al-Qiblatayn",
-  "Seven Mosques (Saba Masajid)",
-  "Masjid Ghamama",
-  "Bir Usman (Well of Uthman)",
-  "Wadi-e-Jinn",
-  "Dates Market & Date Gardens",
+  ...MADINAH_MAIN_ZIYARAT,
+  ...MADINAH_SPECIAL_ZIYARAT,
 ];
 
 export default function PackageWizardBuilder({
@@ -149,15 +142,17 @@ export default function PackageWizardBuilder({
     makkahHotelName: initialPackage?.makkahHotelName || "Diyafa Jamal or similar",
     makkahHotelRating: Number(initialPackage?.makkahHotelRating) || 4,
     makkahDistance: initialPackage?.makkahDistance || "500m walking",
-    makkahAddress:
-      initialPackage?.makkahDescription || "Ibrahim Al Khalil Road, Makkah Al-Mukarramah",
+    makkahAddress: initialPackage
+      ? (initialPackage.makkahAddress ?? initialPackage.makkahDescription ?? initialPackage.makkahHotel?.address ?? "")
+      : "Ibrahim Al Khalil Road, Makkah Al-Mukarramah",
     makkahMealPlan: initialPackage?.makkahMealPlan || "Indian Buffet Breakfast, Lunch & Dinner",
 
     madinahHotelName: initialPackage?.madinahHotelName || "Ilaf Kuba or similar",
     madinahHotelRating: Number(initialPackage?.madinahHotelRating) || 4,
     madinahDistance: initialPackage?.madinahDistance || "400m walking",
-    madinahAddress:
-      initialPackage?.madinahDescription || "Central Northern Area, Near Masjid An-Nabawi",
+    madinahAddress: initialPackage
+      ? (initialPackage.madinahAddress ?? initialPackage.madinahDescription ?? initialPackage.madinahHotel?.address ?? "")
+      : "Central Northern Area, Near Masjid An-Nabawi",
     madinahMealPlan: initialPackage?.madinahMealPlan || "Indian Buffet Breakfast, Lunch & Dinner",
 
     airline: initialPackage?.airline || "Saudi Airlines (SV)",
@@ -209,22 +204,21 @@ export default function PackageWizardBuilder({
         const parsed = parseZiyaratLandmarks(initialPackage.highlights);
         if (parsed.makkah.length > 0) return parsed.makkah;
       }
-      return MAKKAH_ZIYARAT_PRESETS.slice(0, 6);
+      return isEditing ? [] : [...MAKKAH_MAIN_ZIYARAT];
     })() as string[],
     selectedMadinahZiyarat: (() => {
       if (initialPackage?.highlights) {
         const parsed = parseZiyaratLandmarks(initialPackage.highlights);
         if (parsed.madinah.length > 0) return parsed.madinah;
       }
-      return MADINAH_ZIYARAT_PRESETS.slice(0, 5);
+      return isEditing ? [] : [...MADINAH_MAIN_ZIYARAT];
     })() as string[],
     customMakkahZiyaratText: "",
     customMadinahZiyaratText: "",
     customInclusionText: "",
-    overview:
-      initialPackage?.overview ||
-      initialPackage?.description ||
-      "Experience a transformative pilgrimage with scholarly guidance, walking-distance hotels, hot Indian buffet meals, and comprehensive holy ziyarats in Makkah and Madinah.",
+    overview: initialPackage
+      ? (initialPackage.overview ?? initialPackage.description ?? "")
+      : "Experience a transformative pilgrimage with scholarly guidance, walking-distance hotels, hot Indian buffet meals, and comprehensive holy ziyarats in Makkah and Madinah.",
   });
 
   // Auto-generate slug when title changes unless manually edited
@@ -355,14 +349,16 @@ export default function PackageWizardBuilder({
         makkahHotelName: form.makkahHotelName,
         makkahHotelRating: Number(form.makkahHotelRating),
         makkahDistance: form.makkahDistance,
-        makkahDescription: form.makkahAddress,
+        makkahAddress: form.makkahAddress ? form.makkahAddress.trim() : "",
+        makkahDescription: form.makkahAddress ? form.makkahAddress.trim() : "",
         makkahImage: form.makkahImage || null,
         makkahMealPlan: form.makkahMealPlan,
 
         madinahHotelName: form.madinahHotelName,
         madinahHotelRating: Number(form.madinahHotelRating),
         madinahDistance: form.madinahDistance,
-        madinahDescription: form.madinahAddress,
+        madinahAddress: form.madinahAddress ? form.madinahAddress.trim() : "",
+        madinahDescription: form.madinahAddress ? form.madinahAddress.trim() : "",
         madinahImage: form.madinahImage || null,
         madinahMealPlan: form.madinahMealPlan,
 
@@ -408,6 +404,7 @@ export default function PackageWizardBuilder({
         },
         features: JSON.stringify(allFeatures),
         overview: form.overview ? form.overview.trim() : "",
+        description: form.overview ? form.overview.trim() : "",
       };
 
       const url = isEditing
@@ -1652,60 +1649,195 @@ export default function PackageWizardBuilder({
             </div>
 
             {/* Ziyarat Holy Landmarks Checklist */}
-            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4 pt-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-gold-400 flex items-center gap-1.5">
-                <MapPin className="w-4 h-4" />
-                Holy Ziyarat Landmarks Covered
-              </span>
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-6 pt-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold-400 flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-emerald-400" />
+                    Holy Ziyarat Landmarks Covered
+                  </span>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Select verified sacred landmarks to display on the package detail page. You can toggle presets or add custom ziyarats.
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-slate-200">
+                    {form.selectedMakkahZiyarat.length + form.selectedMadinahZiyarat.length} Total Selected
+                  </span>
+                </div>
+              </div>
 
-              {/* Makkah Ziyarat */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-300 block">
-                    Makkah Al-Mukarramah Landmarks:
-                  </span>
-                  <span className="text-[11px] text-emerald-400 font-semibold">
-                    {form.selectedMakkahZiyarat.length} selected
-                  </span>
+              {/* SECTION A: MAKKAH AL-MUKARRAMAH */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🕋</span>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                    Makkah Al-Mukarramah Ziyarat ({form.selectedMakkahZiyarat.length} selected)
+                  </h4>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {Array.from(
-                    new Set([...MAKKAH_ZIYARAT_PRESETS, ...form.selectedMakkahZiyarat])
-                  ).map((landmark) => {
-                    const isChecked = form.selectedMakkahZiyarat.includes(landmark);
-                    return (
-                      <button
-                        key={landmark}
-                        type="button"
-                        onClick={() => {
-                          setForm((prev) => ({
+
+                {/* 1. Makkah Main Ziyarat (7 items) */}
+                <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                      <span>🕋</span> Makkah Main Ziyarat ({MAKKAH_MAIN_ZIYARAT.length} items)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm((prev) => {
+                          const allSelected = MAKKAH_MAIN_ZIYARAT.every((item) =>
+                            prev.selectedMakkahZiyarat.includes(item)
+                          );
+                          return {
                             ...prev,
-                            selectedMakkahZiyarat: isChecked
-                              ? prev.selectedMakkahZiyarat.filter((l) => l !== landmark)
-                              : [...prev.selectedMakkahZiyarat, landmark],
-                          }));
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all ${
-                          isChecked
-                            ? "bg-emerald-900/60 border-emerald-500/60 text-emerald-200"
-                            : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        {isChecked && <Check className="w-3 h-3 text-emerald-400" />}
-                        <span>{landmark}</span>
-                      </button>
-                    );
-                  })}
+                            selectedMakkahZiyarat: allSelected
+                              ? prev.selectedMakkahZiyarat.filter((item) => !MAKKAH_MAIN_ZIYARAT.includes(item))
+                              : Array.from(new Set([...prev.selectedMakkahZiyarat, ...MAKKAH_MAIN_ZIYARAT])),
+                          };
+                        });
+                      }}
+                      className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                    >
+                      {MAKKAH_MAIN_ZIYARAT.every((item) => form.selectedMakkahZiyarat.includes(item))
+                        ? "Clear All"
+                        : "Select All"}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {MAKKAH_MAIN_ZIYARAT.map((landmark) => {
+                      const isChecked = form.selectedMakkahZiyarat.includes(landmark);
+                      return (
+                        <button
+                          key={landmark}
+                          type="button"
+                          onClick={() => {
+                            setForm((prev) => ({
+                              ...prev,
+                              selectedMakkahZiyarat: isChecked
+                                ? prev.selectedMakkahZiyarat.filter((l) => l !== landmark)
+                                : [...prev.selectedMakkahZiyarat, landmark],
+                            }));
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all ${
+                            isChecked
+                              ? "bg-emerald-950/80 border-emerald-500 text-emerald-200 shadow-xs"
+                              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                          }`}
+                        >
+                          {isChecked ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <span className="w-3.5 h-3.5 rounded border border-slate-600 block shrink-0" />
+                          )}
+                          <span>{landmark}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* 2. Special Makkah Ziyarat (9 items) */}
+                <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                      <span>✨</span> Special Makkah Ziyarat ({MAKKAH_SPECIAL_ZIYARAT.length} items)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm((prev) => {
+                          const allSelected = MAKKAH_SPECIAL_ZIYARAT.every((item) =>
+                            prev.selectedMakkahZiyarat.includes(item)
+                          );
+                          return {
+                            ...prev,
+                            selectedMakkahZiyarat: allSelected
+                              ? prev.selectedMakkahZiyarat.filter((item) => !MAKKAH_SPECIAL_ZIYARAT.includes(item))
+                              : Array.from(new Set([...prev.selectedMakkahZiyarat, ...MAKKAH_SPECIAL_ZIYARAT])),
+                          };
+                        });
+                      }}
+                      className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                    >
+                      {MAKKAH_SPECIAL_ZIYARAT.every((item) => form.selectedMakkahZiyarat.includes(item))
+                        ? "Clear All"
+                        : "Select All"}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {MAKKAH_SPECIAL_ZIYARAT.map((landmark) => {
+                      const isChecked = form.selectedMakkahZiyarat.includes(landmark);
+                      return (
+                        <button
+                          key={landmark}
+                          type="button"
+                          onClick={() => {
+                            setForm((prev) => ({
+                              ...prev,
+                              selectedMakkahZiyarat: isChecked
+                                ? prev.selectedMakkahZiyarat.filter((l) => l !== landmark)
+                                : [...prev.selectedMakkahZiyarat, landmark],
+                            }));
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all ${
+                            isChecked
+                              ? "bg-emerald-950/80 border-emerald-500 text-emerald-200 shadow-xs"
+                              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                          }`}
+                        >
+                          {isChecked ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <span className="w-3.5 h-3.5 rounded border border-slate-600 block shrink-0" />
+                          )}
+                          <span>{landmark}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Makkah Landmarks (if any previously added) */}
+                {form.selectedMakkahZiyarat.some(
+                  (item) => !MAKKAH_MAIN_ZIYARAT.includes(item) && !MAKKAH_SPECIAL_ZIYARAT.includes(item)
+                ) && (
+                  <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 space-y-1.5">
+                    <span className="text-[11px] font-medium text-slate-400">Custom Added Makkah Landmarks:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {form.selectedMakkahZiyarat
+                        .filter((item) => !MAKKAH_MAIN_ZIYARAT.includes(item) && !MAKKAH_SPECIAL_ZIYARAT.includes(item))
+                        .map((item) => (
+                          <span
+                            key={item}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-900/40 border border-emerald-500/40 text-emerald-300"
+                          >
+                            <span>{item}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setForm((prev) => ({
+                                  ...prev,
+                                  selectedMakkahZiyarat: prev.selectedMakkahZiyarat.filter((l) => l !== item),
+                                }))
+                              }
+                              className="hover:text-red-400"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Custom Makkah Landmark Input */}
                 <div className="flex gap-2 pt-1">
                   <input
                     type="text"
                     value={form.customMakkahZiyaratText}
-                    onChange={(e) =>
-                      setForm({ ...form, customMakkahZiyaratText: e.target.value })
-                    }
-                    placeholder="Add custom Makkah ziyarat (e.g. Cave of Thawr, Masjid Aisha)..."
+                    onChange={(e) => setForm({ ...form, customMakkahZiyaratText: e.target.value })}
+                    placeholder="Type custom Makkah ziyarat (e.g. Masjid Aisha Tan'eem, Makkah Library)..."
                     className="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -1733,7 +1865,7 @@ export default function PackageWizardBuilder({
                         }));
                       }
                     }}
-                    className="px-3 py-2 bg-emerald-900/60 hover:bg-emerald-800 border border-emerald-500/50 text-emerald-200 text-xs font-semibold rounded-xl flex items-center gap-1 transition-colors shrink-0"
+                    className="px-3.5 py-2 bg-emerald-900/70 hover:bg-emerald-800 border border-emerald-500/50 text-emerald-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Landmark</span>
@@ -1741,54 +1873,177 @@ export default function PackageWizardBuilder({
                 </div>
               </div>
 
-              {/* Madinah Ziyarat */}
-              <div className="space-y-2.5 pt-3 border-t border-slate-800/80">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-300 block">
-                    Madinah Al-Munawwarah Landmarks:
-                  </span>
-                  <span className="text-[11px] text-gold-400 font-semibold">
-                    {form.selectedMadinahZiyarat.length} selected
-                  </span>
+              {/* SECTION B: MADINAH AL-MUNAWWARAH */}
+              <div className="space-y-4 pt-4 border-t border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🕌</span>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-gold-400">
+                    Madinah Al-Munawwarah Ziyarat ({form.selectedMadinahZiyarat.length} selected)
+                  </h4>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {Array.from(
-                    new Set([...MADINAH_ZIYARAT_PRESETS, ...form.selectedMadinahZiyarat])
-                  ).map((landmark) => {
-                    const isChecked = form.selectedMadinahZiyarat.includes(landmark);
-                    return (
-                      <button
-                        key={landmark}
-                        type="button"
-                        onClick={() => {
-                          setForm((prev) => ({
+
+                {/* 3. Madinah Main Ziyarat (7 items) */}
+                <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                      <span>🕌</span> Madinah Main Ziyarat ({MADINAH_MAIN_ZIYARAT.length} items)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm((prev) => {
+                          const allSelected = MADINAH_MAIN_ZIYARAT.every((item) =>
+                            prev.selectedMadinahZiyarat.includes(item)
+                          );
+                          return {
                             ...prev,
-                            selectedMadinahZiyarat: isChecked
-                              ? prev.selectedMadinahZiyarat.filter((l) => l !== landmark)
-                              : [...prev.selectedMadinahZiyarat, landmark],
-                          }));
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all ${
-                          isChecked
-                            ? "bg-gold-900/60 border-gold-500/60 text-gold-200"
-                            : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        {isChecked && <Check className="w-3 h-3 text-gold-400" />}
-                        <span>{landmark}</span>
-                      </button>
-                    );
-                  })}
+                            selectedMadinahZiyarat: allSelected
+                              ? prev.selectedMadinahZiyarat.filter((item) => !MADINAH_MAIN_ZIYARAT.includes(item))
+                              : Array.from(new Set([...prev.selectedMadinahZiyarat, ...MADINAH_MAIN_ZIYARAT])),
+                          };
+                        });
+                      }}
+                      className="text-[11px] font-semibold text-gold-400 hover:text-gold-300 transition-colors"
+                    >
+                      {MADINAH_MAIN_ZIYARAT.every((item) => form.selectedMadinahZiyarat.includes(item))
+                        ? "Clear All"
+                        : "Select All"}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {MADINAH_MAIN_ZIYARAT.map((landmark) => {
+                      const isChecked = form.selectedMadinahZiyarat.includes(landmark);
+                      return (
+                        <button
+                          key={landmark}
+                          type="button"
+                          onClick={() => {
+                            setForm((prev) => ({
+                              ...prev,
+                              selectedMadinahZiyarat: isChecked
+                                ? prev.selectedMadinahZiyarat.filter((l) => l !== landmark)
+                                : [...prev.selectedMadinahZiyarat, landmark],
+                            }));
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all ${
+                            isChecked
+                              ? "bg-amber-950/80 border-gold-500 text-gold-200 shadow-xs"
+                              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                          }`}
+                        >
+                          {isChecked ? (
+                            <Check className="w-3.5 h-3.5 text-gold-400" />
+                          ) : (
+                            <span className="w-3.5 h-3.5 rounded border border-slate-600 block shrink-0" />
+                          )}
+                          <span>{landmark}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* 4. Special Madinah Ziyarat (10 items) */}
+                <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                      <span>🌴</span> Special Madinah Ziyarat ({MADINAH_SPECIAL_ZIYARAT.length} items)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm((prev) => {
+                          const allSelected = MADINAH_SPECIAL_ZIYARAT.every((item) =>
+                            prev.selectedMadinahZiyarat.includes(item)
+                          );
+                          return {
+                            ...prev,
+                            selectedMadinahZiyarat: allSelected
+                              ? prev.selectedMadinahZiyarat.filter((item) => !MADINAH_SPECIAL_ZIYARAT.includes(item))
+                              : Array.from(new Set([...prev.selectedMadinahZiyarat, ...MADINAH_SPECIAL_ZIYARAT])),
+                          };
+                        });
+                      }}
+                      className="text-[11px] font-semibold text-gold-400 hover:text-gold-300 transition-colors"
+                    >
+                      {MADINAH_SPECIAL_ZIYARAT.every((item) => form.selectedMadinahZiyarat.includes(item))
+                        ? "Clear All"
+                        : "Select All"}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {MADINAH_SPECIAL_ZIYARAT.map((landmark) => {
+                      const isChecked = form.selectedMadinahZiyarat.includes(landmark);
+                      return (
+                        <button
+                          key={landmark}
+                          type="button"
+                          onClick={() => {
+                            setForm((prev) => ({
+                              ...prev,
+                              selectedMadinahZiyarat: isChecked
+                                ? prev.selectedMadinahZiyarat.filter((l) => l !== landmark)
+                                : [...prev.selectedMadinahZiyarat, landmark],
+                            }));
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all ${
+                            isChecked
+                              ? "bg-amber-950/80 border-gold-500 text-gold-200 shadow-xs"
+                              : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                          }`}
+                        >
+                          {isChecked ? (
+                            <Check className="w-3.5 h-3.5 text-gold-400" />
+                          ) : (
+                            <span className="w-3.5 h-3.5 rounded border border-slate-600 block shrink-0" />
+                          )}
+                          <span>{landmark}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Madinah Landmarks (if any previously added) */}
+                {form.selectedMadinahZiyarat.some(
+                  (item) => !MADINAH_MAIN_ZIYARAT.includes(item) && !MADINAH_SPECIAL_ZIYARAT.includes(item)
+                ) && (
+                  <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 space-y-1.5">
+                    <span className="text-[11px] font-medium text-slate-400">Custom Added Madinah Landmarks:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {form.selectedMadinahZiyarat
+                        .filter((item) => !MADINAH_MAIN_ZIYARAT.includes(item) && !MADINAH_SPECIAL_ZIYARAT.includes(item))
+                        .map((item) => (
+                          <span
+                            key={item}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-900/40 border border-gold-500/40 text-gold-300"
+                          >
+                            <span>{item}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setForm((prev) => ({
+                                  ...prev,
+                                  selectedMadinahZiyarat: prev.selectedMadinahZiyarat.filter((l) => l !== item),
+                                }))
+                              }
+                              className="hover:text-red-400"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Custom Madinah Landmark Input */}
                 <div className="flex gap-2 pt-1">
                   <input
                     type="text"
                     value={form.customMadinahZiyaratText}
-                    onChange={(e) =>
-                      setForm({ ...form, customMadinahZiyaratText: e.target.value })
-                    }
-                    placeholder="Add custom Madinah ziyarat (e.g. Badar Battlefield, Taif Gardens)..."
+                    onChange={(e) => setForm({ ...form, customMadinahZiyaratText: e.target.value })}
+                    placeholder="Type custom Madinah ziyarat (e.g. Well of Salman Farsi, Date Farm)..."
                     className="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -1816,7 +2071,7 @@ export default function PackageWizardBuilder({
                         }));
                       }
                     }}
-                    className="px-3 py-2 bg-gold-900/60 hover:bg-gold-800 border border-gold-500/50 text-gold-200 text-xs font-semibold rounded-xl flex items-center gap-1 transition-colors shrink-0"
+                    className="px-3.5 py-2 bg-gold-900/70 hover:bg-gold-800 border border-gold-500/50 text-gold-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Landmark</span>

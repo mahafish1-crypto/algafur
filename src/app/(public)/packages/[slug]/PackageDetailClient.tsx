@@ -222,6 +222,17 @@ export default function PackageDetailClient({
   const makkahDesc = pkg.makkahDescription?.trim() || makkahHotel?.description || "";
   const madinahDesc = pkg.madinahDescription?.trim() || madinahHotel?.description || "";
 
+  const makkahAddress =
+    (pkg as any).makkahAddress?.trim() ||
+    pkg.makkahDescription?.trim() ||
+    makkahHotel?.address?.trim() ||
+    "";
+  const madinahAddress =
+    (pkg as any).madinahAddress?.trim() ||
+    pkg.madinahDescription?.trim() ||
+    madinahHotel?.address?.trim() ||
+    "";
+
   const makkahAmenities = parseHotelAmenities(
     makkahHotel?.amenities || pkg.makkahAmenities
   );
@@ -463,9 +474,9 @@ export default function PackageDetailClient({
                               </span>
                             </p>
                           )}
-                          {makkahHotel?.address && (
+                          {makkahAddress && (
                             <p className="text-[11px] text-neutral-500 pl-5">
-                              {makkahHotel.address}
+                              {makkahAddress}
                             </p>
                           )}
                           {makkahHotel?.mapLocation && (
@@ -597,9 +608,9 @@ export default function PackageDetailClient({
                               </span>
                             </p>
                           )}
-                          {madinahHotel?.address && (
+                          {madinahAddress && (
                             <p className="text-[11px] text-neutral-500 pl-5">
-                              {madinahHotel.address}
+                              {madinahAddress}
                             </p>
                           )}
                           {madinahHotel?.mapLocation && (

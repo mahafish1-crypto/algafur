@@ -97,14 +97,41 @@ async function handleUpdate(
     if (updateData.startDate !== undefined) updateData.startDate = updateData.startDate ? new Date(updateData.startDate) : null;
     if (updateData.endDate !== undefined) updateData.endDate = updateData.endDate ? new Date(updateData.endDate) : null;
     if (updateData.highlights !== undefined) updateData.highlights = updateData.highlights ? String(updateData.highlights).trim() : null;
+    
+    // Overview & Description mapping
     if (body.overview !== undefined || body.description !== undefined) {
-      updateData.overview = body.overview !== undefined ? String(body.overview).trim() : String(body.description).trim();
+      const ov = body.overview !== undefined ? body.overview : body.description;
+      updateData.overview = ov ? String(ov).trim() : null;
     }
+
+    // Makkah Address mapping
+    if (body.makkahAddress !== undefined || body.makkahDescription !== undefined) {
+      const mkAddr = body.makkahAddress !== undefined ? body.makkahAddress : body.makkahDescription;
+      updateData.makkahDescription = mkAddr ? String(mkAddr).trim() : null;
+    }
+
+    // Madinah Address mapping
+    if (body.madinahAddress !== undefined || body.madinahDescription !== undefined) {
+      const mdAddr = body.madinahAddress !== undefined ? body.madinahAddress : body.madinahDescription;
+      updateData.madinahDescription = mdAddr ? String(mdAddr).trim() : null;
+    }
+
+    // Ziyarat landmarks mapping
     if (body.ziyaratLandmarks !== undefined) {
       updateData.highlights = typeof body.ziyaratLandmarks === "string"
         ? body.ziyaratLandmarks
         : JSON.stringify(body.ziyaratLandmarks);
+    } else if (body.highlights !== undefined) {
+      updateData.highlights = typeof body.highlights === "string"
+        ? body.highlights
+        : JSON.stringify(body.highlights);
     }
+
+    // Strip virtual / non-schema properties from updateData so Prisma validates cleanly
+    delete updateData.description;
+    delete updateData.makkahAddress;
+    delete updateData.madinahAddress;
+    delete updateData.ziyaratLandmarks;
 
     if (updateData.gallery && typeof updateData.gallery !== "string") {
       updateData.gallery = JSON.stringify(updateData.gallery);
@@ -132,13 +159,14 @@ async function handleUpdate(
         data: updateData,
       });
 
-      // 1b. Automatically keep linked Hotel records in sync if hotel name/distance was updated
+      // 1b. Automatically keep linked Hotel records in sync (name, distance, rating, address)
       const targetMakkahId = updateData.makkahHotelId || existing.makkahHotelId;
       if (
         targetMakkahId &&
         (updateData.makkahHotelName ||
           updateData.makkahDistance ||
-          updateData.makkahHotelRating !== undefined)
+          updateData.makkahHotelRating !== undefined ||
+          updateData.makkahDescription !== undefined)
       ) {
         await tx.hotel
           .update({
@@ -149,6 +177,10 @@ async function handleUpdate(
               starRating:
                 updateData.makkahHotelRating !== undefined
                   ? Number(updateData.makkahHotelRating)
+                  : undefined,
+              address:
+                updateData.makkahDescription !== undefined
+                  ? updateData.makkahDescription
                   : undefined,
             },
           })
@@ -162,7 +194,8 @@ async function handleUpdate(
         targetMadinahId &&
         (updateData.madinahHotelName ||
           updateData.madinahDistance ||
-          updateData.madinahHotelRating !== undefined)
+          updateData.madinahHotelRating !== undefined ||
+          updateData.madinahDescription !== undefined)
       ) {
         await tx.hotel
           .update({
@@ -173,6 +206,10 @@ async function handleUpdate(
               starRating:
                 updateData.madinahHotelRating !== undefined
                   ? Number(updateData.madinahHotelRating)
+                  : undefined,
+              address:
+                updateData.madinahDescription !== undefined
+                  ? updateData.madinahDescription
                   : undefined,
             },
           })
@@ -272,6 +309,13 @@ async function handleUpdate(
 
     // Instant cache purge across all public and admin routes, handling old and new slugs
     revalidatePackagesCache([existing.slug, fullPackage?.slug]);
+    try {
+      revalidatePath("/", "page");
+      revalidatePath("/packages", "page");
+      if (existing.slug) revalidatePath(`/packages/${existing.slug}`, "page");
+      if (fullPackage?.slug) revalidatePath(`/packages/${fullPackage.slug}`, "page");
+      revalidatePath("/admin/packages", "page");
+    } catch {}
 
     return NextResponse.json({ success: true, package: fullPackage });
   } catch (error: unknown) {

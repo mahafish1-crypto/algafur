@@ -2,11 +2,22 @@
  * Shared, client-safe helper for parsing Holy Ziyarat landmarks
  * from either JSON string or legacy newline-separated text.
  */
-export function parseZiyaratLandmarks(highlights: string | null | undefined): {
+export function parseZiyaratLandmarks(highlights: any): {
   makkah: string[];
   madinah: string[];
 } {
-  if (!highlights || typeof highlights !== "string" || !highlights.trim()) {
+  if (!highlights) {
+    return { makkah: [], madinah: [] };
+  }
+
+  if (typeof highlights === "object") {
+    return {
+      makkah: Array.isArray(highlights.makkah) ? highlights.makkah.filter(Boolean) : [],
+      madinah: Array.isArray(highlights.madinah) ? highlights.madinah.filter(Boolean) : [],
+    };
+  }
+
+  if (typeof highlights !== "string" || !highlights.trim()) {
     return { makkah: [], madinah: [] };
   }
 
