@@ -76,9 +76,26 @@ export default async function PackageDetailPage({
     () => []
   );
 
+  // Guarantee seamless resolution of overview and hotel addresses
+  const enrichedPackage = {
+    ...pkg,
+    overview: pkg.overview || (pkg as any).description || "",
+    description: pkg.overview || (pkg as any).description || "",
+    makkahAddress:
+      (pkg as any).makkahAddress ||
+      pkg.makkahDescription ||
+      pkg.makkahHotel?.address ||
+      "",
+    madinahAddress:
+      (pkg as any).madinahAddress ||
+      pkg.madinahDescription ||
+      pkg.madinahHotel?.address ||
+      "",
+  };
+
   return (
     <PackageDetailClient
-      pkg={pkg}
+      pkg={enrichedPackage}
       relatedPackages={relatedPackages}
       settings={settings}
       spiritualGuides={spiritualGuides}
