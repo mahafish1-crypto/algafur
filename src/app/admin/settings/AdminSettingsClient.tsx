@@ -44,6 +44,7 @@ type TabType =
   | "about"
   | "contact"
   | "company"
+  | "policies"
   | "whatsapp"
   | "ai"
   | "payment"
@@ -214,6 +215,31 @@ export default function AdminSettingsClient({
     meta_pixel_id: initialSettings.meta_pixel_id || "",
     meta_pixel_enabled: initialSettings.meta_pixel_enabled || "false",
     meta_pixel_updated_at: initialSettings.meta_pixel_updated_at || "",
+
+    // Master Global Travel Requirements & Terms CMS
+    global_travel_requirements:
+      initialSettings.global_travel_requirements ||
+      `- Valid Original Passport: Minimum 6 months validity from departure date with at least 2 blank pages.
+- Passport Photos: 2 recent passport-size color photographs with white background (4cm x 6cm).
+- Mandatory Vaccination: Meningitis (ACWY) vaccination certificate and approved COVID-19 vaccination certificates as mandated by the Ministry of Hajj & Umrah.
+- Identity Proof: Clear copies of PAN Card and Aadhaar Card for Indian regulatory and KYC compliance.
+- Mahram Relationship: Women below 45 years traveling without Mahram are subject to current Saudi regulatory guidelines.`,
+
+    global_booking_terms:
+      initialSettings.global_booking_terms ||
+      `- Booking Token Advance: A token booking deposit of ₹25,000 per pilgrim is required to secure seat allotment.
+- Payment Schedule: 50% of the package cost must be deposited upon visa processing initiation; the remaining balance must be cleared at least 20 days prior to departure.
+- Airlines & Schedules: Flight schedules, group departure timings, and airline allocations are subject to regulatory clearance and operational approvals.
+- Hotel Stays: Hotel rooms are allocated according to sharing preferences (Quad, Triple, Double). Standard check-in/check-out policies of Saudi hospitality apply.
+- Currency & Taxation: All prices are stated in Indian Rupees (INR). Any sudden revision in foreign exchange or Saudi VAT is subject to applicable regulatory notification.`,
+
+    global_cancellation_policy:
+      initialSettings.global_cancellation_policy ||
+      `- Notice Period: All cancellation requests must be officially submitted in writing via registered email or WhatsApp.
+- 30+ Days Prior to Departure: Full refund after deducting ₹10,000 per pilgrim towards administrative and slot reservation expenses.
+- 15 to 30 Days Prior to Departure: 50% of total package cost will be retained towards confirmed ticket and hotel blocking penalties.
+- Less than 15 Days / No-Show: 100% cancellation charges apply as group airline tickets and hotel reservations in the Haramain are non-refundable.
+- Visa & Insurance Fees: Saudi visa issuance fees and mandatory medical tourist insurance premiums are non-refundable once approved by the Ministry.`,
   });
 
   const [saving, setSaving] = useState(false);
@@ -347,6 +373,7 @@ export default function AdminSettingsClient({
             { id: "about", label: "About Us Page CMS", icon: FileText },
             { id: "contact", label: "Contact & Offices", icon: Phone },
             { id: "company", label: "Agency Profile & Banking", icon: Building },
+            { id: "policies", label: "Master Terms & Requirements", icon: ShieldCheck },
             { id: "whatsapp", label: "WhatsApp Cloud API", icon: MessageCircle },
             { id: "ai", label: "AI Marketing Studio", icon: Sparkles },
             { id: "payment", label: "Payment Gateways", icon: CreditCard },
@@ -1733,6 +1760,121 @@ export default function AdminSettingsClient({
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Global Master Terms & Travel Requirements Tab */}
+            {activeTab === "policies" && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b pb-3 border-slate-100">
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                      <ShieldCheck className="w-5 h-5 text-emerald-800" />
+                      Master Travel Requirements &amp; Booking Terms
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Centrally managed documentation criteria, payment rules, and cancellation policies that uniformly bind to all package detail pages.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSave()}
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-medium text-xs transition-colors shadow-sm disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{saving ? "Saving..." : "Save Master Terms"}</span>
+                  </button>
+                </div>
+
+                {/* Travel Requirements */}
+                <div className="space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-emerald-700" />
+                      1. Master Travel &amp; Visa Documentation Requirements *
+                    </label>
+                    <span className="text-[11px] text-slate-500">
+                      Passport validity, photo specs, vaccination, KYC proofs
+                    </span>
+                  </div>
+                  <textarea
+                    rows={6}
+                    value={settings.global_travel_requirements || ""}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        global_travel_requirements: e.target.value,
+                      })
+                    }
+                    className="w-full text-xs font-mono p-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-800 leading-relaxed text-slate-800"
+                    placeholder="Enter passport validity, vaccination certificates, photo specifications, and KYC proof rules..."
+                  />
+                </div>
+
+                {/* Booking & Payment Terms */}
+                <div className="space-y-2 pt-4 border-t border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <CreditCard className="w-4 h-4 text-emerald-700" />
+                      2. Master Booking &amp; Seat Allotment Terms *
+                    </label>
+                    <span className="text-[11px] text-slate-500">
+                      Token advance, payment schedule, hotel check-in rules, flight allocations
+                    </span>
+                  </div>
+                  <textarea
+                    rows={6}
+                    value={settings.global_booking_terms || ""}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        global_booking_terms: e.target.value,
+                      })
+                    }
+                    className="w-full text-xs font-mono p-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-800 leading-relaxed text-slate-800"
+                    placeholder="Enter deposit terms, payment milestones, flight & hotel room allotment policies..."
+                  />
+                </div>
+
+                {/* Cancellation Policy */}
+                <div className="space-y-2 pt-4 border-t border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                      3. Master Cancellation &amp; Refund Policy *
+                    </label>
+                    <span className="text-[11px] text-slate-500">
+                      Notice period, retention percentages, non-refundable components
+                    </span>
+                  </div>
+                  <textarea
+                    rows={6}
+                    value={settings.global_cancellation_policy || ""}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        global_cancellation_policy: e.target.value,
+                      })
+                    }
+                    className="w-full text-xs font-mono p-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-800 leading-relaxed text-slate-800"
+                    placeholder="Enter cancellation slabs, deduction rules, and non-refundable visa fees..."
+                  />
+                </div>
+
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center justify-between">
+                  <span>
+                    ✓ Automatically synchronized across all public tour packages. Changes purge Next.js cache instantly.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleSave()}
+                    disabled={saving}
+                    className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-lg font-bold transition-colors shrink-0"
+                  >
+                    {saving ? "Saving..." : "Save Global Terms"}
+                  </button>
                 </div>
               </div>
             )}

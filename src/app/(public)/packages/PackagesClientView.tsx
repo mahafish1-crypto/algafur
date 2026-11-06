@@ -6,6 +6,7 @@ import { Search, Scale, X } from "lucide-react";
 import Link from "next/link";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
 import { useLanguage } from "@/context/LanguageContext";
+import { getPackageDepartureTimestamp } from "@/lib/package-dates";
 
 interface PackagesClientViewProps {
   initialPackages: any[];
@@ -44,7 +45,7 @@ export default function PackagesClientView({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(() => normalizeCategory(initialCategory));
   const [selectedDuration, setSelectedDuration] = useState(initialDuration);
-  const [sortBy, setSortBy] = useState("POPULAR");
+  const [sortBy, setSortBy] = useState("DEPARTURE");
 
   // Comparison State (Max 3 packages)
   const [compareList, setCompareList] = useState<string[]>([]);
@@ -127,7 +128,21 @@ export default function PackagesClientView({
         if (sortBy === "PRICE_LOW") return a.basePrice - b.basePrice;
         if (sortBy === "PRICE_HIGH") return b.basePrice - a.basePrice;
         if (sortBy === "DURATION") return b.durationDays - a.durationDays;
-        return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
+        if (sortBy === "POPULAR") return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
+
+        // "DEPARTURE": sort by nearest upcoming departure date first
+        const now = Date.now();
+        const timeA = getPackageDepartureTimestamp(a);
+        const timeB = getPackageDepartureTimestamp(b);
+        const upA = timeA !== null && timeA >= now;
+        const upB = timeB !== null && timeB >= now;
+
+        if (upA && upB) return (timeA as number) - (timeB as number);
+        if (upA && !upB) return -1;
+        if (!upA && upB) return 1;
+
+        if (a.isFeatured !== b.isFeatured) return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
+        return (timeB || 0) - (timeA || 0);
       });
   }, [initialPackages, searchTerm, selectedCategory, selectedDuration, sortBy]);
 
@@ -221,6 +236,7 @@ export default function PackagesClientView({
                 onChange={(e) => setSortBy(e.target.value)}
                 className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none text-neutral-800"
               >
+                <option value="DEPARTURE">Sort by: Nearest Departure</option>
                 <option value="POPULAR">Sort by: Popularity</option>
                 <option value="PRICE_LOW">Price: Low to High</option>
                 <option value="PRICE_HIGH">Price: High to Low</option>

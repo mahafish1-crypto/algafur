@@ -24,6 +24,8 @@ import {
   Star,
   ExternalLink,
   Award,
+  CreditCard,
+  AlertTriangle,
 } from "lucide-react";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
@@ -239,6 +241,28 @@ export default function PackageDetailClient({
   const madinahAmenities = parseHotelAmenities(
     madinahHotel?.amenities || pkg.madinahAmenities
   );
+
+  const defaultTravelReqs = `- Valid Original Passport: Minimum 6 months validity from departure date with at least 2 blank pages.
+- Passport Photos: 2 recent passport-size color photographs with white background (4cm x 6cm).
+- Mandatory Vaccination: Meningitis (ACWY) vaccination certificate and approved COVID-19 vaccination certificates as mandated by the Ministry of Hajj & Umrah.
+- Identity Proof: Clear copies of PAN Card and Aadhaar Card for Indian regulatory and KYC compliance.
+- Mahram Relationship: Women below 45 years traveling without Mahram are subject to current Saudi regulatory guidelines.`;
+
+  const defaultBookingTerms = `- Booking Token Advance: A token booking deposit of ₹25,000 per pilgrim is required to secure seat allotment.
+- Payment Schedule: 50% of the package cost must be deposited upon visa processing initiation; the remaining balance must be cleared at least 20 days prior to departure.
+- Airlines & Schedules: Flight schedules, group departure timings, and airline allocations are subject to regulatory clearance and operational approvals.
+- Hotel Stays: Hotel rooms are allocated according to sharing preferences (Quad, Triple, Double). Standard check-in/check-out policies of Saudi hospitality apply.
+- Currency & Taxation: All prices are stated in Indian Rupees (INR). Any sudden revision in foreign exchange or Saudi VAT is subject to applicable regulatory notification.`;
+
+  const defaultCancellationPolicy = `- Notice Period: All cancellation requests must be officially submitted in writing via registered email or WhatsApp.
+- 30+ Days Prior to Departure: Full refund after deducting ₹10,000 per pilgrim towards administrative and slot reservation expenses.
+- 15 to 30 Days Prior to Departure: 50% of total package cost will be retained towards confirmed ticket and hotel blocking penalties.
+- Less than 15 Days / No-Show: 100% cancellation charges apply as group airline tickets and hotel reservations in the Haramain are non-refundable.
+- Visa & Insurance Fees: Saudi visa issuance fees and mandatory medical tourist insurance premiums are non-refundable once approved by the Ministry.`;
+
+  const resolvedTravelReqs = settings?.global_travel_requirements?.trim() || pkg.travelRequirements || defaultTravelReqs;
+  const resolvedBookingTerms = settings?.global_booking_terms?.trim() || pkg.termsAndConditions || defaultBookingTerms;
+  const resolvedCancellationPolicy = settings?.global_cancellation_policy?.trim() || pkg.cancellationPolicy || defaultCancellationPolicy;
 
   const displayedMakkahImg = activeMakkahImg || pkg.makkahImage || makkahMedia.mainImage;
   const displayedMadinahImg = activeMadinahImg || pkg.madinahImage || madinahMedia.mainImage;
@@ -1113,42 +1137,61 @@ export default function PackageDetailClient({
               </div>
             )}
 
-            {/* Travel Requirements & Terms */}
-            <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-4">
-              <h2 className="text-xl font-serif font-bold text-forest-950 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-gold-600" />
-                Travel Requirements &amp; Booking Terms
-              </h2>
-              <div className="text-xs text-neutral-600 space-y-2 leading-relaxed">
-                {pkg.travelRequirements && (
-                  <p>
-                    <strong>Documents Required (upon confirmation):</strong>{" "}
-                    {pkg.travelRequirements}
-                  </p>
-                )}
-                {pkg.termsAndConditions && (
-                  <p>
-                    <strong>Terms &amp; Conditions:</strong>{" "}
-                    {pkg.termsAndConditions}
-                  </p>
-                )}
-                {pkg.cancellationPolicy && (
-                  <p>
-                    <strong>Cancellation Policy:</strong>{" "}
-                    {pkg.cancellationPolicy}
-                  </p>
-                )}
-                {pkg.refundPolicy && (
-                  <p>
-                    <strong>Refund Policy:</strong> {pkg.refundPolicy}
-                  </p>
-                )}
-                {pkg.importantNotes && (
-                  <p className="bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-amber-900 mt-2">
-                    <strong>Important Notes:</strong> {pkg.importantNotes}
-                  </p>
-                )}
+            {/* Master Travel Requirements & Booking Terms */}
+            <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                <h2 className="text-xl font-serif font-bold text-forest-950 flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-gold-600" />
+                  Travel Requirements &amp; Booking Terms
+                </h2>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                  Official Policy
+                </span>
               </div>
+
+              {/* 1. Travel & Visa Documentation */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-forest-900 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-emerald-700" />
+                  Mandatory Travel &amp; Visa Documentation
+                </h3>
+                <div className="text-xs text-neutral-600 space-y-1.5 bg-neutral-50/70 p-4 rounded-2xl border border-neutral-200/70 leading-relaxed whitespace-pre-line">
+                  {resolvedTravelReqs}
+                </div>
+              </div>
+
+              {/* 2. Booking Terms & Payment Milestones */}
+              <div className="space-y-2 pt-2 border-t border-neutral-100">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-forest-900 flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-emerald-700" />
+                  Booking Terms &amp; Payment Milestones
+                </h3>
+                <div className="text-xs text-neutral-600 space-y-1.5 bg-neutral-50/70 p-4 rounded-2xl border border-neutral-200/70 leading-relaxed whitespace-pre-line">
+                  {resolvedBookingTerms}
+                </div>
+              </div>
+
+              {/* 3. Cancellation Policy */}
+              <div className="space-y-2 pt-2 border-t border-neutral-100">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-forest-900 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  Cancellation &amp; Refund Slabs
+                </h3>
+                <div className="text-xs text-neutral-600 space-y-1.5 bg-neutral-50/70 p-4 rounded-2xl border border-neutral-200/70 leading-relaxed whitespace-pre-line">
+                  {resolvedCancellationPolicy}
+                </div>
+              </div>
+
+              {/* Package-specific important notes (if present) */}
+              {pkg.importantNotes && (
+                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-amber-900 text-xs space-y-1">
+                  <strong className="block font-bold flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-gold-600" />
+                    Special Tour Notes:
+                  </strong>
+                  <p className="leading-relaxed">{pkg.importantNotes}</p>
+                </div>
+              )}
             </div>
           </div>
 

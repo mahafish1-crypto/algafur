@@ -75,6 +75,25 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   // WhatsApp Automation Bot API
   whatsapp_api_key: "alg_live_wa_secret_2026_umrah",
 
+  // Master Global Travel Requirements & Terms CMS
+  global_travel_requirements: `- Valid Original Passport: Minimum 6 months validity from departure date with at least 2 blank pages.
+- Passport Photos: 2 recent passport-size color photographs with white background (4cm x 6cm).
+- Mandatory Vaccination: Meningitis (ACWY) vaccination certificate and approved COVID-19 vaccination certificates as mandated by the Ministry of Hajj & Umrah.
+- Identity Proof: Clear copies of PAN Card and Aadhaar Card for Indian regulatory and KYC compliance.
+- Mahram Relationship: Women below 45 years traveling without Mahram are subject to current Saudi regulatory guidelines.`,
+
+  global_booking_terms: `- Booking Token Advance: A token booking deposit of ₹25,000 per pilgrim is required to secure seat allotment.
+- Payment Schedule: 50% of the package cost must be deposited upon visa processing initiation; the remaining balance must be cleared at least 20 days prior to departure.
+- Airlines & Schedules: Flight schedules, group departure timings, and airline allocations are subject to regulatory clearance and operational approvals.
+- Hotel Stays: Hotel rooms are allocated according to sharing preferences (Quad, Triple, Double). Standard check-in/check-out policies of Saudi hospitality apply.
+- Currency & Taxation: All prices are stated in Indian Rupees (INR). Any sudden revision in foreign exchange or Saudi VAT is subject to applicable regulatory notification.`,
+
+  global_cancellation_policy: `- Notice Period: All cancellation requests must be officially submitted in writing via registered email or WhatsApp.
+- 30+ Days Prior to Departure: Full refund after deducting ₹10,000 per pilgrim towards administrative and slot reservation expenses.
+- 15 to 30 Days Prior to Departure: 50% of total package cost will be retained towards confirmed ticket and hotel blocking penalties.
+- Less than 15 Days / No-Show: 100% cancellation charges apply as group airline tickets and hotel reservations in the Haramain are non-refundable.
+- Visa & Insurance Fees: Saudi visa issuance fees and mandatory medical tourist insurance premiums are non-refundable once approved by the Ministry.`,
+
   // AI Growth Studio & Gemini (Note: secret keys are never loaded into public shared cache)
   ai_gemini_api_key: "",
   ai_model_name: "gemini-2.5-flash",

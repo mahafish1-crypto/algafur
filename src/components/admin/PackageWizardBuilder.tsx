@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import SafeImage from "@/components/ui/SafeImage";
 import { parseZiyaratLandmarks } from "@/lib/ziyarat-helpers";
@@ -2129,6 +2130,26 @@ export default function PackageWizardBuilder({
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Master Travel Requirements & Booking Terms Notice */}
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  Centralized Travel Requirements &amp; Booking Terms
+                </span>
+                <Link
+                  href="/admin/settings?tab=policies"
+                  target="_blank"
+                  className="text-[11px] text-gold-400 hover:text-gold-300 underline font-semibold flex items-center gap-1"
+                >
+                  Manage Master Terms ↗
+                </Link>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Visa documentation criteria, payment installment rules, and cancellation policies are centrally managed across all packages. You don&apos;t need to re-type them for every individual tour.
+              </p>
             </div>
 
             {/* Final Live Summary Card */}

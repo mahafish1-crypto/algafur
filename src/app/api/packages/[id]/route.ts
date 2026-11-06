@@ -453,8 +453,18 @@ export async function DELETE(
       );
     }
 
-    // If bookings exist, archive instead of deleting
-    if (existing._count.bookings > 0) {
+    // Check if bookings exist on the package or on any of its departure groups
+    const bookingCount = await prisma.booking.count({
+      where: {
+        OR: [
+          { packageId: id },
+          { departureGroup: { packageId: id } },
+        ],
+      },
+    });
+
+    // If bookings exist, archive safely instead of deleting to protect audit and pilgrim records
+    if (bookingCount > 0) {
       const archived = await prisma.package.update({
         where: { id },
         data: { status: "ARCHIVED" },
@@ -463,13 +473,50 @@ export async function DELETE(
       revalidatePackagesCache([existing.slug, archived.slug]);
       return NextResponse.json({
         success: true,
-        message: "Package has existing pilgrim bookings and was archived instead of deleted.",
+        archived: true,
+        message: `Package has ${bookingCount} existing pilgrim booking(s) and was safely archived rather than deleted.`,
         package: archived,
       });
     }
 
-    // Otherwise delete package
-    await prisma.package.delete({ where: { id } });
+    // Clean cascade deletion of all dependent records in a safe transaction
+    await prisma.$transaction(async (tx) => {
+      // 1. Unlink any LeadForm submissions referencing this package
+      await tx.leadForm
+        .updateMany({
+          where: { packageId: id },
+          data: { packageId: null },
+        })
+        .catch(() => {});
+
+      // 2. Delete quotations linked to this package
+      await tx.quotation
+        .deleteMany({
+          where: { packageId: id },
+        })
+        .catch(() => {});
+
+      // 3. Delete departure groups for this package
+      await tx.departureGroup.deleteMany({
+        where: { packageId: id },
+      });
+
+      // 4. Delete inclusions, itineraries, and gallery media
+      await tx.packageInclusion.deleteMany({
+        where: { packageId: id },
+      });
+      await tx.packageItinerary.deleteMany({
+        where: { packageId: id },
+      });
+      await tx.packageImage.deleteMany({
+        where: { packageId: id },
+      });
+
+      // 5. Finally delete the package record
+      await tx.package.delete({
+        where: { id },
+      });
+    });
 
     await logAudit({
       userId: session.id,
@@ -481,6 +528,11 @@ export async function DELETE(
 
     // Instant cache purge across all public and admin routes
     revalidatePackagesCache([existing.slug]);
+    try {
+      revalidatePath("/", "page");
+      revalidatePath("/packages", "page");
+      revalidatePath("/admin/packages", "page");
+    } catch {}
 
     return NextResponse.json({ success: true, message: "Package deleted successfully" });
   } catch (error: unknown) {
