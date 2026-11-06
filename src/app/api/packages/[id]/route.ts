@@ -7,6 +7,90 @@ import { PACKAGES_CACHE_TAG, revalidatePackagesCache } from "@/lib/packages-data
 
 export const dynamic = "force-dynamic";
 
+const VALID_PACKAGE_SCALAR_FIELDS = new Set([
+  "name",
+  "slug",
+  "type",
+  "badge",
+  "year",
+  "durationDays",
+  "makkahNights",
+  "madinahNights",
+  "basePrice",
+  "priceQuad",
+  "priceTriple",
+  "priceDouble",
+  "priceSingle",
+  "childPrice",
+  "infantPrice",
+  "couplePrice",
+  "mrpPrice",
+  "currency",
+  "taxGst",
+  "additionalCharges",
+  "discountType",
+  "discountValue",
+  "departureDate",
+  "returnDate",
+  "departureCity",
+  "hasSpecificDates",
+  "departureCycle",
+  "startDate",
+  "endDate",
+  "highlights",
+  "makkahHotelId",
+  "madinahHotelId",
+  "makkahHotelName",
+  "madinahHotelName",
+  "makkahDistance",
+  "madinahDistance",
+  "makkahHotelRating",
+  "makkahRoomType",
+  "makkahMealPlan",
+  "makkahDescription",
+  "makkahAmenities",
+  "makkahImage",
+  "makkahMap",
+  "madinahHotelRating",
+  "madinahRoomType",
+  "madinahMealPlan",
+  "madinahDescription",
+  "madinahAmenities",
+  "madinahImage",
+  "madinahMap",
+  "airline",
+  "flightNumber",
+  "pnr",
+  "departureAirport",
+  "arrivalAirport",
+  "flightType",
+  "baggage",
+  "flightDetails",
+  "totalSeats",
+  "bookedSeats",
+  "status",
+  "isFeatured",
+  "isPopular",
+  "overview",
+  "travelRequirements",
+  "termsAndConditions",
+  "cancellationPolicy",
+  "refundPolicy",
+  "importantNotes",
+  "seoTitle",
+  "seoDescription",
+  "seoKeywords",
+  "ogImage",
+  "canonicalUrl",
+  "features",
+  "registrationDeadline",
+  "sortOrder",
+  "featuredImage",
+  "heroImage",
+  "thumbnailImage",
+  "gallery",
+]);
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -116,22 +200,31 @@ async function handleUpdate(
       updateData.madinahDescription = mdAddr ? String(mdAddr).trim() : null;
     }
 
-    // Ziyarat landmarks mapping
-    if (body.ziyaratLandmarks !== undefined) {
-      updateData.highlights = typeof body.ziyaratLandmarks === "string"
-        ? body.ziyaratLandmarks
-        : JSON.stringify(body.ziyaratLandmarks);
+    // Ziyarat landmarks mapping - cleanly store inside highlights as serialized JSON
+    let highlightsPayload: string | null = null;
+    if (body.ziyaratLandmarks && typeof body.ziyaratLandmarks === "object") {
+      highlightsPayload = JSON.stringify({
+        makkah: Array.isArray(body.ziyaratLandmarks.makkah) ? body.ziyaratLandmarks.makkah : [],
+        madinah: Array.isArray(body.ziyaratLandmarks.madinah) ? body.ziyaratLandmarks.madinah : [],
+        custom: Array.isArray(body.ziyaratLandmarks.custom) ? body.ziyaratLandmarks.custom : [],
+      });
+    } else if (body.makkahZiyarat || body.madinahZiyarat) {
+      highlightsPayload = JSON.stringify({
+        makkah: Array.isArray(body.makkahZiyarat) ? body.makkahZiyarat : [],
+        madinah: Array.isArray(body.madinahZiyarat) ? body.madinahZiyarat : [],
+        custom: Array.isArray(body.customZiyarat) ? body.customZiyarat : [],
+      });
     } else if (body.highlights !== undefined) {
-      updateData.highlights = typeof body.highlights === "string"
-        ? body.highlights
-        : JSON.stringify(body.highlights);
+      if (typeof body.highlights === "string") {
+        highlightsPayload = body.highlights.trim();
+      } else if (typeof body.highlights === "object" && body.highlights !== null) {
+        highlightsPayload = JSON.stringify(body.highlights);
+      }
     }
 
-    // Strip virtual / non-schema properties from updateData so Prisma validates cleanly
-    delete updateData.description;
-    delete updateData.makkahAddress;
-    delete updateData.madinahAddress;
-    delete updateData.ziyaratLandmarks;
+    if (highlightsPayload !== null) {
+      updateData.highlights = highlightsPayload;
+    }
 
     if (updateData.gallery && typeof updateData.gallery !== "string") {
       updateData.gallery = JSON.stringify(updateData.gallery);
@@ -151,12 +244,20 @@ async function handleUpdate(
       }
     }
 
+    // Ensure NO unknown keys are passed to prisma.package.update:
+    const safeUpdateData: any = {};
+    for (const [key, val] of Object.entries(updateData)) {
+      if (VALID_PACKAGE_SCALAR_FIELDS.has(key)) {
+        safeUpdateData[key] = val;
+      }
+    }
+
     // Run transaction if inclusions or itineraries need update
     const updated = await prisma.$transaction(async (tx) => {
-      // 1. Update scalar fields
+      // 1. Update scalar fields with strictly validated schema arguments
       const pkg = await tx.package.update({
         where: { id },
-        data: updateData,
+        data: safeUpdateData,
       });
 
       // 1b. Automatically keep linked Hotel records in sync (name, distance, rating, address)

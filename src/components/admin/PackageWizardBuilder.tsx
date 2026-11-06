@@ -397,11 +397,8 @@ export default function PackageWizardBuilder({
         highlights: JSON.stringify({
           makkah: form.selectedMakkahZiyarat,
           madinah: form.selectedMadinahZiyarat,
+          custom: [],
         }),
-        ziyaratLandmarks: {
-          makkah: form.selectedMakkahZiyarat,
-          madinah: form.selectedMadinahZiyarat,
-        },
         features: JSON.stringify(allFeatures),
         overview: form.overview ? form.overview.trim() : "",
         description: form.overview ? form.overview.trim() : "",

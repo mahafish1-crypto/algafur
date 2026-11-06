@@ -221,6 +221,23 @@ export async function POST(req: NextRequest) {
     const calculatedDouble = priceDouble !== undefined ? Number(priceDouble) : Math.round(Number(basePrice) * 1.25);
     const calculatedSingle = priceSingle !== undefined ? Number(priceSingle) : Math.round(Number(basePrice) * 1.5);
 
+    let highlightsPayload: string | null = null;
+    if (body.ziyaratLandmarks && typeof body.ziyaratLandmarks === "object") {
+      highlightsPayload = JSON.stringify({
+        makkah: Array.isArray(body.ziyaratLandmarks.makkah) ? body.ziyaratLandmarks.makkah : [],
+        madinah: Array.isArray(body.ziyaratLandmarks.madinah) ? body.ziyaratLandmarks.madinah : [],
+        custom: Array.isArray(body.ziyaratLandmarks.custom) ? body.ziyaratLandmarks.custom : [],
+      });
+    } else if (body.makkahZiyarat || body.madinahZiyarat) {
+      highlightsPayload = JSON.stringify({
+        makkah: Array.isArray(body.makkahZiyarat) ? body.makkahZiyarat : [],
+        madinah: Array.isArray(body.madinahZiyarat) ? body.madinahZiyarat : [],
+        custom: Array.isArray(body.customZiyarat) ? body.customZiyarat : [],
+      });
+    } else if (highlights) {
+      highlightsPayload = typeof highlights === "string" ? highlights.trim() : JSON.stringify(highlights);
+    }
+
     const newPackage = await prisma.package.create({
       data: {
         name,
@@ -252,13 +269,7 @@ export async function POST(req: NextRequest) {
         departureCycle: departureCycle ? String(departureCycle).trim() : "1st & 3rd Week of Every Month",
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
-        highlights: highlights
-          ? String(highlights).trim()
-          : body.ziyaratLandmarks
-          ? typeof body.ziyaratLandmarks === "string"
-            ? body.ziyaratLandmarks
-            : JSON.stringify(body.ziyaratLandmarks)
-          : null,
+        highlights: highlightsPayload,
         featuredImage: featuredImage || "/brand/poster.jpg",
         heroImage,
         thumbnailImage,
