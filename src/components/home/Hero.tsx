@@ -198,12 +198,12 @@ export default function Hero({
   const makkahName = pkg.makkahHotelName || pkg.makkahHotel?.name || "Diyafa Jamal";
   const makkahDist = pkg.makkahDistance || pkg.makkahHotel?.distanceFromHaram || "500m";
   const makkahStars = pkg.makkahHotelRating || pkg.makkahHotel?.starRating || 4;
-  const makkahThumb = extractMainHotelImage(pkg.makkahHotel?.images, pkg.makkahImage);
+  const makkahThumb = pkg.makkahImage || extractMainHotelImage(pkg.makkahHotel?.images) || "/brand/poster.jpg";
 
   const madinahName = pkg.madinahHotelName || pkg.madinahHotel?.name || "Ilaf Kuba";
   const madinahDist = pkg.madinahDistance || pkg.madinahHotel?.distanceFromHaram || "400m";
   const madinahStars = pkg.madinahHotelRating || pkg.madinahHotel?.starRating || 4;
-  const madinahThumb = extractMainHotelImage(pkg.madinahHotel?.images, pkg.madinahImage);
+  const madinahThumb = pkg.madinahImage || extractMainHotelImage(pkg.madinahHotel?.images) || "/brand/poster.jpg";
 
   const guidesLabel =
     spiritualGuides.length > 0

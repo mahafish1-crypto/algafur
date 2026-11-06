@@ -18,6 +18,8 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   company_phone_2: "+91 9890708013",
   company_phone_3: "+91 9764444044",
   whatsapp_number: "919890708013",
+  coordinator_name: "Dr. Mudassir Sayyad",
+  coordinator_phone: "+91 8793939393 / +91 9890708013",
   company_email: "contact@algafurtours.com",
   company_address: "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.",
   company_city: "Pune",

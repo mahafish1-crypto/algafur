@@ -184,7 +184,7 @@ export default function AgentDashboardClient({
               <tbody className="divide-y divide-neutral-100">
                 <tr className="hover:bg-neutral-50">
                   <td className="py-3.5 px-4 font-mono font-bold text-emerald-800">ALG-2026-00001</td>
-                  <td className="py-3.5 px-4 font-medium text-neutral-900">Haji Nizam Tamboli</td>
+                  <td className="py-3.5 px-4 font-medium text-neutral-900">Mohammed Rafiq Khan</td>
                   <td className="py-3.5 px-4 text-neutral-600">Umrah Platinum Package (20 Days)</td>
                   <td className="py-3.5 px-4 text-neutral-600">31 Oct 2026</td>
                   <td className="py-3.5 px-4 font-semibold text-neutral-900">₹4,80,000</td>

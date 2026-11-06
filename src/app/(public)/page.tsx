@@ -15,6 +15,7 @@ import {
   getPublishedHotels,
   getPublishedTestimonials,
   getPublishedFaqs,
+  resolveSpotlightPackage,
 } from "@/lib/packages-data";
 import { getSiteSettings } from "@/lib/settings";
 import { getSpiritualGuidesForPackage } from "@/lib/team-data";
@@ -35,14 +36,9 @@ export default async function HomePage() {
   ]);
 
   const packages = allPackages.slice(0, 6);
-  const preferredSlug = settings.hero_featured_package_slug || "umrah-platinum-package-2026";
-  const featuredPlatinum =
-    allPackages.find((p) => p.slug === preferredSlug) ||
-    allPackages.find((p) => p.slug === "umrah-platinum-package-2026") ||
-    packages[0] ||
-    null;
+  const featuredPackage = resolveSpotlightPackage(allPackages, settings);
 
-  const spiritualGuides = await getSpiritualGuidesForPackage(featuredPlatinum?.id).catch(
+  const spiritualGuides = await getSpiritualGuidesForPackage(featuredPackage?.id).catch(
     () => []
   );
 
@@ -59,7 +55,7 @@ export default async function HomePage() {
     <div className="flex flex-col min-h-screen">
       {/* 1. Hero Section */}
       <Hero
-        featuredPackage={featuredPlatinum}
+        featuredPackage={featuredPackage}
         settings={settings}
         spiritualGuides={spiritualGuides}
       />
@@ -103,7 +99,7 @@ export default async function HomePage() {
 
       {/* 4. Signature Poster Spotlight */}
       {showPosterSpotlight && (
-        <PosterSpotlight packageData={featuredPlatinum} settings={settings} />
+        <PosterSpotlight packageData={featuredPackage} settings={settings} />
       )}
 
       {/* 5. Trust Pillars: Why Pilgrims Choose AL GAFUR INTERNATIONAL TOURS AND TRAVELS */}
@@ -124,8 +120,8 @@ export default async function HomePage() {
       {/* 10. Lead Enquiry Form */}
       {showLeadForm && (
         <LeadEnquiryForm
-          defaultPackage={featuredPlatinum?.name}
-          defaultPackageId={featuredPlatinum?.id}
+          defaultPackage={featuredPackage?.name}
+          defaultPackageId={featuredPackage?.id}
           packages={allPackages.map((p) => ({
             id: p.id,
             name: p.name,

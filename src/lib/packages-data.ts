@@ -192,4 +192,94 @@ export const getPublishedBlogPostBySlug = cache(async (slug: string) => {
   });
 });
 
+/**
+ * Safely parses departure timestamp from package startDate or departureDate
+ */
+export function getPackageDepartureTimestamp(pkg: {
+  startDate?: Date | string | null;
+  departureDate?: string | null;
+}): number | null {
+  if (pkg.startDate) {
+    const d = new Date(pkg.startDate);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+  if (pkg.departureDate && typeof pkg.departureDate === "string") {
+    const d = new Date(pkg.departureDate);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+  return null;
+}
+
+/**
+ * Resolves the primary featured/spotlight package for Homepage Hero and Spotlight section:
+ * 1. Site Settings explicit pin (hero_featured_package_slug) if set and exists in published packages.
+ * 2. Active packages pinned as isFeatured === true, sorted by departure date closest to today (nearest upcoming).
+ * 3. Fallback: all active published packages sorted by departure date closest to today (nearest upcoming).
+ * 4. Fallback: first published package or null.
+ */
+export function resolveSpotlightPackage<
+  T extends {
+    id?: string;
+    slug: string;
+    status?: string;
+    isFeatured?: boolean;
+    startDate?: Date | string | null;
+    departureDate?: string | null;
+  }
+>(
+  allPackages: T[],
+  settings?: Record<string, string>
+): T | null {
+  if (!allPackages || allPackages.length === 0) return null;
+
+  const published = allPackages.filter((p) => !p.status || p.status === "PUBLISHED");
+  if (published.length === 0) return allPackages[0] || null;
+
+  // 1. Site settings explicit pin
+  const pinnedSlug = settings?.hero_featured_package_slug?.trim();
+  if (pinnedSlug) {
+    const pinned = published.find((p) => p.slug === pinnedSlug);
+    if (pinned) return pinned;
+  }
+
+  const now = Date.now();
+
+  const sortNearestUpcoming = (list: T[]): T[] => {
+    return [...list].sort((a, b) => {
+      const timeA = getPackageDepartureTimestamp(a);
+      const timeB = getPackageDepartureTimestamp(b);
+
+      const isUpcomingA = timeA !== null && timeA >= now;
+      const isUpcomingB = timeB !== null && timeB >= now;
+
+      // Both upcoming: nearest to now comes first (earliest departure)
+      if (isUpcomingA && isUpcomingB) {
+        return (timeA as number) - (timeB as number);
+      }
+      // Upcoming beats past or date-less
+      if (isUpcomingA && !isUpcomingB) return -1;
+      if (!isUpcomingA && isUpcomingB) return 1;
+
+      // If both have timestamps, order closest to now
+      if (timeA !== null && timeB !== null) {
+        return Math.abs(timeA - now) - Math.abs(timeB - now);
+      }
+      if (timeA !== null) return -1;
+      if (timeB !== null) return 1;
+      return 0;
+    });
+  };
+
+  // 2. Filter packages with isFeatured === true
+  const featured = published.filter((p) => Boolean(p.isFeatured));
+  if (featured.length > 0) {
+    const sortedFeatured = sortNearestUpcoming(featured);
+    return sortedFeatured[0];
+  }
+
+  // 3. Fallback: all published packages sorted by nearest upcoming departure
+  const sortedAll = sortNearestUpcoming(published);
+  return sortedAll[0] || published[0] || null;
+}
+
 export { parseZiyaratLandmarks } from "./ziyarat-helpers";

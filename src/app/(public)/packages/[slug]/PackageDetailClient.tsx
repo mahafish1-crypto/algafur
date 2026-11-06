@@ -240,8 +240,8 @@ export default function PackageDetailClient({
     madinahHotel?.amenities || pkg.madinahAmenities
   );
 
-  const displayedMakkahImg = activeMakkahImg || makkahMedia.mainImage;
-  const displayedMadinahImg = activeMadinahImg || madinahMedia.mainImage;
+  const displayedMakkahImg = activeMakkahImg || pkg.makkahImage || makkahMedia.mainImage;
+  const displayedMadinahImg = activeMadinahImg || pkg.madinahImage || madinahMedia.mainImage;
 
   return (
     <div className="bg-ivory-100/50 min-h-screen pb-24">

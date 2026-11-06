@@ -489,7 +489,7 @@ export default function AdminTestimonialsClient({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Haji Nizam Tamboli"
+                    placeholder="e.g. Mohammed Rafiq"
                     value={form.customerName}
                     onChange={(e) =>
                       setForm({ ...form, customerName: e.target.value })

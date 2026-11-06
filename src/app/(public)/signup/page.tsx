@@ -148,7 +148,7 @@ export default function SignupPage() {
                   autoComplete="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Haji Nizam Tamboli"
+                  placeholder="e.g. Dr. Mudassir Sayyad"
                   className="w-full text-xs pl-9 pr-3 py-3 rounded-xl bg-forest-950/80 border border-emerald-800 focus:border-gold-400 focus:outline-none text-white placeholder-emerald-600/80"
                 />
               </div>

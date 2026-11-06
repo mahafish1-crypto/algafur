@@ -18,7 +18,9 @@ export function parseHotelImages(
   const cityDefault =
     String(city || "").toUpperCase() === "MADINAH" ? defaultMadinah : defaultMakkah;
 
-  let mainImage = fallbackUrl || "";
+  const cleanOverride = fallbackUrl && fallbackUrl.trim() ? fallbackUrl.trim() : "";
+
+  let catalogMainImage = "";
   let gallery: string[] = [];
   let contactPhone = "";
   let contactEmail = "";
@@ -31,12 +33,12 @@ export function parseHotelImages(
           .map((item) => (typeof item === "string" ? item.trim() : ""))
           .filter(Boolean);
         if (validUrls.length > 0) {
-          mainImage = validUrls[0];
+          catalogMainImage = validUrls[0];
           gallery = validUrls.slice(1);
         }
       } else if (parsed && typeof parsed === "object") {
         if (typeof parsed.mainImage === "string" && parsed.mainImage.trim()) {
-          mainImage = parsed.mainImage.trim();
+          catalogMainImage = parsed.mainImage.trim();
         }
         if (Array.isArray(parsed.gallery)) {
           gallery = parsed.gallery
@@ -57,22 +59,30 @@ export function parseHotelImages(
           .map((s) => s.trim())
           .filter(Boolean);
         if (parts.length > 0) {
-          mainImage = parts[0];
+          catalogMainImage = parts[0];
           gallery = parts.slice(1);
         }
       }
     }
   }
 
-  const resolvedMain = mainImage || fallbackUrl || cityDefault;
+  // Precedence: Specific package hotel image (cleanOverride) > catalog main > city default
+  const resolvedMain = cleanOverride || catalogMainImage || cityDefault;
+
+  // Include catalogMain in gallery if different from resolvedMain
+  const extendedGallery = [
+    ...(catalogMainImage && catalogMainImage !== resolvedMain ? [catalogMainImage] : []),
+    ...gallery,
+  ].filter((url, idx, self) => url && url !== resolvedMain && self.indexOf(url) === idx);
+
   const allImages = [
     resolvedMain,
-    ...gallery.filter((url) => url && url !== resolvedMain),
+    ...extendedGallery,
   ];
 
   return {
     mainImage: resolvedMain,
-    gallery,
+    gallery: extendedGallery,
     allImages,
     contactPhone,
     contactEmail,

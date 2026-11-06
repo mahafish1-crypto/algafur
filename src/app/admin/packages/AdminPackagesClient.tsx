@@ -37,6 +37,7 @@ export default function AdminPackagesClient({ initialPackages }: AdminPackagesCl
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPackageForEdit, setSelectedPackageForEdit] = useState<any | null>(null);
+  const [togglingFeaturedId, setTogglingFeaturedId] = useState<string | null>(null);
 
   const handleOpenCreate = () => {
     setSelectedPackageForEdit(null);
@@ -46,6 +47,28 @@ export default function AdminPackagesClient({ initialPackages }: AdminPackagesCl
   const handleOpenEdit = (pkg: any) => {
     setSelectedPackageForEdit(pkg);
     setIsModalOpen(true);
+  };
+
+  const handleToggleFeatured = async (pkg: any) => {
+    try {
+      setTogglingFeaturedId(pkg.id);
+      const nextFeatured = !pkg.isFeatured;
+      const res = await fetch(`/api/packages/${pkg.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFeatured: nextFeatured }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to toggle spotlight status");
+      setPackages((prev) =>
+        prev.map((p) => (p.id === pkg.id ? { ...p, isFeatured: nextFeatured } : p))
+      );
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || "Failed to update spotlight status");
+    } finally {
+      setTogglingFeaturedId(null);
+    }
   };
 
   const handlePackageSaved = (savedPkg: any) => {
@@ -196,8 +219,8 @@ export default function AdminPackagesClient({ initialPackages }: AdminPackagesCl
               >
                 <div className="space-y-3">
                   {/* Badges */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 uppercase">
                         {pkg.type}
                       </span>
@@ -206,10 +229,28 @@ export default function AdminPackagesClient({ initialPackages }: AdminPackagesCl
                           {pkg.badge}
                         </span>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleFeatured(pkg)}
+                        disabled={togglingFeaturedId === pkg.id}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all flex items-center gap-1 ${
+                          pkg.isFeatured
+                            ? "bg-amber-500/20 text-gold-300 border-gold-500/60 shadow-sm"
+                            : "bg-slate-900 text-slate-500 border-slate-800 hover:text-slate-300"
+                        }`}
+                        title={
+                          pkg.isFeatured
+                            ? "Currently Featured Spotlight Tour (Click to unpin)"
+                            : "Click to pin as Homepage Spotlight Tour"
+                        }
+                      >
+                        <Sparkles className="w-2.5 h-2.5" />
+                        <span>{pkg.isFeatured ? "Spotlight" : "Standard"}</span>
+                      </button>
                     </div>
 
                     <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ${
                         pkg.status === "PUBLISHED"
                           ? "bg-emerald-900/60 text-emerald-300 border border-emerald-700/50"
                           : pkg.status === "DRAFT"

@@ -824,6 +824,39 @@ export default function PackageWizardBuilder({
                 className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500 leading-relaxed"
               />
             </div>
+
+            {/* Spotlight & Visibility Settings */}
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-gold-400" />
+                    Featured on Homepage (Hero Spotlight Tour)
+                  </span>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    When enabled, this tour can appear as the primary hero spotlight tour and featured package on the homepage.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, isFeatured: !form.isFeatured })}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 ${
+                      form.isFeatured
+                        ? "bg-amber-500/20 text-gold-300 border-gold-500 shadow-sm"
+                        : "bg-slate-900 text-slate-500 border-slate-800 hover:text-slate-300"
+                    }`}
+                  >
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full ${
+                        form.isFeatured ? "bg-gold-400" : "bg-slate-600"
+                      }`}
+                    />
+                    <span>{form.isFeatured ? "Featured Spotlight Active" : "Standard Package"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -881,6 +914,13 @@ export default function PackageWizardBuilder({
                       Supports JPG, PNG, WEBP up to 10MB
                     </p>
                   </div>
+                  <input
+                    type="text"
+                    placeholder="Or enter direct Cover Image URL (e.g. /brand/poster.jpg)..."
+                    value={form.featuredImage}
+                    onChange={(e) => setForm((prev) => ({ ...prev, featuredImage: e.target.value }))}
+                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-950 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500 mt-2"
+                  />
                 </div>
 
                 <div className="md:col-span-4 flex justify-center">
@@ -1015,6 +1055,13 @@ export default function PackageWizardBuilder({
                       />
                     </label>
                   </div>
+                  <input
+                    type="text"
+                    placeholder="Or enter direct Makkah Hotel Image URL..."
+                    value={form.makkahImage}
+                    onChange={(e) => setForm((prev) => ({ ...prev, makkahImage: e.target.value }))}
+                    className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500 mt-1"
+                  />
                 </div>
 
                 {/* Madinah Hotel Photo */}
@@ -1048,6 +1095,13 @@ export default function PackageWizardBuilder({
                       />
                     </label>
                   </div>
+                  <input
+                    type="text"
+                    placeholder="Or enter direct Madinah Hotel Image URL..."
+                    value={form.madinahImage}
+                    onChange={(e) => setForm((prev) => ({ ...prev, madinahImage: e.target.value }))}
+                    className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500 mt-1"
+                  />
                 </div>
               </div>
             </div>

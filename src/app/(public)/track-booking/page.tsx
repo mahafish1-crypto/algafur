@@ -119,7 +119,7 @@ export default function TrackBookingPage() {
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. 8888890830"
+                  placeholder="e.g. 8793939393"
                   className="w-full text-xs p-3 rounded-xl border border-neutral-200 bg-neutral-50 focus:bg-white focus:outline-none"
                 />
               </div>

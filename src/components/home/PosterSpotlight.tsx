@@ -18,14 +18,21 @@ interface PosterSpotlightProps {
   packageData?: {
     slug: string;
     name: string;
-    year: string;
-    durationDays: number;
-    basePrice: number;
-    departureDate: string;
-    returnDate: string;
-    makkahHotelName: string | null;
-    madinahHotelName: string | null;
+    year?: string;
+    durationDays?: number;
+    basePrice?: number;
+    departureDate?: string;
+    returnDate?: string | null;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    hasSpecificDates?: boolean;
+    departureCycle?: string | null;
+    makkahHotelName?: string | null;
+    madinahHotelName?: string | null;
+    makkahHotel?: { name?: string | null } | null;
+    madinahHotel?: { name?: string | null } | null;
     featuredImage?: string | null;
+    heroImage?: string | null;
   } | null;
   settings?: Record<string, string>;
 }
@@ -33,17 +40,34 @@ interface PosterSpotlightProps {
 export default function PosterSpotlight({ packageData, settings = {} }: PosterSpotlightProps) {
   const { formatPrice } = useLanguage();
 
-  const pkg = packageData || {
-    slug: "umrah-platinum-package-2026",
-    name: "Umrah Platinum Package",
-    year: "2026 / 1448 Hijri",
-    durationDays: 20,
-    basePrice: 120000,
-    departureDate: "31 October 2026",
-    returnDate: "19 November 2026",
-    makkahHotelName: "Diyafa Jamal or similar (500m)",
-    madinahHotelName: "Ilaf Kuba or similar (400m)",
-    featuredImage: "/brand/poster.jpg",
+  let formattedDeparture = packageData?.departureDate || "Available Departures";
+  if (packageData?.hasSpecificDates && packageData?.startDate) {
+    try {
+      const s = new Date(packageData.startDate);
+      const startStr = s.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+      if (packageData.endDate) {
+        const e = new Date(packageData.endDate);
+        const endStr = e.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+        formattedDeparture = `${startStr} – ${endStr}`;
+      } else {
+        formattedDeparture = startStr;
+      }
+    } catch {}
+  } else if (!packageData?.hasSpecificDates && packageData?.departureCycle) {
+    formattedDeparture = packageData.departureCycle;
+  }
+
+  const pkg = {
+    slug: packageData?.slug || "umrah-platinum-package-2026",
+    name: packageData?.name || "Umrah Platinum Package",
+    year: packageData?.year || "2026 / 1448 Hijri",
+    durationDays: packageData?.durationDays ?? 20,
+    basePrice: packageData?.basePrice ?? 120000,
+    departureDate: formattedDeparture,
+    returnDate: packageData?.returnDate || "",
+    makkahHotelName: packageData?.makkahHotelName || packageData?.makkahHotel?.name || "Diyafa Jamal or similar (500m)",
+    madinahHotelName: packageData?.madinahHotelName || packageData?.madinahHotel?.name || "Ilaf Kuba or similar (400m)",
+    featuredImage: packageData?.featuredImage || packageData?.heroImage || "/brand/poster.jpg",
   };
 
   const whatsappNum = settings.whatsapp_number || "919890708013";

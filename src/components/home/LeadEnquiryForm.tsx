@@ -358,7 +358,7 @@ export default function LeadEnquiryForm({
                       autoComplete="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="e.g. Haji Nizam Tamboli"
+                      placeholder="e.g. Dr. Mudassir Sayyad"
                       className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-forest-950/90 border border-emerald-800/70 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 focus:outline-none text-white placeholder-emerald-600/70 transition-all"
                     />
                   </div>

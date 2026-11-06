@@ -55,10 +55,10 @@ export default async function ContactPage() {
             </p>
             <div className="pt-2 text-xs space-y-1">
               <p className="text-neutral-500">
-                <strong>Coordinator:</strong> Haji Nizam Tamboli
+                <strong>Coordinator:</strong> {settings.coordinator_name || "Dr. Mudassir Sayyad"}
               </p>
               <p className="text-emerald-800 font-semibold">
-                Tel: +91 9422032786 / +91 8888890830
+                Tel: {settings.coordinator_phone || "+91 8793939393 / +91 9890708013"}
               </p>
             </div>
           </div>
