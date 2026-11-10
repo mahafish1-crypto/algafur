@@ -4,14 +4,16 @@ import { logAudit } from "@/lib/audit";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAuth } from "@/lib/api-auth";
 import { PACKAGES_CACHE_TAG, revalidatePackagesCache } from "@/lib/packages-data";
+import { parseDateString } from "@/lib/package-dates";
+import { MAKKAH_MAIN_ZIYARAT, MADINAH_MAIN_ZIYARAT } from "@/lib/constants/ziyarats";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const status = searchParams.get("status");
-    const type = searchParams.get("type");
+    const statusParam = searchParams.get("status");
+    const typeParam = searchParams.get("type");
     const search = searchParams.get("q") || searchParams.get("search");
     const featured = searchParams.get("featured") || searchParams.get("isFeatured");
     const departureCity = searchParams.get("departureCity") || searchParams.get("city");
@@ -19,20 +21,33 @@ export async function GET(req: NextRequest) {
     const maxPrice = searchParams.get("maxPrice");
     const duration = searchParams.get("duration") || searchParams.get("durationDays");
     const slug = searchParams.get("slug");
-    const sort = searchParams.get("sort") || "newest";
+    const sort = searchParams.get("sort") || "nearest_departure";
     const limitParam = searchParams.get("limit");
-    const limit = limitParam ? Math.min(100, Math.max(1, Number(limitParam))) : undefined;
+    const limit = limitParam && !isNaN(Number(limitParam)) ? Math.max(1, Number(limitParam)) : undefined;
     const pageParam = searchParams.get("page");
-    const page = pageParam ? Math.max(1, Number(pageParam)) : 1;
+    const page = pageParam && !isNaN(Number(pageParam)) ? Math.max(1, Number(pageParam)) : 1;
 
     const where: any = {};
-    if (status && status !== "ALL") where.status = status;
-    if (type && type !== "ALL") where.type = type;
+
+    // Status filtering: default to PUBLISHED, allow ALL or custom status
+    if (statusParam && statusParam.toUpperCase() === "ALL") {
+      // Do not filter by status
+    } else if (statusParam) {
+      where.status = statusParam.toUpperCase();
+    } else {
+      where.status = "PUBLISHED";
+    }
+
+    // Type filtering
+    if (typeParam && typeParam.toUpperCase() !== "ALL") {
+      where.type = typeParam.toUpperCase();
+    }
+
     if (slug) where.slug = slug;
     if (featured !== null && featured !== undefined && featured !== "") {
       where.isFeatured = featured === "true" || featured === "1";
     }
-    if (departureCity && departureCity !== "ALL") {
+    if (departureCity && departureCity.toUpperCase() !== "ALL") {
       where.departureCity = { contains: departureCity, mode: "insensitive" };
     }
     if (duration && !isNaN(Number(duration))) {
@@ -56,43 +71,146 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    let orderBy: any = [{ isFeatured: "desc" }, { createdAt: "desc" }];
-    if (sort === "price_asc" || sort === "price-low") orderBy = { basePrice: "asc" };
-    else if (sort === "price_desc" || sort === "price-high") orderBy = { basePrice: "desc" };
-    else if (sort === "duration" || sort === "duration_desc") orderBy = { durationDays: "desc" };
-    else if (sort === "duration_asc") orderBy = { durationDays: "asc" };
-    else if (sort === "popular") orderBy = [{ isPopular: "desc" }, { createdAt: "desc" }];
-    else if (sort === "newest") orderBy = { createdAt: "desc" };
-    else if (sort === "oldest") orderBy = { createdAt: "asc" };
+    // Fetch all matching packages with full relational stays and departures
+    const rawPackages = await prisma.package.findMany({
+      where,
+      include: {
+        inclusions: true,
+        itineraries: { orderBy: { dayNumber: "asc" } },
+        departureGroups: true,
+        makkahHotel: true,
+        madinahHotel: true,
+        _count: { select: { bookings: true } },
+      },
+    });
 
-    const take = limit;
-    const skip = limit ? (page - 1) * limit : undefined;
+    const now = Date.now();
 
-    const [totalCount, packages] = await Promise.all([
-      prisma.package.count({ where }),
-      prisma.package.findMany({
-        where,
-        include: {
-          inclusions: true,
-          itineraries: { orderBy: { dayNumber: "asc" } },
-          departureGroups: true,
-          makkahHotel: true,
-          madinahHotel: true,
-          _count: { select: { bookings: true } },
+    // Helper to calculate effective nearest future departure timestamp
+    const getEffectiveDate = (pkg: any): number => {
+      let minUpcoming = Infinity;
+
+      // 1. Direct package startDate if future
+      if (pkg.startDate) {
+        const time = new Date(pkg.startDate).getTime();
+        if (!isNaN(time) && time >= now && time < minUpcoming) {
+          minUpcoming = time;
+        }
+      }
+
+      // 2. Departure groups with upcoming dates
+      if (pkg.departureGroups && Array.isArray(pkg.departureGroups) && pkg.departureGroups.length > 0) {
+        for (const dg of pkg.departureGroups) {
+          if (dg.startDate) {
+            const time = new Date(dg.startDate).getTime();
+            if (!isNaN(time) && time >= now && time < minUpcoming) {
+              minUpcoming = time;
+            }
+          }
+          if (dg.departureDate) {
+            const time = parseDateString(dg.departureDate);
+            if (time !== null && time >= now && time < minUpcoming) {
+              minUpcoming = time;
+            }
+          }
+        }
+      }
+
+      // 3. Package textual departureDate if upcoming
+      if (pkg.departureDate && typeof pkg.departureDate === "string") {
+        const time = parseDateString(pkg.departureDate);
+        if (time !== null && time >= now && time < minUpcoming) {
+          minUpcoming = time;
+        }
+      }
+
+      return minUpcoming;
+    };
+
+    // Smart chronological sorting: Nearest future departure strictly prioritized at top
+    const sortedPackages = [...rawPackages].sort((a, b) => {
+      const dateA = getEffectiveDate(a);
+      const dateB = getEffectiveDate(b);
+
+      // Primary: Nearest future departure first
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+
+      // Secondary sorting if query sort parameter is specified
+      if (sort === "price_asc" || sort === "price-low") {
+        const priceA = a.priceQuad || a.basePrice || 0;
+        const priceB = b.priceQuad || b.basePrice || 0;
+        return priceA - priceB;
+      }
+      if (sort === "price_desc" || sort === "price-high") {
+        const priceA = a.priceQuad || a.basePrice || 0;
+        const priceB = b.priceQuad || b.basePrice || 0;
+        return priceB - priceA;
+      }
+      if (sort === "duration" || sort === "duration_desc") {
+        return b.durationDays - a.durationDays;
+      }
+      if (sort === "duration_asc") {
+        return a.durationDays - b.durationDays;
+      }
+      if (sort === "popular") {
+        if (a.isPopular !== b.isPopular) return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
+      }
+
+      // Fallback tie-breaker: Featured first, then newest updatedAt
+      if (a.isFeatured !== b.isFeatured) {
+        return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
+      }
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+
+    const totalCount = sortedPackages.length;
+    const skip = limit ? (page - 1) * limit : 0;
+    const pagedPackages = limit ? sortedPackages.slice(skip, skip + limit) : sortedPackages;
+
+    // Structured Ziyarat Parsing & Payload Enrichment
+    const formattedPackages = pagedPackages.map((pkg) => {
+      let ziyarats = { makkah: [] as string[], madinah: [] as string[] };
+      try {
+        if (pkg.highlights) {
+          const parsed = typeof pkg.highlights === "string" ? JSON.parse(pkg.highlights) : pkg.highlights;
+          ziyarats = {
+            makkah: Array.isArray(parsed.makkah) ? parsed.makkah.filter(Boolean) : [],
+            madinah: Array.isArray(parsed.madinah) ? parsed.madinah.filter(Boolean) : [],
+          };
+        }
+      } catch {
+        ziyarats = { makkah: [], madinah: [] };
+      }
+
+      // If no custom landmarks set, populate standard comprehensive presets
+      if (ziyarats.makkah.length === 0 && ziyarats.madinah.length === 0) {
+        ziyarats = {
+          makkah: [...MAKKAH_MAIN_ZIYARAT],
+          madinah: [...MADINAH_MAIN_ZIYARAT],
+        };
+      }
+
+      return {
+        ...pkg,
+        ziyarats: {
+          ...ziyarats,
+          totalCount: ziyarats.makkah.length + ziyarats.madinah.length,
         },
-        orderBy,
-        take,
-        skip,
-      }),
-    ]);
+        makkahZiyarat: ziyarats.makkah,
+        madinahZiyarat: ziyarats.madinah,
+      };
+    });
 
     return NextResponse.json({
       success: true,
-      count: packages.length,
+      count: formattedPackages.length,
       total: totalCount,
       page: limit ? page : 1,
       totalPages: limit ? Math.ceil(totalCount / limit) : 1,
-      packages,
+      data: formattedPackages,
+      packages: formattedPackages,
     });
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : "Internal Server Error";
