@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import prisma from "@/lib/db";
-import { requireAuth } from "@/lib/api-auth";
+import { getSession } from "@/lib/auth";
+import { hasUserPermission } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +22,21 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth(req, "manage:settings");
-    const isAdmin = auth.authorized;
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication required. Please sign in or register to submit your pilgrimage review.",
+        },
+        { status: 401 }
+      );
+    }
+
+    const isAdmin =
+      session.role === "SUPER_ADMIN" ||
+      session.role === "ADMIN" ||
+      hasUserPermission(session, "manage:settings");
 
     const body = await req.json();
     const {
@@ -37,16 +51,23 @@ export async function POST(req: NextRequest) {
       status = "PUBLISHED",
     } = body;
 
-    if (!customerName || !String(customerName).trim() || !reviewText || !String(reviewText).trim()) {
+    if (
+      !customerName ||
+      !String(customerName).trim() ||
+      !reviewText ||
+      !String(reviewText).trim()
+    ) {
       return NextResponse.json(
         { error: "Pilgrim Name and Testimonial Review Text are required." },
         { status: 400 }
       );
     }
 
-    // Admins can set any status/featured flag; public submissions are queued as DRAFT
+    // Admins can set any status/featured flag directly; public submissions are queued as DRAFT
     const finalStatus = isAdmin
-      ? status === "DRAFT" ? "DRAFT" : "PUBLISHED"
+      ? status === "DRAFT"
+        ? "DRAFT"
+        : "PUBLISHED"
       : "DRAFT";
     const finalIsFeatured = isAdmin ? Boolean(isFeatured) : false;
 
@@ -64,13 +85,17 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (isAdmin && auth.session) {
+    if (isAdmin && session) {
       await logAudit({
-        userId: auth.session.id,
+        userId: session.id,
         action: "CREATE_TESTIMONIAL",
         entity: "Testimonial",
         entityId: testimonial.id,
-        details: { customerName: testimonial.customerName, status: testimonial.status },
+        details: {
+          customerName: testimonial.customerName,
+          status: testimonial.status,
+          isFeatured: testimonial.isFeatured,
+        },
       });
     }
 
@@ -79,6 +104,7 @@ export async function POST(req: NextRequest) {
       revalidatePath("/");
       revalidatePath("/reviews");
       revalidatePath("/testimonials");
+      revalidatePath("/admin/testimonials");
     } catch {
       // ignore
     }
@@ -87,7 +113,7 @@ export async function POST(req: NextRequest) {
       success: true,
       testimonial,
       message: isAdmin
-        ? "Testimonial created successfully."
+        ? "Testimonial published successfully."
         : "Alhamdulillah! Thank you for sharing your experience. Your review has been submitted for moderation.",
     });
   } catch (error: unknown) {

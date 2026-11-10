@@ -26,6 +26,8 @@ import {
   ShieldCheck,
   Code2,
   MessageSquareCode,
+  MapPin,
+  Eye,
 } from "lucide-react";
 import SafeImage from "@/components/ui/SafeImage";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
@@ -131,12 +133,20 @@ export default function AdminSettingsClient({
     social_youtube: initialSettings.social_youtube || "https://youtube.com",
     social_twitter: initialSettings.social_twitter || "https://twitter.com",
 
-    company_phone_1: initialSettings.company_phone_1 || "+91 8793939393",
+    company_phone_1: initialSettings.company_phone_1 || initialSettings.officePhone || "+91 8793939393",
+    officePhone: initialSettings.officePhone || initialSettings.company_phone_1 || "+91 8793939393",
     company_phone_2: initialSettings.company_phone_2 || "+91 9890708013",
     company_phone_3: initialSettings.company_phone_3 || "+91 9764444044",
+    coordinator_name: initialSettings.coordinator_name || initialSettings.coordinatorName || "Dr. Mudassir Sayyad",
+    coordinatorName: initialSettings.coordinatorName || initialSettings.coordinator_name || "Dr. Mudassir Sayyad",
     whatsapp_number: initialSettings.whatsapp_number || "919890708013",
     company_email: initialSettings.company_email || "contact@algafurtours.com",
     company_address:
+      initialSettings.company_address ||
+      initialSettings.officeAddress ||
+      "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.",
+    officeAddress:
+      initialSettings.officeAddress ||
       initialSettings.company_address ||
       "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.",
     company_city: initialSettings.company_city || "Pune",
@@ -145,7 +155,18 @@ export default function AdminSettingsClient({
     working_hours:
       initialSettings.working_hours ||
       "Monday – Saturday: 10:00 AM – 8:30 PM (IST)",
-    google_maps_url: initialSettings.google_maps_url || "https://maps.google.com",
+    google_maps_url:
+      initialSettings.google_maps_url ||
+      initialSettings.googleMapDirectionsUrl ||
+      "https://maps.google.com/?q=183+M.G.+Road+15+August+Chowk+Khadda+Market+Camp+Pune+411001",
+    googleMapDirectionsUrl:
+      initialSettings.googleMapDirectionsUrl ||
+      initialSettings.google_maps_url ||
+      "https://maps.google.com/?q=183+M.G.+Road+15+August+Chowk+Khadda+Market+Camp+Pune+411001",
+    googleMapEmbedUrl:
+      initialSettings.googleMapEmbedUrl ||
+      initialSettings.google_map_embed_url ||
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3783.2486716075677!2d73.8744573!3d18.5176589!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c0500742d4f9%3A0x6730a005086ee50a!2sCamp%2C%20Pune%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
 
     company_license:
       initialSettings.company_license ||
@@ -255,7 +276,20 @@ export default function AdminSettingsClient({
   const [mediaTarget, setMediaTarget] = useState<string | null>(null);
 
   const handleChange = (key: string, value: string) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+    setSettings((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === "officeAddress") next.company_address = value;
+      if (key === "company_address") next.officeAddress = value;
+      if (key === "googleMapDirectionsUrl") next.google_maps_url = value;
+      if (key === "google_maps_url") next.googleMapDirectionsUrl = value;
+      if (key === "googleMapEmbedUrl") next.google_map_embed_url = value;
+      if (key === "google_map_embed_url") next.googleMapEmbedUrl = value;
+      if (key === "officePhone") next.company_phone_1 = value;
+      if (key === "company_phone_1") next.officePhone = value;
+      if (key === "coordinatorName") next.coordinator_name = value;
+      if (key === "coordinator_name") next.coordinatorName = value;
+      return next;
+    });
   };
 
   const handleSave = async (e?: React.FormEvent) => {
@@ -1578,14 +1612,50 @@ export default function AdminSettingsClient({
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                    HEAD OFFICE ADDRESS
+                    Head Office Street Address (officeAddress)
                   </label>
                   <textarea
                     rows={2}
-                    value={settings.company_address}
-                    onChange={(e) => handleChange("company_address", e.target.value)}
+                    value={settings.officeAddress || settings.company_address}
+                    onChange={(e) => {
+                      handleChange("officeAddress", e.target.value);
+                      handleChange("company_address", e.target.value);
+                    }}
+                    placeholder="183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India."
                     className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                   />
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Appears across the website footer, contact desk, and office direction cards.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Lead Coordinator Name (coordinatorName)
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.coordinatorName || settings.coordinator_name}
+                      onChange={(e) => {
+                        handleChange("coordinatorName", e.target.value);
+                        handleChange("coordinator_name", e.target.value);
+                      }}
+                      placeholder="Dr. Mudassir Sayyad"
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                      Office Working Hours
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.working_hours}
+                      onChange={(e) => handleChange("working_hours", e.target.value)}
+                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1627,28 +1697,95 @@ export default function AdminSettingsClient({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                      Office Working Hours
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.working_hours}
-                      onChange={(e) => handleChange("working_hours", e.target.value)}
-                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
-                    />
+                {/* Google Maps & Navigation Configuration */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                  <div className="border-b border-slate-200 pb-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-emerald-700" />
+                      Google Maps Embed &amp; Live Directions Configuration
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Powers interactive map rendering and 1-click live navigation routing for pilgrims on Mobile &amp; Desktop.
+                    </p>
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                      Google Maps Location URL
-                    </label>
-                    <input
-                      type="url"
-                      value={settings.google_maps_url}
-                      onChange={(e) => handleChange("google_maps_url", e.target.value)}
-                      className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
-                    />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Google Maps Embed URL (googleMapEmbedUrl)
+                      </label>
+                      <input
+                        type="url"
+                        value={settings.googleMapEmbedUrl || settings.google_map_embed_url}
+                        onChange={(e) => {
+                          handleChange("googleMapEmbedUrl", e.target.value);
+                          handleChange("google_map_embed_url", e.target.value);
+                        }}
+                        placeholder="https://www.google.com/maps/embed?pb=..."
+                        className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-gold-500"
+                      />
+                      <p className="text-[10px] text-slate-500 mt-1">
+                        Get from Google Maps &gt; Share &gt; Embed a map &gt; copy the `src` attribute.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Google Maps Directions URL (googleMapDirectionsUrl)
+                      </label>
+                      <input
+                        type="url"
+                        value={settings.googleMapDirectionsUrl || settings.google_maps_url}
+                        onChange={(e) => {
+                          handleChange("googleMapDirectionsUrl", e.target.value);
+                          handleChange("google_maps_url", e.target.value);
+                        }}
+                        placeholder="https://maps.google.com/?q=..."
+                        className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-gold-500"
+                      />
+                      <p className="text-[10px] text-slate-500 mt-1">
+                        Direct navigation link opened when pilgrims click &quot;Get Live Directions&quot;.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Real-time Map Preview Window */}
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5 text-emerald-700" />
+                        Live Interactive Map Preview
+                      </span>
+                      {(settings.googleMapDirectionsUrl || settings.google_maps_url) && (
+                        <a
+                          href={settings.googleMapDirectionsUrl || settings.google_maps_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-900 hover:underline"
+                        >
+                          <MapPin className="w-3 h-3" />
+                          <span>Test Live Directions Link</span>
+                          <ExternalLink className="w-3 h-3 ml-0.5" />
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="w-full h-64 rounded-xl overflow-hidden border border-slate-300 bg-slate-200 relative">
+                      {settings.googleMapEmbedUrl || settings.google_map_embed_url ? (
+                        <iframe
+                          src={settings.googleMapEmbedUrl || settings.google_map_embed_url}
+                          title="Office Location Live Preview"
+                          className="w-full h-full border-0"
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 text-xs p-4 text-center">
+                          <MapPin className="w-8 h-8 text-slate-400 mb-1" />
+                          <p>Enter a Google Maps Embed URL above to preview the map in real-time.</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

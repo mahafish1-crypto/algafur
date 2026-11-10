@@ -1,5 +1,6 @@
 import React from "react";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
+import OfficeMapCard from "@/components/common/OfficeMapCard";
 import { MapPin, Phone, MessageCircle } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
 import { getPublishedPackagesCatalog } from "@/lib/packages-data";
@@ -110,6 +111,9 @@ export default async function ContactPage() {
             </div>
           </div>
         </div>
+
+        {/* Interactive Google Map with Live Directions */}
+        <OfficeMapCard settings={settings} />
 
         {/* Lead Form directly hooked into CRM */}
         <LeadEnquiryForm

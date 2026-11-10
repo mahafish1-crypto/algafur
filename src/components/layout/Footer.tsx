@@ -34,8 +34,13 @@ export default function Footer({ settings = {} }: FooterProps) {
   const whatsapp = (settings.whatsapp_number || "919890708013").replace(/[^0-9]/g, "");
   const email = settings.company_email || "contact@algafurtours.com";
   const address =
+    settings.officeAddress ||
     settings.company_address ||
     "183, M.G. Road, 15 August Chowk, Khadda Market, Camp, Pune - 411001";
+  const directionsUrl =
+    settings.googleMapDirectionsUrl ||
+    settings.google_maps_url ||
+    "https://maps.google.com/?q=183+M.G.+Road+15+August+Chowk+Khadda+Market+Camp+Pune+411001";
   const workingHours = settings.working_hours || "Mon – Sat: 10:00 AM – 8:30 PM";
   const copyright =
     settings.footer_copyright ||
@@ -223,6 +228,15 @@ export default function Footer({ settings = {} }: FooterProps) {
                 <div className="leading-relaxed">
                   <strong className="text-gold-300/90 font-semibold block">Head Office Address:</strong>
                   <span className="text-emerald-100/90">{address}</span>
+                  <a
+                    href={directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-gold-400 hover:text-gold-300 hover:underline mt-1 block"
+                  >
+                    <span>📍 Get Live Directions</span>
+                    <ExternalLink className="w-2.5 h-2.5 inline" />
+                  </a>
                 </div>
               </div>
 

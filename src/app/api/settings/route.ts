@@ -146,6 +146,46 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Synchronize to SiteSettings model if office or map settings are updated
+    if (
+      body.officeAddress !== undefined ||
+      body.company_address !== undefined ||
+      body.googleMapEmbedUrl !== undefined ||
+      body.googleMapDirectionsUrl !== undefined ||
+      body.officePhone !== undefined ||
+      body.company_phone_1 !== undefined ||
+      body.coordinatorName !== undefined
+    ) {
+      try {
+        const address = body.officeAddress || body.company_address;
+        const embedUrl = body.googleMapEmbedUrl || body.google_map_embed_url;
+        const directionsUrl = body.googleMapDirectionsUrl || body.google_maps_url;
+        const phone = body.officePhone || body.company_phone_1;
+        const coordinator = body.coordinatorName || body.coordinator_name;
+
+        await prisma.siteSettings.upsert({
+          where: { id: "default" },
+          update: {
+            ...(address !== undefined ? { officeAddress: address } : {}),
+            ...(embedUrl !== undefined ? { googleMapEmbedUrl: embedUrl } : {}),
+            ...(directionsUrl !== undefined ? { googleMapDirectionsUrl: directionsUrl } : {}),
+            ...(phone !== undefined ? { officePhone: phone } : {}),
+            ...(coordinator !== undefined ? { coordinatorName: coordinator } : {}),
+          },
+          create: {
+            id: "default",
+            officeAddress: address || null,
+            googleMapEmbedUrl: embedUrl || null,
+            googleMapDirectionsUrl: directionsUrl || null,
+            officePhone: phone || null,
+            coordinatorName: coordinator || null,
+          },
+        });
+      } catch (err) {
+        console.warn("Could not sync SiteSettings model:", err);
+      }
+    }
+
     await logAudit({
       userId: session?.id || null,
       action: "UPDATE_SITE_SETTINGS",

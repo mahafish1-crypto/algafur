@@ -22,11 +22,19 @@ export const DEFAULT_SITE_SETTINGS: Record<string, string> = {
   coordinator_phone: "+91 8793939393 / +91 9890708013",
   company_email: "contact@algafurtours.com",
   company_address: "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.",
+  officeAddress: "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.",
+  office_address: "183, M.G. Road, 15 August Chowk, Khadda Market, Near Camp, Pune - 411001, Maharashtra, India.",
   company_city: "Pune",
   company_state: "Maharashtra",
   company_country: "India",
   working_hours: "Monday – Saturday: 10:00 AM – 8:30 PM (IST)",
-  google_maps_url: "https://maps.google.com",
+  google_maps_url: "https://maps.google.com/?q=183+M.G.+Road+15+August+Chowk+Khadda+Market+Camp+Pune+411001",
+  googleMapDirectionsUrl: "https://maps.google.com/?q=183+M.G.+Road+15+August+Chowk+Khadda+Market+Camp+Pune+411001",
+  google_map_directions_url: "https://maps.google.com/?q=183+M.G.+Road+15+August+Chowk+Khadda+Market+Camp+Pune+411001",
+  googleMapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3783.2486716075677!2d73.8744573!3d18.5176589!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c0500742d4f9%3A0x6730a005086ee50a!2sCamp%2C%20Pune%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
+  google_map_embed_url: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3783.2486716075677!2d73.8744573!3d18.5176589!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c0500742d4f9%3A0x6730a005086ee50a!2sCamp%2C%20Pune%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
+  officePhone: "+91 8793939393",
+  coordinatorName: "Dr. Mudassir Sayyad",
   
   // Logos
   site_logo: "",
@@ -118,6 +126,23 @@ const getCachedPublicSiteSettings = unstable_cache(
         map[s.key] = s.value;
       }
     });
+
+    // Auto-map bidirectional aliases for office & maps
+    if (map.officeAddress) map.company_address = map.officeAddress;
+    else if (map.company_address) map.officeAddress = map.company_address;
+
+    if (map.googleMapDirectionsUrl) map.google_maps_url = map.googleMapDirectionsUrl;
+    else if (map.google_maps_url) map.googleMapDirectionsUrl = map.google_maps_url;
+
+    if (map.googleMapEmbedUrl) map.google_map_embed_url = map.googleMapEmbedUrl;
+    else if (map.google_map_embed_url) map.googleMapEmbedUrl = map.google_map_embed_url;
+
+    if (map.officePhone) map.company_phone_1 = map.officePhone;
+    else if (map.company_phone_1) map.officePhone = map.company_phone_1;
+
+    if (map.coordinatorName) map.coordinator_name = map.coordinatorName;
+    else if (map.coordinator_name) map.coordinatorName = map.coordinator_name;
+
     return map;
   },
   ["public-site-settings"],

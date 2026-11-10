@@ -6,6 +6,8 @@ import WhyChooseUs from "@/components/home/WhyChooseUs";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import FaqSection from "@/components/home/FaqSection";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
+import SpotlightPackagePopup from "@/components/home/SpotlightPackagePopup";
+import OfficeMapCard from "@/components/common/OfficeMapCard";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import {
@@ -47,6 +49,12 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Nearest Upcoming Tour Spotlight Popup Modal */}
+      <SpotlightPackagePopup
+        packageData={featuredPackage}
+        settings={settings}
+      />
+
       {/* 1. Hero Section */}
       <Hero
         featuredPackage={featuredPackage}
@@ -104,6 +112,13 @@ export default async function HomePage() {
 
       {/* 7. Categorized FAQ */}
       {showFaq && <FaqSection faqs={faqs} />}
+
+      {/* 8. Office Location & Interactive Google Map */}
+      <section className="py-16 bg-ivory-50/60 border-b border-neutral-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <OfficeMapCard settings={settings} />
+        </div>
+      </section>
 
       {/* 10. Lead Enquiry Form */}
       {showLeadForm && (

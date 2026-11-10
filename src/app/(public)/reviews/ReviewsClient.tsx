@@ -1,22 +1,23 @@
 "use client";
 
-import React, { useState, useId } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Star,
   Quote,
   Video,
   Play,
   MessageSquarePlus,
-  Plus,
   X,
   CheckCircle2,
   ShieldCheck,
   Sparkles,
-  MapPin,
-  ExternalLink,
+  LogIn,
+  UserPlus,
 } from "lucide-react";
 import { parseVideoUrl } from "@/lib/video-parser";
+import TestimonialCard from "@/components/testimonials/TestimonialCard";
 
 export interface TestimonialItem {
   id: string;
@@ -38,21 +39,31 @@ interface PackageOption {
   slug: string;
 }
 
+export interface CurrentUserSession {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 interface ReviewsClientProps {
   initialReviews: TestimonialItem[];
   packages: PackageOption[];
+  currentUser?: CurrentUserSession | null;
 }
 
 export default function ReviewsClient({
   initialReviews,
   packages,
+  currentUser = null,
 }: ReviewsClientProps) {
   const [activeTab, setActiveTab] = useState<"ALL" | "VIDEOS" | "WRITTEN">("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
   // Form State
-  const [name, setName] = useState("");
+  const [name, setName] = useState(currentUser?.name || "");
   const [city, setCity] = useState("");
   const [packageTitle, setPackageTitle] = useState(
     packages[0]?.name || "Umrah Deluxe Group"
@@ -79,6 +90,19 @@ export default function ReviewsClient({
       : activeTab === "WRITTEN"
       ? writtenReviews
       : reviewsWithVideo;
+
+  const handleOpenReviewModal = () => {
+    if (!currentUser) {
+      setIsAuthPromptOpen(true);
+      return;
+    }
+    setSubmittedSuccess(false);
+    setErrorMsg(null);
+    if (!name && currentUser?.name) {
+      setName(currentUser.name);
+    }
+    setIsModalOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,11 +193,7 @@ export default function ReviewsClient({
           <div className="pt-4" id="share">
             <button
               type="button"
-              onClick={() => {
-                setSubmittedSuccess(false);
-                setErrorMsg(null);
-                setIsModalOpen(true);
-              }}
+              onClick={handleOpenReviewModal}
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 hover:from-gold-300 hover:to-gold-400 text-forest-950 text-xs sm:text-sm font-bold transition-all shadow-gold"
             >
               <MessageSquarePlus className="w-4 h-4 text-forest-950" />
@@ -234,133 +254,85 @@ export default function ReviewsClient({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {filtered.map((r, i) => {
-              const initials = r.customerName
-                .split(" ")
-                .map((w) => w[0])
-                .filter(Boolean)
-                .slice(0, 2)
-                .join("")
-                .toUpperCase() || "HA";
-
-              const hasVideo = Boolean(r.video.embedUrl);
-              const isPlaying = playingVideoId === (r.id || String(i));
-
-              return (
-                <div
-                  key={r.id || i}
-                  className="bg-white p-6 sm:p-7 rounded-2xl border border-neutral-200 hover:border-gold-500/50 shadow-sm hover:shadow-premium transition-all duration-300 flex flex-col justify-between"
-                >
-                  <div className="space-y-4">
-                    {/* Card Top: Stars & Verified Pilgrim Badge */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-gold-500">
-                        {r.rating > 0 ? (
-                          [...Array(r.rating)].map((_, idx) => (
-                            <Star
-                              key={idx}
-                              className="w-3.5 h-3.5 fill-gold-500 text-gold-500"
-                            />
-                          ))
-                        ) : (
-                          <Star className="w-3.5 h-3.5 fill-gold-500 text-gold-500" />
-                        )}
-                        <span className="text-[11px] font-bold text-neutral-700 ml-1">
-                          {r.rating || 5}.0
-                        </span>
-                      </div>
-
-                      <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/50">
-                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                        <span>Verified Pilgrim</span>
-                      </div>
-                    </div>
-
-                    {/* Video Player or Embed if present */}
-                    {hasVideo && (
-                      <div className="rounded-xl overflow-hidden border border-neutral-200 bg-black aspect-video relative group">
-                        {isPlaying ? (
-                          <iframe
-                            src={r.video.embedUrl || ""}
-                            title={`${r.customerName}'s Video Review`}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            className="w-full h-full border-0"
-                          />
-                        ) : (
-                          <div
-                            onClick={() => setPlayingVideoId(r.id || String(i))}
-                            className="w-full h-full relative cursor-pointer flex items-center justify-center bg-forest-950 overflow-hidden"
-                          >
-                            {r.video.thumbnailUrl && (
-                              <Image
-                                src={r.video.thumbnailUrl}
-                                alt={r.customerName}
-                                fill
-                                sizes="(max-width: 768px) 100vw, 33vw"
-                                className="object-cover opacity-75 group-hover:scale-105 transition-transform duration-300"
-                              />
-                            )}
-                            <div className="absolute inset-0 bg-forest-950/40 group-hover:bg-forest-950/20 transition-colors" />
-                            <div className="relative z-10 w-12 h-12 rounded-full bg-gold-500 text-forest-950 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                              <Play className="w-5 h-5 fill-forest-950 ml-0.5" />
-                            </div>
-                            <div className="absolute bottom-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">
-                              <Video className="w-3 h-3 text-gold-400" />
-                              <span>Play Video Review</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Review Text */}
-                    <p className="text-xs sm:text-[13px] text-neutral-700 leading-relaxed italic">
-                      &ldquo;{r.reviewText}&rdquo;
-                    </p>
-                  </div>
-
-                  {/* Pilgrim Info Footer */}
-                  <div className="flex items-center gap-3 pt-4 border-t border-neutral-200/70 mt-4">
-                    {r.photo ? (
-                      <div className="relative w-11 h-11 rounded-full overflow-hidden bg-forest-900 flex-shrink-0 border-2 border-gold-400 shadow-sm">
-                        <Image
-                          src={r.photo}
-                          alt={r.customerName}
-                          fill
-                          sizes="44px"
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-11 h-11 rounded-full bg-forest-950 text-gold-300 font-bold text-xs flex items-center justify-center flex-shrink-0 border-2 border-gold-400 shadow-sm">
-                        {initials}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <h4 className="text-xs sm:text-sm font-bold text-forest-950 truncate">
-                        {r.customerName}
-                      </h4>
-                      {r.city && (
-                        <p className="text-[11px] text-neutral-500 truncate flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-neutral-400 inline" />
-                          <span>{r.city}</span>
-                        </p>
-                      )}
-                      {r.packageTitle && (
-                        <p className="text-[10px] text-gold-700 font-semibold truncate">
-                          {r.packageTitle}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+            {filtered.map((r, i) => (
+              <TestimonialCard
+                key={r.id || i}
+                testimonial={{
+                  id: r.id,
+                  customerName: r.customerName,
+                  city: r.city,
+                  packageTitle: r.packageTitle,
+                  rating: r.rating,
+                  reviewText: r.reviewText,
+                  photo: r.photo,
+                  videoUrl: r.video?.originalUrl,
+                  isFeatured: r.isFeatured,
+                }}
+                isPlaying={playingVideoId === (r.id || String(i))}
+                onPlay={() => setPlayingVideoId(r.id || String(i))}
+              />
+            ))}
           </div>
         )}
       </div>
+
+      {/* Auth Prompt Modal (For Non-Logged-In Pilgrims) */}
+      {isAuthPromptOpen && (
+        <div className="fixed inset-0 z-50 bg-forest-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-neutral-200 overflow-hidden my-8 p-6 sm:p-8 space-y-6 text-center relative">
+            <button
+              type="button"
+              onClick={() => setIsAuthPromptOpen(false)}
+              className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-700 p-1.5 rounded-full hover:bg-neutral-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-forest-950 to-forest-800 text-gold-400 flex items-center justify-center mx-auto shadow-gold">
+              <ShieldCheck className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-gold-600 bg-gold-50 px-3 py-1 rounded-full border border-gold-200">
+                Verified Pilgrim Network
+              </span>
+              <h3 className="text-xl font-serif font-bold text-forest-950">
+                Sign In to Share Your Journey Review
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-xs mx-auto">
+                To guarantee genuine, authentic pilgrim experiences and prevent spam, reviews can only be submitted by verified pilgrims with an active account.
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link
+                href="/login?redirect=/reviews#share"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-forest-950 hover:bg-forest-900 text-white text-xs sm:text-sm font-bold shadow-md transition-all"
+              >
+                <LogIn className="w-4 h-4 text-gold-400" />
+                <span>Sign In with Existing Account</span>
+              </Link>
+
+              <Link
+                href="/signup?redirect=/reviews#share"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gold-400 hover:bg-gold-300 text-forest-950 text-xs sm:text-sm font-bold shadow-gold transition-all"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Register New Pilgrim Account</span>
+              </Link>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsAuthPromptOpen(false)}
+              className="text-xs font-semibold text-neutral-500 hover:text-neutral-800 transition-colors"
+            >
+              Cancel &amp; Continue Browsing
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Share Review Modal */}
       {isModalOpen && (

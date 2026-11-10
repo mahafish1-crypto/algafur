@@ -252,7 +252,7 @@ export default function AdminTestimonialsClient({
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white font-medium text-sm transition-colors shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            Add Pilgrim Testimonial
+            + Add Official Pilgrim Review
           </button>
         </div>
       </div>
@@ -507,12 +507,11 @@ export default function AdminTestimonialsClient({
               <div>
                 <h3 className="font-bold text-base">
                   {form.id
-                    ? `Edit Testimonial: ${form.customerName}`
-                    : "Add Pilgrim Testimonial"}
+                    ? `Edit Pilgrim Review: ${form.customerName}`
+                    : "Add Official Pilgrim Review"}
                 </h3>
                 <p className="text-xs text-emerald-200">
-                  Manage review text, package association, and publication
-                  status
+                  Directly publish pilgrim video reflections and written testimonials with homepage priority.
                 </p>
               </div>
               <button
@@ -686,36 +685,33 @@ export default function AdminTestimonialsClient({
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                    Publication Status
-                  </label>
-                  <select
-                    value={form.status}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.status === "PUBLISHED"}
                     onChange={(e) =>
-                      setForm({ ...form, status: e.target.value })
+                      setForm({
+                        ...form,
+                        status: e.target.checked ? "PUBLISHED" : "DRAFT",
+                      })
                     }
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
-                  >
-                    <option value="PUBLISHED">Published (Visible)</option>
-                    <option value="DRAFT">Draft (Unpublished)</option>
-                  </select>
-                </div>
+                    className="rounded text-emerald-800 w-4 h-4 focus:ring-emerald-700"
+                  />
+                  <span>✓ Publish Directly to Live Site</span>
+                </label>
 
-                <div className="flex items-end pb-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.isFeatured}
-                      onChange={(e) =>
-                        setForm({ ...form, isFeatured: e.target.checked })
-                      }
-                      className="rounded text-emerald-800 w-4 h-4"
-                    />
-                    <span>Feature at top of section</span>
-                  </label>
-                </div>
+                <label className="flex items-center gap-2.5 text-xs font-bold text-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.isFeatured}
+                    onChange={(e) =>
+                      setForm({ ...form, isFeatured: e.target.checked })
+                    }
+                    className="rounded text-emerald-800 w-4 h-4 focus:ring-emerald-700"
+                  />
+                  <span>✓ Feature on Homepage</span>
+                </label>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
@@ -732,7 +728,11 @@ export default function AdminTestimonialsClient({
                   className="px-6 py-2.5 text-sm font-bold rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white shadow-sm disabled:opacity-50 inline-flex items-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  {submitting ? "Saving..." : "Save Testimonial"}
+                  {submitting
+                    ? "Publishing..."
+                    : Boolean(form.id)
+                    ? "Update Review"
+                    : "Publish Official Review"}
                 </button>
               </div>
             </form>

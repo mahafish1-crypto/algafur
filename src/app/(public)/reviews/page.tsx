@@ -1,6 +1,7 @@
 import React from "react";
 import ReviewsClient, { TestimonialItem } from "./ReviewsClient";
 import { getPublishedTestimonials, getPublishedPackagesCatalog } from "@/lib/packages-data";
+import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,9 +13,10 @@ export const metadata = {
 };
 
 export default async function ReviewsPage() {
-  const [dbTestimonials, allPackages] = await Promise.all([
+  const [dbTestimonials, allPackages, session] = await Promise.all([
     getPublishedTestimonials().catch(() => []),
     getPublishedPackagesCatalog().catch(() => []),
+    getSession().catch(() => null),
   ]);
 
   const testimonials: TestimonialItem[] = (dbTestimonials || []).map((t) => ({
@@ -37,9 +39,22 @@ export default async function ReviewsPage() {
     slug: p.slug,
   }));
 
+  const currentUser = session
+    ? {
+        id: session.id,
+        name: session.name,
+        email: session.email,
+        role: session.role,
+      }
+    : null;
+
   return (
     <div className="bg-ivory-100/50 min-h-screen">
-      <ReviewsClient initialReviews={testimonials} packages={packages} />
+      <ReviewsClient
+        initialReviews={testimonials}
+        packages={packages}
+        currentUser={currentUser}
+      />
     </div>
   );
 }
