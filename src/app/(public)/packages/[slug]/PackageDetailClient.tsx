@@ -45,6 +45,7 @@ import {
   formatHotelCityLabel,
 } from "@/lib/hotel-helpers";
 import { parseZiyaratLandmarks } from "@/lib/ziyarat-helpers";
+import { parseAssignedGuides, ScholarPreset, DEFAULT_SCHOLARS } from "@/lib/constants/scholars";
 import type { TeamMemberProfile } from "@/lib/team-data";
 
 interface PackageDetailClientProps {
@@ -112,6 +113,24 @@ export default function PackageDetailClient({
   }
 
   const ziyaratLandmarks = parseZiyaratLandmarks(pkg.highlights);
+
+  const assignedScholars: ScholarPreset[] = (() => {
+    if (pkg.assignedGuides) {
+      const parsed = parseAssignedGuides(pkg.assignedGuides);
+      if (parsed.length > 0) return parsed;
+    }
+    if (spiritualGuides && spiritualGuides.length > 0) {
+      return spiritualGuides.map((g) => ({
+        id: g.id,
+        name: g.name,
+        role: g.designation || "Spiritual Guide & Scholar",
+        bio: g.bio || "",
+        languages: Array.isArray(g.languages) ? g.languages.join(", ") : (g.languages || ""),
+        avatarUrl: g.photo || "",
+      }));
+    }
+    return DEFAULT_SCHOLARS;
+  })();
 
   const packageItineraries =
     pkg.itineraries && Array.isArray(pkg.itineraries) && pkg.itineraries.length > 0
@@ -1125,6 +1144,100 @@ export default function PackageDetailClient({
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* SPIRITUAL GUIDES & GROUP LEADERSHIP SECTION */}
+            {assignedScholars.length > 0 && (
+              <div
+                id="spiritual-guides"
+                className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 pb-4">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 mb-1.5">
+                      <Award className="w-3 h-3 text-gold-600" />
+                      Scholarly Mentorship &amp; Care
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest-950 flex items-center gap-2">
+                      <Users className="w-5 h-5 text-emerald-700" />
+                      Spiritual Guides &amp; Group Leadership
+                    </h2>
+                  </div>
+                  <span className="text-xs text-neutral-500 font-medium">
+                    {assignedScholars.length} Designated {assignedScholars.length === 1 ? "Guide" : "Guides"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {assignedScholars.map((guide, idx) => {
+                    const initials =
+                      guide.name
+                        .replace(/[^a-zA-Z\s]/g, "")
+                        .split(/\s+/)
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((w) => w[0].toUpperCase())
+                        .join("") || "IS";
+
+                    return (
+                      <div
+                        key={guide.id || idx}
+                        className="p-5 rounded-2xl border border-neutral-200 bg-ivory-50/70 space-y-3 hover:border-gold-500/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-3.5">
+                          {guide.avatarUrl ? (
+                            <div className="relative w-12 h-12 rounded-2xl overflow-hidden border border-gold-500/30 shrink-0">
+                              <SafeImage
+                                src={guide.avatarUrl}
+                                alt={guide.name}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 rounded-2xl bg-forest-950 border border-gold-500/40 text-gold-400 font-serif font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
+                              {initials}
+                            </div>
+                          )}
+
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-base font-serif font-bold text-forest-950 truncate">
+                              {guide.name}
+                            </h3>
+                            <span className="inline-block text-[11px] font-semibold text-gold-700 bg-gold-50 px-2 py-0.5 rounded-md border border-gold-200 mt-0.5">
+                              {guide.role}
+                            </span>
+                          </div>
+                        </div>
+
+                        {guide.bio && (
+                          <p className="text-xs text-neutral-600 leading-relaxed">
+                            {guide.bio}
+                          </p>
+                        )}
+
+                        {guide.languages && (
+                          <div className="text-[11px] text-neutral-500 flex items-center gap-1.5 pt-1 border-t border-neutral-200/60">
+                            <span className="font-semibold text-neutral-700">Languages:</span>
+                            <span>{guide.languages}</span>
+                          </div>
+                        )}
+
+                        <ul className="text-[11px] text-neutral-600 space-y-1 pt-1 border-t border-neutral-200/60">
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Step-by-step guidance through Ihram, Tawaf, Sa&apos;i &amp; Tahallul</span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Daily lectures on pilgrimage virtues &amp; historical explanations at Ziyarat</span>
+                          </li>
+                        </ul>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

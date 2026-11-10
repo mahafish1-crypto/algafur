@@ -12,6 +12,11 @@ import {
   MADINAH_SPECIAL_ZIYARAT,
 } from "@/lib/constants/ziyarats";
 import {
+  DEFAULT_SCHOLARS,
+  ScholarPreset,
+  parseAssignedGuides,
+} from "@/lib/constants/scholars";
+import {
   getStandardUmrahItinerary,
   DefaultItineraryItem,
 } from "@/lib/constants/default-itineraries";
@@ -43,6 +48,9 @@ import {
   FileText,
   Eye,
   Utensils,
+  Award,
+  Users,
+  BookOpen,
 } from "lucide-react";
 
 export interface PackageWizardBuilderProps {
@@ -255,7 +263,87 @@ export default function PackageWizardBuilder({
     overview: initialPackage
       ? (initialPackage.overview ?? initialPackage.description ?? "")
       : "Experience a transformative pilgrimage with scholarly guidance, walking-distance hotels, hot Indian buffet meals, and comprehensive holy ziyarats in Makkah and Madinah.",
+    assignedGuides: (() => {
+      if (initialPackage?.assignedGuides) {
+        const parsed = parseAssignedGuides(initialPackage.assignedGuides);
+        if (parsed.length > 0) return parsed;
+      }
+      return isEditing ? [] : [...DEFAULT_SCHOLARS];
+    })() as ScholarPreset[],
   });
+
+  // Scholars & Spiritual Guides State
+  const [availableScholars, setAvailableScholars] = useState<ScholarPreset[]>(() => {
+    const map = new Map<string, ScholarPreset>();
+    DEFAULT_SCHOLARS.forEach((s) => map.set(s.name.toLowerCase(), s));
+    if (initialPackage?.assignedGuides) {
+      const parsed = parseAssignedGuides(initialPackage.assignedGuides);
+      parsed.forEach((s) => {
+        if (!map.has(s.name.toLowerCase())) {
+          map.set(s.name.toLowerCase(), s);
+        }
+      });
+    }
+    return Array.from(map.values());
+  });
+
+  const [showQuickScholar, setShowQuickScholar] = useState(false);
+  const [quickScholar, setQuickScholar] = useState({
+    name: "",
+    role: "Spiritual Guide & Scholar",
+    bio: "",
+    languages: "Urdu, Hindi, Arabic",
+  });
+
+  const handleToggleScholar = (scholar: ScholarPreset) => {
+    setForm((prev) => {
+      const exists = prev.assignedGuides.some(
+        (s) => s.id === scholar.id || s.name.toLowerCase() === scholar.name.toLowerCase()
+      );
+      return {
+        ...prev,
+        assignedGuides: exists
+          ? prev.assignedGuides.filter(
+              (s) => s.id !== scholar.id && s.name.toLowerCase() !== scholar.name.toLowerCase()
+            )
+          : [...prev.assignedGuides, scholar],
+      };
+    });
+  };
+
+  const handleQuickAddScholar = () => {
+    const name = quickScholar.name.trim();
+    if (!name) return;
+    const newScholar: ScholarPreset = {
+      id: `scholar-${Date.now()}`,
+      name,
+      role: quickScholar.role.trim() || "Spiritual Guide & Scholar",
+      bio: quickScholar.bio.trim(),
+      languages: quickScholar.languages.trim() || "Urdu, Hindi",
+      avatarUrl: "",
+    };
+
+    setAvailableScholars((prev) => {
+      const exists = prev.some((s) => s.name.toLowerCase() === name.toLowerCase());
+      return exists ? prev : [...prev, newScholar];
+    });
+
+    setForm((prev) => {
+      const exists = prev.assignedGuides.some((s) => s.name.toLowerCase() === name.toLowerCase());
+      return {
+        ...prev,
+        assignedGuides: exists ? prev.assignedGuides : [...prev.assignedGuides, newScholar],
+      };
+    });
+
+    setQuickScholar({
+      name: "",
+      role: "Spiritual Guide & Scholar",
+      bio: "",
+      languages: "Urdu, Hindi, Arabic",
+    });
+    setShowQuickScholar(false);
+  };
 
   // Auto-generate slug when title changes unless manually edited
   const handleNameChange = (newName: string) => {
@@ -447,6 +535,7 @@ export default function PackageWizardBuilder({
           custom: [],
         }),
         features: JSON.stringify(allFeatures),
+        assignedGuides: JSON.stringify(form.assignedGuides),
         overview: form.overview ? form.overview.trim() : "",
         description: form.overview ? form.overview.trim() : "",
       };
@@ -2134,6 +2223,200 @@ export default function PackageWizardBuilder({
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Spiritual Guides & Group Scholars Assignment */}
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4 pt-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold-400 flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-gold-400" />
+                    Spiritual Guides &amp; Group Scholars Assignment
+                  </span>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Select which religious scholars and spiritual guides lead this package tour. Selected scholars are prominently featured on the public package detail page, homepage hero, and spotlight banners.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-xs font-bold font-mono">
+                    {form.assignedGuides.length} Assigned
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickScholar((prev) => !prev)}
+                    className="px-3 py-1.5 rounded-xl bg-gold-500/20 hover:bg-gold-500/30 border border-gold-500/50 text-gold-300 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{showQuickScholar ? "Close Quick Add" : "+ Add Quick Scholar"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Add Scholar Form Drawer */}
+              {showQuickScholar && (
+                <div className="p-4 rounded-xl bg-slate-900 border border-gold-500/40 space-y-3 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-bold uppercase tracking-wider text-gold-400 flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5" />
+                      Add &amp; Assign New Spiritual Guide / Scholar
+                    </h5>
+                    <button
+                      type="button"
+                      onClick={() => setShowQuickScholar(false)}
+                      className="text-slate-400 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                        Scholar Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={quickScholar.name}
+                        onChange={(e) => setQuickScholar({ ...quickScholar, name: e.target.value })}
+                        placeholder="e.g. Maulana Abdul Rahman"
+                        className="w-full text-xs px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                        Role / Designation *
+                      </label>
+                      <input
+                        type="text"
+                        value={quickScholar.role}
+                        onChange={(e) => setQuickScholar({ ...quickScholar, role: e.target.value })}
+                        placeholder="e.g. Senior Spiritual Guide &amp; Ziyarat Scholar"
+                        className="w-full text-xs px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                        Languages Spoken
+                      </label>
+                      <input
+                        type="text"
+                        value={quickScholar.languages}
+                        onChange={(e) => setQuickScholar({ ...quickScholar, languages: e.target.value })}
+                        placeholder="e.g. Urdu, Hindi, Arabic, Marathi"
+                        className="w-full text-xs px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                        Brief Bio / Expertise Summary
+                      </label>
+                      <input
+                        type="text"
+                        value={quickScholar.bio}
+                        onChange={(e) => setQuickScholar({ ...quickScholar, bio: e.target.value })}
+                        placeholder="e.g. Conducts step-by-step Umrah workshops and Madinah historical ziyarat..."
+                        className="w-full text-xs px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setShowQuickScholar(false)}
+                      className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!quickScholar.name.trim()}
+                      onClick={handleQuickAddScholar}
+                      className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold transition-colors"
+                    >
+                      Save &amp; Assign Scholar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Multi-Select Scholar Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {availableScholars.map((scholar) => {
+                  const isChecked = form.assignedGuides.some(
+                    (s) =>
+                      s.id === scholar.id ||
+                      s.name.toLowerCase() === scholar.name.toLowerCase()
+                  );
+                  const initials = scholar.name
+                    .replace(/[^a-zA-Z\s]/g, "")
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((w) => w[0].toUpperCase())
+                    .join("") || "IS";
+
+                  return (
+                    <div
+                      key={scholar.id}
+                      onClick={() => handleToggleScholar(scholar)}
+                      className={`cursor-pointer p-3.5 rounded-xl border transition-all flex items-start gap-3 select-none ${
+                        isChecked
+                          ? "bg-gold-950/20 border-gold-500/70 shadow-sm ring-1 ring-gold-500/30"
+                          : "bg-slate-900/60 border-slate-800 hover:border-slate-700"
+                      }`}
+                    >
+                      {/* Checkbox Icon */}
+                      <div className="pt-0.5 shrink-0">
+                        <div
+                          className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                            isChecked
+                              ? "bg-gold-500 border-gold-500 text-forest-950 font-bold"
+                              : "border-slate-700 bg-slate-950 text-transparent"
+                          }`}
+                        >
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      </div>
+
+                      {/* Initials Avatar */}
+                      <div className="w-10 h-10 rounded-xl bg-forest-900/90 border border-gold-500/40 text-gold-300 font-serif font-bold text-xs flex items-center justify-center shrink-0">
+                        {initials}
+                      </div>
+
+                      {/* Scholar Info */}
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <div className="flex items-center justify-between gap-1">
+                          <h5 className={`text-xs font-bold truncate ${isChecked ? "text-white" : "text-slate-300"}`}>
+                            {scholar.name}
+                          </h5>
+                          {isChecked && (
+                            <span className="text-[10px] font-bold text-emerald-400 shrink-0">
+                              Assigned
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] font-medium text-gold-400 truncate">
+                          {scholar.role}
+                        </p>
+                        {scholar.bio && (
+                          <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                            {scholar.bio}
+                          </p>
+                        )}
+                        {scholar.languages && (
+                          <p className="text-[10px] text-slate-500 pt-0.5">
+                            Languages: {scholar.languages}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Ziyarat Holy Landmarks Checklist */}

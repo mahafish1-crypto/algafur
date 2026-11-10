@@ -286,6 +286,7 @@ model Package {
 
   // Features / Amenities
   features           String?            // JSON array of strings
+  assignedGuides     String?            // JSON array of [{ id, name, role, avatarUrl, bio, languages }]
 
   // Additional Departure & Seats
   registrationDeadline String?

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { useLanguage } from "@/context/LanguageContext";
+import { DEFAULT_SCHOLARS, parseAssignedGuides } from "@/lib/constants/scholars";
 
 interface PosterSpotlightProps {
   packageData?: {
@@ -69,6 +70,14 @@ export default function PosterSpotlight({ packageData, settings = {} }: PosterSp
     madinahHotelName: packageData?.madinahHotelName || packageData?.madinahHotel?.name || "Ilaf Kuba or similar (400m)",
     featuredImage: packageData?.featuredImage || packageData?.heroImage || "/brand/poster.jpg",
   };
+
+  const spotlightScholars = (() => {
+    if ((packageData as any)?.assignedGuides) {
+      const parsed = parseAssignedGuides((packageData as any).assignedGuides);
+      if (parsed.length > 0) return parsed;
+    }
+    return DEFAULT_SCHOLARS;
+  })();
 
   const whatsappNum = settings.whatsapp_number || "919890708013";
   const phone1 = settings.company_phone_1 || "+91 8793939393";
@@ -158,26 +167,29 @@ export default function PosterSpotlight({ packageData, settings = {} }: PosterSp
               </div>
             </div>
 
-            {/* Two Renowned Scholars */}
+            {/* Renowned Scholars */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-forest-950/60 p-4 rounded-xl border border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-800 text-gold-300 flex items-center justify-center font-bold text-xs flex-shrink-0">
-                  HA
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">Hafiz Asrar Sahab</div>
-                  <div className="text-[10px] text-emerald-300">International Naat Khwa &amp; Scholar</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-800 text-gold-300 flex items-center justify-center font-bold text-xs flex-shrink-0">
-                  HS
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">Hafiz Sameer Madani</div>
-                  <div className="text-[10px] text-emerald-300">Resident Guide &amp; Madinah Specialist</div>
-                </div>
-              </div>
+              {spotlightScholars.slice(0, 2).map((scholar, idx) => {
+                const initials =
+                  scholar.name
+                    .replace(/[^a-zA-Z\s]/g, "")
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((w) => w[0].toUpperCase())
+                    .join("") || "IS";
+                return (
+                  <div key={scholar.id || idx} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-800 text-gold-300 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                      {initials}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-white truncate">{scholar.name}</div>
+                      <div className="text-[10px] text-emerald-300 truncate">{scholar.role}</div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Services Checklist */}

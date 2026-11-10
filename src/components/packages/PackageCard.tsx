@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { parseAssignedGuides } from "@/lib/constants/scholars";
 
 export interface PackageCardData {
   id: string;
@@ -37,6 +38,7 @@ export interface PackageCardData {
   flightType?: string | null;
   flightDetails?: string | null;
   features?: string | null;
+  assignedGuides?: string | null;
   makkahHotelName?: string | null;
   madinahHotelName?: string | null;
   makkahDistance?: string | null;
@@ -57,6 +59,9 @@ export default function PackageCard({ pkg }: PackageCardProps) {
   const seatsRemaining = Math.max(0, pkg.totalSeats - pkg.bookedSeats);
   const isLimited = seatsRemaining > 0 && seatsRemaining <= 18;
   const localizedName = localizeField(pkg, "name", pkg.name);
+  const assignedScholars = pkg.assignedGuides
+    ? parseAssignedGuides(pkg.assignedGuides)
+    : [];
 
   const formatDepartureInfo = () => {
     if (pkg.hasSpecificDates) {
@@ -204,6 +209,16 @@ export default function PackageCard({ pkg }: PackageCardProps) {
               </span>
             </div>
           </div>
+
+          {/* Spiritual Guides Highlight */}
+          {assignedScholars.length > 0 && (
+            <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-emerald-950 bg-emerald-50/80 border border-emerald-200/60 px-2.5 py-1 rounded-xl">
+              <span className="font-bold text-gold-700 shrink-0">Guided By:</span>
+              <span className="truncate font-medium text-forest-950">
+                {assignedScholars.map((s) => s.name).join(", ")}
+              </span>
+            </div>
+          )}
 
           {/* Micro Inclusions Icons */}
           <div className="grid grid-cols-4 gap-1 pt-3 text-[10px] text-neutral-600 text-center">

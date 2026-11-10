@@ -83,6 +83,7 @@ const VALID_PACKAGE_SCALAR_FIELDS = new Set([
   "ogImage",
   "canonicalUrl",
   "features",
+  "assignedGuides",
   "registrationDeadline",
   "sortOrder",
   "featuredImage",
@@ -231,6 +232,9 @@ async function handleUpdate(
     }
     if (updateData.features && typeof updateData.features !== "string") {
       updateData.features = JSON.stringify(updateData.features);
+    }
+    if (updateData.assignedGuides !== undefined && typeof updateData.assignedGuides !== "string") {
+      updateData.assignedGuides = JSON.stringify(updateData.assignedGuides || []);
     }
 
     if (updateData.slug) {

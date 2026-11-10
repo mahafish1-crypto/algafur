@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
+import { parseAssignedGuides } from "@/lib/constants/scholars";
 import {
   Compass,
   Calendar,
@@ -205,8 +206,14 @@ export default function Hero({
   const madinahStars = pkg.madinahHotelRating || pkg.madinahHotel?.starRating || 4;
   const madinahThumb = pkg.madinahImage || extractMainHotelImage(pkg.madinahHotel?.images) || "/brand/poster.jpg";
 
+  const parsedAssigned = (pkg as any)?.assignedGuides
+    ? parseAssignedGuides((pkg as any).assignedGuides)
+    : [];
+
   const guidesLabel =
-    spiritualGuides.length > 0
+    parsedAssigned.length > 0
+      ? parsedAssigned.map((g) => g.name).join(" & ")
+      : spiritualGuides.length > 0
       ? spiritualGuides.map((g) => g.name).join(" & ")
       : "Hafiz Asrar Sahab & Hafiz Sameer Madani";
 

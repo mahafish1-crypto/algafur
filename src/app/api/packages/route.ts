@@ -300,6 +300,7 @@ export async function POST(req: NextRequest) {
       seoKeywords,
       ogImage,
       features,
+      assignedGuides,
       registrationDeadline,
       sortOrder = 0,
       inclusions = [],
@@ -440,6 +441,10 @@ export async function POST(req: NextRequest) {
         seoKeywords,
         ogImage,
         features: typeof features === "string" ? features : JSON.stringify(features || []),
+        assignedGuides:
+          typeof assignedGuides === "string"
+            ? assignedGuides
+            : JSON.stringify(assignedGuides || []),
         registrationDeadline,
         sortOrder: Number(sortOrder) || 0,
         // Inclusions and Exclusions
