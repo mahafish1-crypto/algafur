@@ -6,6 +6,7 @@ const ContentSecurityPolicy = `
   img-src 'self' blob: data: https: https://*.supabase.co https://images.unsplash.com https://www.facebook.com;
   font-src 'self' data: https://fonts.gstatic.com;
   connect-src 'self' https: https://*.supabase.co https://va.vercel-scripts.com https://vitals.vercel-insights.com https://www.facebook.com https://connect.facebook.net;
+  frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://youtube.com https://www.instagram.com https://instagram.com;
   frame-ancestors 'none';
   object-src 'none';
   base-uri 'self';
