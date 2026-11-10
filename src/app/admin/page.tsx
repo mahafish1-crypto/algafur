@@ -40,7 +40,9 @@ export default async function AdminDashboardPage() {
   const canManageUsers =
     session.role === "SUPER_ADMIN" || hasUserPermission(session, "users:view");
 
-  const authorizedModules = getAuthorizedModules(session);
+  const authorizedModules = getAuthorizedModules(session).filter(
+    (mod) => mod.key !== "hotels" && mod.key !== "flights"
+  );
 
   // Conditionally query only data for modules the user is authorized to view
   const [

@@ -12,8 +12,10 @@ const ALLOWED_MIME_TYPES = [
   "image/webp",
   "image/jpg",
   "image/avif",
+  "image/heic",
+  "image/heif",
 ];
-const MAX_FILE_SIZE = 12 * 1024 * 1024; // 12MB limit
+const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB limit
 
 /**
  * Uploads a package image buffer to Supabase Storage REST API.
@@ -97,11 +99,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    const isImageMime = file.type.startsWith("image/") || ALLOWED_MIME_TYPES.includes(file.type);
+    if (!isImageMime) {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid file format. Only JPG, PNG, and WEBP images are supported.",
+          error: "Invalid file format. Please upload an image file (JPG, PNG, WEBP, AVIF, HEIC).",
         },
         { status: 400 }
       );
@@ -111,7 +114,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "File exceeds 12MB size limit.",
+          error: "File exceeds 15MB size limit.",
         },
         { status: 400 }
       );

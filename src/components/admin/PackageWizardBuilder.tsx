@@ -16,6 +16,7 @@ import {
   ScholarPreset,
   parseAssignedGuides,
 } from "@/lib/constants/scholars";
+import { optimizeImageFile } from "@/lib/image-optimizer";
 import {
   getStandardUmrahItinerary,
   DefaultItineraryItem,
@@ -359,15 +360,16 @@ export default function PackageWizardBuilder({
     });
   };
 
-  // Helper: Upload file to /api/admin/packages/upload-image
+  // Helper: Upload file to /api/admin/packages/upload-image with auto-optimization
   const uploadImageFile = async (
     file: File,
     setLoadingState: (val: boolean) => void
   ): Promise<string | null> => {
     setLoadingState(true);
     try {
+      const optimizedFile = await optimizeImageFile(file, 1920, 0.82);
       const data = new FormData();
-      data.append("file", file);
+      data.append("file", optimizedFile);
       data.append("category", "PACKAGES");
 
       const res = await fetch("/api/admin/packages/upload-image", {
@@ -1126,11 +1128,11 @@ export default function PackageWizardBuilder({
                     <Upload className="w-8 h-8 text-gold-400 mx-auto" />
                     <p className="text-xs font-bold text-slate-200">
                       {isUploadingCover
-                        ? "Uploading to Supabase CDN..."
+                        ? "Optimizing & Uploading to Supabase CDN..."
                         : "Click or Drag & Drop Cover Photo here"}
                     </p>
                     <p className="text-[11px] text-slate-500">
-                      Supports JPG, PNG, WEBP up to 10MB
+                      Supports PNG, JPG, WEBP, AVIF, HEIC (Auto-optimized to WebP, up to 15MB)
                     </p>
                   </div>
                   <input
@@ -1143,13 +1145,13 @@ export default function PackageWizardBuilder({
                 </div>
 
                 <div className="md:col-span-4 flex justify-center">
-                  <div className="relative w-48 h-32 rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 shadow-md">
+                  <div className="relative w-full aspect-[16/9] max-h-44 rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 shadow-md">
                     <SafeImage
                       src={form.featuredImage || "/brand/poster.jpg"}
                       fallbackSrc="/brand/poster.jpg"
                       alt="Cover Preview"
                       fill
-                      className="object-cover"
+                      className="object-cover object-center"
                     />
                   </div>
                 </div>
@@ -1208,14 +1210,14 @@ export default function PackageWizardBuilder({
                   {form.gallery.map((imgUrl: string, idx: number) => (
                     <div
                       key={idx}
-                      className="relative h-24 rounded-xl overflow-hidden border border-slate-700 group bg-slate-950"
+                      className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-700 group bg-slate-950"
                     >
                       <SafeImage
                         src={imgUrl}
                         fallbackSrc="/brand/poster.jpg"
                         alt={`Gallery ${idx + 1}`}
                         fill
-                        className="object-cover"
+                        className="object-cover object-center"
                       />
                       <button
                         type="button"
@@ -1249,13 +1251,13 @@ export default function PackageWizardBuilder({
                     Makkah Hotel Photo
                   </span>
                   <div className="flex items-center gap-3">
-                    <div className="relative w-20 h-16 rounded-xl overflow-hidden border border-slate-700 shrink-0 bg-slate-900">
+                    <div className="relative w-24 aspect-[4/3] rounded-xl overflow-hidden border border-slate-700 shrink-0 bg-slate-900">
                       <SafeImage
                         src={form.makkahImage || "/brand/poster.jpg"}
                         fallbackSrc="/brand/poster.jpg"
                         alt="Makkah Hotel"
                         fill
-                        className="object-cover"
+                        className="object-cover object-center"
                       />
                     </div>
                     <label className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-center text-slate-200 cursor-pointer transition-colors">
@@ -1289,13 +1291,13 @@ export default function PackageWizardBuilder({
                     Madinah Hotel Photo
                   </span>
                   <div className="flex items-center gap-3">
-                    <div className="relative w-20 h-16 rounded-xl overflow-hidden border border-slate-700 shrink-0 bg-slate-900">
+                    <div className="relative w-24 aspect-[4/3] rounded-xl overflow-hidden border border-slate-700 shrink-0 bg-slate-900">
                       <SafeImage
                         src={form.madinahImage || "/brand/poster.jpg"}
                         fallbackSrc="/brand/poster.jpg"
                         alt="Madinah Hotel"
                         fill
-                        className="object-cover"
+                        className="object-cover object-center"
                       />
                     </div>
                     <label className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-center text-slate-200 cursor-pointer transition-colors">
@@ -1488,48 +1490,103 @@ export default function PackageWizardBuilder({
 
             {/* Flight & Transport */}
             <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                   <Plane className="w-4 h-4 text-emerald-400" />
                   Flight Specifications &amp; Transport
                 </span>
-                <div className="flex gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                <div className="flex gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, flightType: "DIRECT" })}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
                       form.flightType === "DIRECT"
-                        ? "bg-emerald-600 text-white"
+                        ? "bg-emerald-600 text-white shadow-xs"
                         : "text-slate-400 hover:text-white"
                     }`}
                   >
-                    Direct Flight
+                    {form.flightType === "DIRECT" && <Check className="w-3.5 h-3.5" />}
+                    <span>Direct Flight</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, flightType: "CONNECTING" })}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
                       form.flightType === "CONNECTING"
-                        ? "bg-emerald-600 text-white"
+                        ? "bg-emerald-600 text-white shadow-xs"
                         : "text-slate-400 hover:text-white"
                     }`}
                   >
-                    1-Stop Connecting
+                    {form.flightType === "CONNECTING" && <Check className="w-3.5 h-3.5" />}
+                    <span>Connecting Flight</span>
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Quick-Select Airline Carrier Chips */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-slate-300">
+                    Quick-Select Airline Carrier
+                  </label>
+                  <span className="text-[11px] text-slate-500">
+                    Click chip to auto-fill
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "Saudi Airlines (SV)",
+                    "IndiGo (6E)",
+                    "Air India (AI)",
+                    "Flynas",
+                    "Emirates / Gulf",
+                  ].map((airline) => {
+                    const isSelected = form.airline === airline;
+                    return (
+                      <button
+                        key={airline}
+                        type="button"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            airline,
+                            flightNumber:
+                              airline === "Saudi Airlines (SV)"
+                                ? "SV-741"
+                                : airline === "IndiGo (6E)"
+                                ? "6E-1831"
+                                : airline === "Air India (AI)"
+                                ? "AI-965"
+                                : airline === "Flynas"
+                                ? "XY-325"
+                                : prev.flightNumber,
+                          }))
+                        }
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+                          isSelected
+                            ? "bg-emerald-950 text-emerald-300 border-emerald-500/60 shadow-xs"
+                            : "bg-slate-900 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700"
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                        <span>{airline}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">
-                    Airline Carrier
+                    Airline Carrier (Custom / Selected)
                   </label>
                   <input
                     type="text"
                     value={form.airline}
                     onChange={(e) => setForm({ ...form, airline: e.target.value })}
                     placeholder="Saudi Airlines (SV) / Air India / IndiGo"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white focus:outline-none"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white focus:outline-none focus:border-gold-500"
                   />
                 </div>
 
@@ -1544,7 +1601,7 @@ export default function PackageWizardBuilder({
                       setForm({ ...form, departureAirport: e.target.value })
                     }
                     placeholder="Mumbai (BOM)"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white focus:outline-none"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white focus:outline-none focus:border-gold-500"
                   />
                 </div>
 
@@ -1558,8 +1615,8 @@ export default function PackageWizardBuilder({
                     onChange={(e) =>
                       setForm({ ...form, arrivalAirport: e.target.value })
                     }
-                    placeholder="Jeddah (JED) / Madinah (MED)"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white focus:outline-none"
+                    placeholder="JED / MED (Jeddah / Madinah)"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white focus:outline-none focus:border-gold-500"
                   />
                 </div>
               </div>

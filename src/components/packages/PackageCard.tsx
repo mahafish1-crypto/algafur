@@ -118,7 +118,7 @@ export default function PackageCard({ pkg }: PackageCardProps) {
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-neutral-200/80 hover:border-gold-500/40 shadow-sm hover:shadow-premium transition-all duration-300 flex flex-col justify-between">
       {/* Top Image & Badge Container */}
-      <div className="relative h-52 w-full overflow-hidden bg-forest-950">
+      <div className="relative w-full aspect-[16/9] min-h-[190px] overflow-hidden bg-forest-950">
         <SafeImage
           src={pkg.featuredImage || defaultImage}
           fallbackSrc={defaultImage}

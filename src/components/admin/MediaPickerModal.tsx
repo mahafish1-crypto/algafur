@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { MediaItem } from "@/app/admin/media/AdminMediaClient";
+import { optimizeImageFile } from "@/lib/image-optimizer";
 
 interface MediaPickerModalProps {
   isOpen: boolean;
@@ -79,10 +80,11 @@ export default function MediaPickerModal({
     setUploadError(null);
 
     try {
+      const optimizedFile = await optimizeImageFile(uploadFile, 1920, 0.82);
       const formData = new FormData();
-      formData.append("file", uploadFile);
+      formData.append("file", optimizedFile);
       formData.append("category", selectedCategory === "ALL" ? "PACKAGES" : selectedCategory);
-      formData.append("name", uploadFile.name.replace(/\.[^/.]+$/, ""));
+      formData.append("name", optimizedFile.name.replace(/\.[^/.]+$/, ""));
 
       const res = await fetch("/api/media", {
         method: "POST",

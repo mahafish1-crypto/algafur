@@ -84,17 +84,26 @@ export async function POST(req: NextRequest) {
       }
 
       // Validate allowed mime types
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
-      if (!allowedTypes.includes(file.type)) {
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/jpg",
+        "image/avif",
+        "image/heic",
+        "image/heif",
+      ];
+      const isImageMime = file.type.startsWith("image/") || allowedTypes.includes(file.type);
+      if (!isImageMime) {
         return NextResponse.json(
-          { error: "Invalid file format. Only JPG, PNG, and WEBP images are supported." },
+          { error: "Invalid file format. Please upload an image file (JPG, PNG, WEBP, AVIF, HEIC)." },
           { status: 400 }
         );
       }
 
-      // Size limit: 10MB
-      if (file.size > 10 * 1024 * 1024) {
-        return NextResponse.json({ error: "File exceeds 10MB limit." }, { status: 400 });
+      // Size limit: 15MB
+      if (file.size > 15 * 1024 * 1024) {
+        return NextResponse.json({ error: "File exceeds 15MB limit." }, { status: 400 });
       }
 
       const bytes = await file.arrayBuffer();

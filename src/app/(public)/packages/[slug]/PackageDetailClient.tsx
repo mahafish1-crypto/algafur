@@ -386,14 +386,14 @@ export default function PackageDetailClient({
           <div className="lg:col-span-8 space-y-10">
             {/* Main Package Visual Banner & Optional Package Gallery */}
             <div className="space-y-3">
-              <div className="relative h-80 sm:h-96 rounded-3xl overflow-hidden shadow-md border border-neutral-200 bg-forest-950">
+              <div className="relative w-full aspect-[16/9] max-h-[460px] rounded-3xl overflow-hidden shadow-md border border-neutral-200 bg-forest-950">
                 <SafeImage
                   src={pkg.featuredImage || "/brand/poster.jpg"}
                   fallbackSrc="/brand/poster.jpg"
                   alt={pkg.name}
                   fill
                   priority
-                  className="object-cover"
+                  className="object-cover object-center"
                 />
               </div>
 
@@ -446,14 +446,14 @@ export default function PackageDetailClient({
                   {makkahName && (
                     <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/70 flex flex-col justify-between space-y-4 overflow-hidden shadow-xs">
                       <div className="space-y-3">
-                        <div className="relative h-52 w-full rounded-xl overflow-hidden bg-forest-950">
+                        <div className="relative w-full aspect-[4/3] max-h-60 rounded-xl overflow-hidden bg-forest-950">
                           <SafeImage
                             src={displayedMakkahImg}
                             fallbackSrc={makkahMedia.mainImage || "/brand/poster.jpg"}
                             alt={makkahName}
                             fill
                             sizes="(max-width: 768px) 100vw, 400px"
-                            className="object-cover"
+                            className="object-cover object-center"
                           />
                           {makkahDistance && (
                             <span className="absolute top-3 left-3 bg-forest-950/90 text-gold-300 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-gold-500/30">
@@ -580,14 +580,14 @@ export default function PackageDetailClient({
                   {madinahName && (
                     <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/70 flex flex-col justify-between space-y-4 overflow-hidden shadow-xs">
                       <div className="space-y-3">
-                        <div className="relative h-52 w-full rounded-xl overflow-hidden bg-forest-950">
+                        <div className="relative w-full aspect-[4/3] max-h-60 rounded-xl overflow-hidden bg-forest-950">
                           <SafeImage
                             src={displayedMadinahImg}
                             fallbackSrc={madinahMedia.mainImage || "/brand/poster.jpg"}
                             alt={madinahName}
                             fill
                             sizes="(max-width: 768px) 100vw, 400px"
-                            className="object-cover"
+                            className="object-cover object-center"
                           />
                           {madinahDistance && (
                             <span className="absolute top-3 left-3 bg-forest-950/90 text-gold-300 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-gold-500/30">
