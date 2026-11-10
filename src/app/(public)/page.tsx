@@ -3,8 +3,6 @@ import SmartPackageFinder from "@/components/home/SmartPackageFinder";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
 import PosterSpotlight from "@/components/home/PosterSpotlight";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
-import HotelsPreview from "@/components/home/HotelsPreview";
-import TimelinePreview from "@/components/home/TimelinePreview";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import FaqSection from "@/components/home/FaqSection";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
@@ -12,7 +10,6 @@ import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import {
   getPublishedPackagesCatalog,
-  getPublishedHotels,
   getPublishedTestimonials,
   getPublishedFaqs,
   resolveSpotlightPackage,
@@ -24,12 +21,11 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function HomePage() {
-  const [allPackages, hotels, testimonials, faqs, settings] = await Promise.all([
+  const [allPackages, testimonials, faqs, settings] = await Promise.all([
     getPublishedPackagesCatalog().catch((err) => {
       console.error("Failed to query packages in HomePage:", err);
       return [];
     }),
-    getPublishedHotels().catch(() => []),
     getPublishedTestimonials().catch(() => []),
     getPublishedFaqs().catch(() => []),
     getSiteSettings(),
@@ -45,8 +41,6 @@ export default async function HomePage() {
   const showPackagesGrid = settings.home_show_packages_grid !== "false";
   const showPosterSpotlight = settings.home_show_poster_spotlight !== "false";
   const showWhyChoose = settings.home_show_why_choose !== "false";
-  const showHotelsPreview = settings.home_show_hotels_preview !== "false";
-  const showTimeline = settings.home_show_journey_timeline !== "false";
   const showTestimonials = settings.home_show_testimonials !== "false";
   const showFaq = settings.home_show_faq !== "false";
   const showLeadForm = settings.home_show_lead_form !== "false";
@@ -105,16 +99,10 @@ export default async function HomePage() {
       {/* 5. Trust Pillars: Why Pilgrims Choose AL GAFUR INTERNATIONAL TOURS AND TRAVELS */}
       {showWhyChoose && <WhyChooseUs />}
 
-      {/* 6. Hotels Proximity Showcase */}
-      {showHotelsPreview && <HotelsPreview hotels={hotels} />}
-
-      {/* 7. Interactive Itinerary Timeline */}
-      {showTimeline && <TimelinePreview />}
-
-      {/* 8. Pilgrim Testimonials */}
+      {/* 6. Pilgrim Testimonials & Video Experiences */}
       {showTestimonials && <TestimonialsSection testimonials={testimonials} />}
 
-      {/* 9. Categorized FAQ */}
+      {/* 7. Categorized FAQ */}
       {showFaq && <FaqSection faqs={faqs} />}
 
       {/* 10. Lead Enquiry Form */}

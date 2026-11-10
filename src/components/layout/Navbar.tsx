@@ -48,13 +48,9 @@ export default function Navbar({ settings = {} }: NavbarProps) {
   const navLinks = [
     { name: t("nav_home"), href: "/" },
     { name: t("nav_packages"), href: "/packages" },
-    { name: t("nav_umrah"), href: "/umrah" },
-    { name: t("nav_hajj"), href: "/hajj" },
-    { name: t("nav_ramadan"), href: "/ramadan-umrah" },
-    { name: t("nav_hotels"), href: "/hotels" },
-    { name: t("nav_ziyarat"), href: "/gallery" },
+    { name: t("nav_ziyarat", "Holy Ziyarat"), href: "/ziyarat" },
+    { name: t("nav_reviews", "Reviews"), href: "/reviews" },
     { name: t("nav_about"), href: "/about" },
-    { name: t("nav_blog"), href: "/blog" },
     { name: t("nav_contact"), href: "/contact" },
   ];
 
@@ -145,7 +141,7 @@ export default function Navbar({ settings = {} }: NavbarProps) {
           />
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-4" aria-label="Main Navigation">
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-6" aria-label="Main Navigation">
             {navLinks.map((link) => {
               const isActive =
                 link.href === "/"
@@ -155,7 +151,7 @@ export default function Navbar({ settings = {} }: NavbarProps) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-xs font-semibold transition-colors px-2 py-1.5 rounded-lg ${
+                  className={`text-xs font-semibold transition-colors px-2.5 py-1.5 rounded-lg ${
                     isActive
                       ? "text-gold-300 bg-forest-950/70 border border-gold-500/30"
                       : "text-emerald-100 hover:text-gold-300 hover:bg-forest-950/40"
@@ -174,10 +170,10 @@ export default function Navbar({ settings = {} }: NavbarProps) {
               href={`https://wa.me/${whatsappRaw}?text=Assalamualaikum,%20I%20would%20like%20information%20about%20AL%20GAFUR%20INTERNATIONAL%20TOURS%20AND%20TRAVELS%20Hajj%20and%20Umrah%20packages`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:inline-flex items-center gap-1.5 text-xs font-bold text-emerald-950 bg-emerald-300 hover:bg-emerald-200 px-3.5 py-2 rounded-lg transition-all shadow-sm min-h-[38px]"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-emerald-950 bg-emerald-300 hover:bg-emerald-200 px-3.5 py-2 rounded-lg transition-all shadow-sm min-h-[38px]"
             >
               <MessageCircle className="w-3.5 h-3.5 fill-emerald-950" />
-              <span>WhatsApp</span>
+              <span>WhatsApp Desk</span>
             </a>
 
             {/* Primary CTA Button */}
@@ -195,7 +191,7 @@ export default function Navbar({ settings = {} }: NavbarProps) {
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               aria-expanded={mobileMenuOpen}
               aria-label="Toggle navigation menu"
-              className="xl:hidden text-emerald-100 hover:text-white p-2 rounded-lg bg-forest-950/60 border border-gold-500/25 min-h-[38px] min-w-[38px] flex items-center justify-center"
+              className="lg:hidden text-emerald-100 hover:text-white p-2 rounded-lg bg-forest-950/60 border border-gold-500/25 min-h-[38px] min-w-[38px] flex items-center justify-center"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -205,7 +201,7 @@ export default function Navbar({ settings = {} }: NavbarProps) {
 
       {/* Mobile & Tablet Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="xl:hidden bg-forest-950 border-b border-gold-500/30 px-4 sm:px-6 py-5 text-white animate-fadeIn max-h-[85vh] overflow-y-auto shadow-2xl">
+        <div className="lg:hidden bg-forest-950 border-b border-gold-500/30 px-4 sm:px-6 py-5 text-white animate-fadeIn max-h-[85vh] overflow-y-auto shadow-2xl">
           <nav className="grid grid-cols-1 sm:grid-cols-2 gap-1.5" aria-label="Mobile Navigation">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;

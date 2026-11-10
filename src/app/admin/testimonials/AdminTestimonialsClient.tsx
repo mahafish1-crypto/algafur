@@ -14,8 +14,12 @@ import {
   EyeOff,
   Image as ImageIcon,
   Sparkles,
+  Video,
+  Play,
+  ExternalLink,
 } from "lucide-react";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
+import { parseVideoUrl } from "@/lib/video-parser";
 
 interface TestimonialRecord {
   id: string;
@@ -50,6 +54,7 @@ const emptyForm = {
   packageTitle: "",
   rating: 5,
   reviewText: "",
+  videoUrl: "",
   isFeatured: true,
   status: "PUBLISHED",
 };
@@ -90,6 +95,7 @@ export default function AdminTestimonialsClient({
       packageTitle: t.packageTitle || "",
       rating: t.rating ?? 5,
       reviewText: t.reviewText || "",
+      videoUrl: t.videoUrl || "",
       isFeatured: Boolean(t.isFeatured),
       status: t.status || "PUBLISHED",
     });
@@ -118,6 +124,7 @@ export default function AdminTestimonialsClient({
           packageTitle: form.packageTitle.trim(),
           rating: Number(form.rating),
           reviewText: form.reviewText.trim(),
+          videoUrl: form.videoUrl.trim() || null,
           isFeatured: form.isFeatured,
           status: form.status,
         }),
@@ -163,6 +170,24 @@ export default function AdminTestimonialsClient({
       }
     } catch {
       alert("Failed to update status.");
+    }
+  };
+
+  const handleToggleFeatured = async (t: TestimonialRecord) => {
+    try {
+      const res = await fetch(`/api/testimonials/${t.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFeatured: !t.isFeatured }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setTestimonials((prev) =>
+          prev.map((item) => (item.id === t.id ? json.testimonial : item))
+        );
+      }
+    } catch {
+      alert("Failed to toggle featured status.");
     }
   };
 
@@ -365,11 +390,18 @@ export default function AdminTestimonialsClient({
                       ))}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {t.isFeatured && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-                        Featured
-                      </span>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFeatured(t)}
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded transition-colors ${
+                        t.isFeatured
+                          ? "bg-amber-100 text-amber-900 border border-amber-300"
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      }`}
+                      title="Click to toggle featured spotlight on homepage"
+                    >
+                      {t.isFeatured ? "★ Featured" : "☆ Feature"}
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(t)}
@@ -391,6 +423,24 @@ export default function AdminTestimonialsClient({
                     </button>
                   </div>
                 </div>
+
+                {t.videoUrl && (
+                  <div className="flex items-center justify-between bg-amber-50/80 border border-amber-200 rounded-lg px-2.5 py-1.5 text-xs">
+                    <span className="flex items-center gap-1.5 text-amber-900 font-semibold text-[11px]">
+                      <Video className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                      <span>Video Review Attached</span>
+                    </span>
+                    <a
+                      href={t.videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-amber-800 hover:text-amber-950 inline-flex items-center gap-1 font-bold text-[10px]"
+                    >
+                      <span>Play Video</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                )}
 
                 <p className="text-xs text-slate-700 italic leading-relaxed">
                   &ldquo;{t.reviewText}&rdquo;
@@ -604,6 +654,36 @@ export default function AdminTestimonialsClient({
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* Video URL Input */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Video Review Link (Optional — YouTube Watch / Shorts / Instagram Reel)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://youtube.com/shorts/... or https://instagram.com/reel/..."
+                    value={form.videoUrl}
+                    onChange={(e) =>
+                      setForm({ ...form, videoUrl: e.target.value })
+                    }
+                    className="flex-1 text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900"
+                  />
+                  {form.videoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, videoUrl: "" })}
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-500">
+                  Embeds automatically on the homepage and pilgrim reviews page.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

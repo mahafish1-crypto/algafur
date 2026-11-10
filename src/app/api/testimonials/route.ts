@@ -4,6 +4,8 @@ import prisma from "@/lib/db";
 import { requireAuth } from "@/lib/api-auth";
 import { logAudit } from "@/lib/audit";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const testimonials = await prisma.testimonial.findMany({
@@ -20,8 +22,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req, "manage:settings");
-    if (!auth.authorized) return auth.response;
-    const session = auth.session;
+    const isAdmin = auth.authorized;
 
     const body = await req.json();
     const {
@@ -43,40 +44,55 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Admins can set any status/featured flag; public submissions are queued as DRAFT
+    const finalStatus = isAdmin
+      ? status === "DRAFT" ? "DRAFT" : "PUBLISHED"
+      : "DRAFT";
+    const finalIsFeatured = isAdmin ? Boolean(isFeatured) : false;
+
     const testimonial = await prisma.testimonial.create({
       data: {
         customerName: String(customerName).trim(),
         city: String(city || "").trim(),
         packageTitle: String(packageTitle || "").trim(),
-        rating: Math.min(5, Math.max(0, Number(rating) || 5)),
+        rating: Math.min(5, Math.max(1, Number(rating) || 5)),
         reviewText: String(reviewText).trim(),
         photo: photo ? String(photo).trim() : null,
         videoUrl: videoUrl ? String(videoUrl).trim() : null,
-        isFeatured: Boolean(isFeatured),
-        status: status === "DRAFT" ? "DRAFT" : "PUBLISHED",
+        isFeatured: finalIsFeatured,
+        status: finalStatus,
       },
     });
 
-    await logAudit({
-      userId: session.id,
-      action: "CREATE_TESTIMONIAL",
-      entity: "Testimonial",
-      entityId: testimonial.id,
-      details: { customerName: testimonial.customerName, status: testimonial.status },
-    });
+    if (isAdmin && auth.session) {
+      await logAudit({
+        userId: auth.session.id,
+        action: "CREATE_TESTIMONIAL",
+        entity: "Testimonial",
+        entityId: testimonial.id,
+        details: { customerName: testimonial.customerName, status: testimonial.status },
+      });
+    }
 
     try {
       revalidateTag("testimonials");
       revalidatePath("/");
+      revalidatePath("/reviews");
+      revalidatePath("/testimonials");
     } catch {
       // ignore
     }
 
-    return NextResponse.json({ success: true, testimonial });
+    return NextResponse.json({
+      success: true,
+      testimonial,
+      message: isAdmin
+        ? "Testimonial created successfully."
+        : "Alhamdulillah! Thank you for sharing your experience. Your review has been submitted for moderation.",
+    });
   } catch (error: unknown) {
     const errorMsg =
       error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
-

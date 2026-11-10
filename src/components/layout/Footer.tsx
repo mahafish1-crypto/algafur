@@ -140,8 +140,13 @@ export default function Footer({ settings = {} }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href="/gallery" className="hover:text-gold-300 transition-colors">
-                  {t("nav_ziyarat")}
+                <Link href="/ziyarat" className="hover:text-gold-300 transition-colors">
+                  {t("nav_ziyarat", "Holy Ziyarat")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/reviews" className="hover:text-gold-300 transition-colors">
+                  {t("nav_reviews", "Pilgrim Reviews")}
                 </Link>
               </li>
               <li>

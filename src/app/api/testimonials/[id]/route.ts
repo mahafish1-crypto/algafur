@@ -87,6 +87,8 @@ export async function PATCH(
     try {
       revalidateTag("testimonials");
       revalidatePath("/");
+      revalidatePath("/reviews");
+      revalidatePath("/testimonials");
     } catch {
       // ignore
     }
@@ -130,6 +132,8 @@ export async function DELETE(
     try {
       revalidateTag("testimonials");
       revalidatePath("/");
+      revalidatePath("/reviews");
+      revalidatePath("/testimonials");
     } catch {
       // ignore
     }
