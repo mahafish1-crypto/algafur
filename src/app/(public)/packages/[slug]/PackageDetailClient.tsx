@@ -90,13 +90,13 @@ export default function PackageDetailClient({
     }
   }, [pkg?.id, pkg?.slug, pkg?.name, pkg?.priceQuad, pkg?.basePrice, pkg?.startingPrice, pkg?.type, language]);
 
-  const roomPrices = {
-    QUAD: pkg.priceQuad || pkg.basePrice,
-    TRIPLE: pkg.priceTriple || Math.round(pkg.basePrice * 1.1),
-    DOUBLE: pkg.priceDouble || Math.round(pkg.basePrice * 1.25),
+  const roomPrices: Record<string, number> = {
+    QUAD: Number(pkg.priceQuad || pkg.basePrice) || 120000,
+    TRIPLE: Number(pkg.priceTriple || Math.round((Number(pkg.basePrice) || 120000) * 1.1)),
+    DOUBLE: Number(pkg.priceDouble || Math.round((Number(pkg.basePrice) || 120000) * 1.25)),
   };
 
-  const activePrice = roomPrices[selectedRoom];
+  const activePrice = roomPrices[selectedRoom] || roomPrices.QUAD;
   const seatsRemaining = Math.max(0, pkg.totalSeats - pkg.bookedSeats);
 
   let packageFeatures: string[] = [];
@@ -132,10 +132,12 @@ export default function PackageDetailClient({
     return DEFAULT_SCHOLARS;
   })();
 
-  const packageItineraries =
-    pkg.itineraries && Array.isArray(pkg.itineraries) && pkg.itineraries.length > 0
-      ? pkg.itineraries
-      : getStandardUmrahItinerary(pkg.durationDays || 15);
+  const showItinerary = (pkg as any).showItinerary !== false;
+  const packageItineraries = showItinerary
+    ? (pkg.itineraries && Array.isArray(pkg.itineraries) && pkg.itineraries.length > 0
+        ? pkg.itineraries
+        : getStandardUmrahItinerary(pkg.durationDays || 15))
+    : [];
 
   const rawInclusions = (pkg.inclusions || []).filter((i: any) => i.isIncluded);
   const rawExclusions = (pkg.inclusions || []).filter((i: any) => !i.isIncluded);
@@ -240,18 +242,24 @@ export default function PackageDetailClient({
   const makkahWalkingTime = makkahHotel?.walkingTime || "";
   const madinahWalkingTime = madinahHotel?.walkingTime || "";
 
-  const makkahStars =
-    typeof pkg.makkahHotelRating === "number" && pkg.makkahHotelRating > 0
-      ? Math.min(5, pkg.makkahHotelRating)
-      : typeof makkahHotel?.starRating === "number" && makkahHotel.starRating > 0
-      ? Math.min(5, makkahHotel.starRating)
-      : 4;
-  const madinahStars =
-    typeof pkg.madinahHotelRating === "number" && pkg.madinahHotelRating > 0
-      ? Math.min(5, pkg.madinahHotelRating)
-      : typeof madinahHotel?.starRating === "number" && madinahHotel.starRating > 0
-      ? Math.min(5, madinahHotel.starRating)
-      : 4;
+  const makkahStars = Math.max(
+    3,
+    Math.min(
+      5,
+      Number(
+        pkg.makkahHotelRating || makkahHotel?.starRating || 4
+      )
+    )
+  );
+  const madinahStars = Math.max(
+    3,
+    Math.min(
+      5,
+      Number(
+        pkg.madinahHotelRating || madinahHotel?.starRating || 4
+      )
+    )
+  );
 
   const makkahDesc = pkg.makkahDescription?.trim() || makkahHotel?.description || "";
   const madinahDesc = pkg.madinahDescription?.trim() || madinahHotel?.description || "";
@@ -1243,8 +1251,8 @@ export default function PackageDetailClient({
             )}
 
             {/* Day-by-Day Pilgrimage Itinerary */}
-            {packageItineraries.length > 0 && (
-              <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
+            {showItinerary && packageItineraries.length > 0 && (
+              <div id="itinerary" className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-neutral-100 pb-4">
                   <div>
                     <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest-950 flex items-center gap-2">

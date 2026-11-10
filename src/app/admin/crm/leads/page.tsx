@@ -2,6 +2,7 @@ import prisma from "@/lib/db";
 import LeadsPipelineClient from "./LeadsPipelineClient";
 import { verifyModuleAccess, AccessDeniedView } from "@/lib/rbac-server";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function LeadsPage({
@@ -30,8 +31,26 @@ export default async function LeadsPage({
       orderBy: { createdAt: "desc" },
     }),
     prisma.user.findMany({
-      where: { status: "ACTIVE" },
-      select: { id: true, name: true, role: true },
+      where: {
+        role: {
+          in: [
+            "SALES",
+            "SALES_EXECUTIVE",
+            "AGENT",
+            "STAFF",
+            "ADMIN",
+            "SUPER_ADMIN",
+            "MANAGER",
+            "Sales",
+            "Agent",
+            "Staff",
+            "Admin",
+          ],
+        },
+        status: { not: "ARCHIVED" },
+      },
+      select: { id: true, name: true, role: true, email: true, phone: true },
+      orderBy: { name: "asc" },
     }),
     prisma.package.findMany({
       select: { id: true, name: true, slug: true },

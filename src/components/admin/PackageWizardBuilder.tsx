@@ -233,6 +233,7 @@ export default function PackageWizardBuilder({
     customMadinahZiyaratText: "",
     customInclusionText: "",
     customExclusionText: "",
+    showItinerary: initialPackage?.showItinerary !== undefined ? Boolean(initialPackage.showItinerary) : true,
     itineraries: (() => {
       if (
         initialPackage?.itineraries &&
@@ -530,6 +531,7 @@ export default function PackageWizardBuilder({
           notes: it.notes || null,
           sortOrder: idx + 1,
         })),
+        showItinerary: Boolean(form.showItinerary),
 
         highlights: JSON.stringify({
           makkah: form.selectedMakkahZiyarat,
@@ -2129,6 +2131,40 @@ export default function PackageWizardBuilder({
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* Day-Wise Itinerary On/Off Toggle Switch */}
+              <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800 transition-all">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="showItineraryToggle"
+                    checked={Boolean(form.showItinerary)}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, showItinerary: e.target.checked }))
+                    }
+                    className="w-4 h-4 rounded text-gold-500 focus:ring-gold-400 bg-slate-800 border-slate-700 cursor-pointer"
+                  />
+                  <label htmlFor="showItineraryToggle" className="cursor-pointer select-none">
+                    <span className="text-xs font-bold text-white flex items-center gap-2">
+                      Show Day-by-Day Itinerary on Website
+                    </span>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      {form.showItinerary
+                        ? "Interactive day-by-day timeline will be displayed to pilgrims on the public package detail page."
+                        : "Itinerary section is hidden for this package on public pages. All entered days remain preserved."}
+                    </p>
+                  </label>
+                </div>
+                <span
+                  className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
+                    form.showItinerary
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                      : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                  }`}
+                >
+                  {form.showItinerary ? "Enabled" : "Hidden"}
+                </span>
               </div>
 
               {/* Day List */}

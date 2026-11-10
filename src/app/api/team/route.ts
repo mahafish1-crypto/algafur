@@ -210,6 +210,53 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Synchronize Sales team member with User database so they immediately appear in Lead CRM assignments
+    if (newProfile.category === "SALES" || newProfile.designation.toLowerCase().includes("sales")) {
+      try {
+        const cleanEmail =
+          newProfile.email?.trim() ||
+          `${newProfile.name.toLowerCase().replace(/[^a-z0-9]+/g, "") || "sales"}@algafurtours.com`;
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: cleanEmail },
+              { name: newProfile.name },
+            ],
+          },
+        });
+
+        if (existingUser) {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              name: newProfile.name,
+              phone: newProfile.phone || existingUser.phone,
+              status: "ACTIVE",
+              role:
+                existingUser.role === "SUPER_ADMIN"
+                  ? "SUPER_ADMIN"
+                  : existingUser.role === "ADMIN"
+                  ? "ADMIN"
+                  : "SALES",
+            },
+          });
+        } else {
+          await prisma.user.create({
+            data: {
+              name: newProfile.name,
+              email: cleanEmail,
+              phone: newProfile.phone || null,
+              passwordHash: "$2a$10$e8V/Jt7Xw8t66bCq8wK9yOe0.4j5Pj90A34yQcWb8qG/8v0fE95c2",
+              role: "SALES",
+              status: "ACTIVE",
+            },
+          });
+        }
+      } catch (syncErr) {
+        console.error("Failed to sync sales member to user table:", syncErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       profile: newProfile,

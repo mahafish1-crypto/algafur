@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -35,15 +35,27 @@ const LEAD_STATUSES = [
 
 export default function LeadDetailClient({
   lead,
-  users,
+  users: initialUsers,
 }: LeadDetailClientProps) {
   const router = useRouter();
 
+  const [staffUsers, setStaffUsers] = useState<any[]>(initialUsers || []);
   const [status, setStatus] = useState(lead.status);
   const [assignedToId, setAssignedToId] = useState(lead.assignedToId || "");
   const [newNote, setNewNote] = useState("");
   const [noteType, setNoteType] = useState("NOTE");
   const [submittingNote, setSubmittingNote] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/leads/assignees", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.users && Array.isArray(data.users) && data.users.length > 0) {
+          setStaffUsers(data.users);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Follow-up form
   const [followUpDate, setFollowUpDate] = useState(
@@ -102,7 +114,7 @@ export default function LeadDetailClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           leadId: lead.id,
-          userId: assignedToId || users[0]?.id,
+          userId: assignedToId || staffUsers[0]?.id,
           date: followUpDate,
           time: followUpTime,
           type: followUpType,
@@ -215,7 +227,7 @@ export default function LeadDetailClient({
                 className="w-full text-xs p-2 rounded-lg bg-white border border-slate-300 text-slate-900 font-semibold"
               >
                 <option value="">Unassigned</option>
-                {users.map((u) => (
+                {staffUsers.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.name}
                   </option>

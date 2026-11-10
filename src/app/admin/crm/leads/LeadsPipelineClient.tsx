@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -36,7 +36,7 @@ const STAGES = [
 
 export default function LeadsPipelineClient({
   initialLeads,
-  users,
+  users: initialUsers,
   packages = [],
   includeYouTubeLeads = false,
 }: LeadsPipelineClientProps) {
@@ -49,7 +49,19 @@ export default function LeadsPipelineClient({
   const [filterAssignee, setFilterAssignee] = useState("ALL");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [leads, setLeads] = useState(initialLeads);
+  const [staffUsers, setStaffUsers] = useState<any[]>(initialUsers || []);
   const [newLeadModalOpen, setNewLeadModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/leads/assignees", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.users && Array.isArray(data.users) && data.users.length > 0) {
+          setStaffUsers(data.users);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const [newLeadForm, setNewLeadForm] = useState({
     name: "",
@@ -313,7 +325,7 @@ export default function LeadsPipelineClient({
           >
             <option value="ALL">All Staff Members</option>
             <option value="UNASSIGNED">Unassigned</option>
-            {users.map((u) => (
+            {staffUsers.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name}
               </option>
@@ -459,7 +471,7 @@ export default function LeadsPipelineClient({
                           className="text-[11px] px-2 py-1 rounded-lg bg-slate-50 text-slate-800 border border-slate-200 focus:outline-none"
                         >
                           <option value="">Unassigned</option>
-                          {users.map((u) => (
+                          {staffUsers.map((u) => (
                             <option key={u.id} value={u.id}>
                               {u.name}
                             </option>

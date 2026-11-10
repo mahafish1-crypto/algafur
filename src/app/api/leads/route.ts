@@ -170,7 +170,13 @@ export async function POST(req: NextRequest) {
         : Promise.resolve(null),
     ]);
 
-    const salesUser = staffUsers.find((u) => u.role === "SALES_EXECUTIVE");
+    const salesUser = staffUsers.find(
+      (u) =>
+        u.role === "SALES_EXECUTIVE" ||
+        u.role === "SALES" ||
+        u.role === "Sales" ||
+        u.role?.toLowerCase().includes("sales")
+    );
     const adminUser = staffUsers.find(
       (u) =>
         u.role === "SUPER_ADMIN" ||

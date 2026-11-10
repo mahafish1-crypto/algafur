@@ -84,6 +84,7 @@ const VALID_PACKAGE_SCALAR_FIELDS = new Set([
   "canonicalUrl",
   "features",
   "assignedGuides",
+  "showItinerary",
   "registrationDeadline",
   "sortOrder",
   "featuredImage",
@@ -178,6 +179,9 @@ async function handleUpdate(
     if (updateData.sortOrder !== undefined) updateData.sortOrder = Number(updateData.sortOrder) || 0;
 
     if (updateData.hasSpecificDates !== undefined) updateData.hasSpecificDates = Boolean(updateData.hasSpecificDates);
+    if (updateData.showItinerary !== undefined || body.showItinerary !== undefined) {
+      updateData.showItinerary = Boolean(body.showItinerary !== undefined ? body.showItinerary : updateData.showItinerary);
+    }
     if (updateData.departureCycle !== undefined) updateData.departureCycle = updateData.departureCycle ? String(updateData.departureCycle).trim() : null;
     if (updateData.startDate !== undefined) updateData.startDate = updateData.startDate ? new Date(updateData.startDate) : null;
     if (updateData.endDate !== undefined) updateData.endDate = updateData.endDate ? new Date(updateData.endDate) : null;

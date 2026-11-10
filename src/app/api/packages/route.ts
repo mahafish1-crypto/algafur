@@ -301,6 +301,7 @@ export async function POST(req: NextRequest) {
       ogImage,
       features,
       assignedGuides,
+      showItinerary = true,
       registrationDeadline,
       sortOrder = 0,
       inclusions = [],
@@ -445,6 +446,7 @@ export async function POST(req: NextRequest) {
           typeof assignedGuides === "string"
             ? assignedGuides
             : JSON.stringify(assignedGuides || []),
+        showItinerary: Boolean(showItinerary),
         registrationDeadline,
         sortOrder: Number(sortOrder) || 0,
         // Inclusions and Exclusions
