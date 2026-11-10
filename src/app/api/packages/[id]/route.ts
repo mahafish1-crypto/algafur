@@ -326,24 +326,32 @@ async function handleUpdate(
         const newInclusions: any[] = [];
         if (Array.isArray(inclusions)) {
           inclusions.forEach((inc: any) => {
-            newInclusions.push({
-              packageId: id,
-              title: inc.title || inc,
-              description: inc.description || null,
-              icon: inc.icon || "CheckCircle2",
-              isIncluded: true,
-            });
+            const rawTitle = typeof inc === "string" ? inc : (inc?.title || inc?.name || inc?.text || String(inc));
+            const title = (rawTitle || "").trim();
+            if (title) {
+              newInclusions.push({
+                packageId: id,
+                title,
+                description: inc?.description ? String(inc.description).trim() : null,
+                icon: inc?.icon || "CheckCircle2",
+                isIncluded: true,
+              });
+            }
           });
         }
         if (Array.isArray(exclusions)) {
           exclusions.forEach((exc: any) => {
-            newInclusions.push({
-              packageId: id,
-              title: exc.title || exc,
-              description: exc.description || null,
-              icon: exc.icon || "XCircle",
-              isIncluded: false,
-            });
+            const rawTitle = typeof exc === "string" ? exc : (exc?.title || exc?.name || exc?.text || String(exc));
+            const title = (rawTitle || "").trim();
+            if (title) {
+              newInclusions.push({
+                packageId: id,
+                title,
+                description: exc?.description ? String(exc.description).trim() : null,
+                icon: exc?.icon || "XCircle",
+                isIncluded: false,
+              });
+            }
           });
         }
 
@@ -360,16 +368,16 @@ async function handleUpdate(
           await tx.packageItinerary.createMany({
             data: itineraries.map((it: any, idx: number) => ({
               packageId: id,
-              dayNumber: it.dayNumber || idx + 1,
-              title: it.title || `Day ${idx + 1}`,
-              location: it.location || "Makkah",
-              hotel: it.hotel || null,
-              activities: it.activities || "",
-              meals: it.meals || null,
-              transport: it.transport || null,
-              notes: it.notes || null,
-              images: it.images || null,
-              sortOrder: idx + 1,
+              dayNumber: Number(it.dayNumber) || idx + 1,
+              title: String(it.title || `Day ${idx + 1}`).trim(),
+              location: String(it.location || "Makkah").trim(),
+              hotel: it.hotel ? String(it.hotel).trim() : null,
+              activities: String(it.activities || it.description || "").trim(),
+              meals: it.meals ? String(it.meals).trim() : null,
+              transport: it.transport ? String(it.transport).trim() : null,
+              notes: it.notes ? String(it.notes).trim() : null,
+              images: it.images ? (typeof it.images === "string" ? it.images : JSON.stringify(it.images)) : null,
+              sortOrder: Number(it.sortOrder) || idx + 1,
             })),
           });
         }

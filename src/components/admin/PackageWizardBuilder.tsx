@@ -12,6 +12,10 @@ import {
   MADINAH_SPECIAL_ZIYARAT,
 } from "@/lib/constants/ziyarats";
 import {
+  getStandardUmrahItinerary,
+  DefaultItineraryItem,
+} from "@/lib/constants/default-itineraries";
+import {
   Sparkles,
   Building,
   Plane,
@@ -20,6 +24,7 @@ import {
   CheckCircle2,
   XCircle,
   Calendar,
+  CalendarDays,
   Clock,
   MapPin,
   ChevronRight,
@@ -37,6 +42,7 @@ import {
   X,
   FileText,
   Eye,
+  Utensils,
 } from "lucide-react";
 
 export interface PackageWizardBuilderProps {
@@ -217,6 +223,35 @@ export default function PackageWizardBuilder({
     customMakkahZiyaratText: "",
     customMadinahZiyaratText: "",
     customInclusionText: "",
+    customExclusionText: "",
+    itineraries: (() => {
+      if (
+        initialPackage?.itineraries &&
+        Array.isArray(initialPackage.itineraries) &&
+        initialPackage.itineraries.length > 0
+      ) {
+        return initialPackage.itineraries.map((it: any, idx: number) => ({
+          dayNumber: it.dayNumber || idx + 1,
+          title: it.title || `Day ${idx + 1}`,
+          location: it.location || "Makkah",
+          activities: it.activities || it.description || "",
+          meals: it.meals || "Breakfast, Lunch, Dinner",
+          transport: it.transport || "Luxury AC Coach",
+          hotel: it.hotel || "",
+          notes: it.notes || "",
+        }));
+      }
+      return [];
+    })() as Array<{
+      dayNumber: number;
+      title: string;
+      location: string;
+      activities: string;
+      meals: string;
+      transport: string;
+      hotel?: string;
+      notes?: string;
+    }>,
     overview: initialPackage
       ? (initialPackage.overview ?? initialPackage.description ?? "")
       : "Experience a transformative pilgrimage with scholarly guidance, walking-distance hotels, hot Indian buffet meals, and comprehensive holy ziyarats in Makkah and Madinah.",
@@ -394,6 +429,17 @@ export default function PackageWizardBuilder({
           isIncluded: false,
           icon: "XCircle",
         })),
+        itineraries: form.itineraries.map((it, idx) => ({
+          dayNumber: it.dayNumber || idx + 1,
+          title: it.title || `Day ${idx + 1}`,
+          location: it.location || "Makkah",
+          activities: it.activities || "",
+          meals: it.meals || "",
+          transport: it.transport || "",
+          hotel: it.hotel || null,
+          notes: it.notes || null,
+          sortOrder: idx + 1,
+        })),
 
         highlights: JSON.stringify({
           makkah: form.selectedMakkahZiyarat,
@@ -436,12 +482,95 @@ export default function PackageWizardBuilder({
     }
   };
 
+  // Itinerary helper handlers
+  const handleAddItineraryDay = () => {
+    setForm((prev) => {
+      const nextDayNum = prev.itineraries.length + 1;
+      return {
+        ...prev,
+        itineraries: [
+          ...prev.itineraries,
+          {
+            dayNumber: nextDayNum,
+            title: `Day ${nextDayNum} Schedule`,
+            location: nextDayNum > 7 ? "Makkah" : "Madinah",
+            activities: "",
+            meals: "Breakfast, Lunch, Dinner",
+            transport: "Luxury AC Coach",
+            hotel: "",
+            notes: "",
+          },
+        ],
+      };
+    });
+  };
+
+  const handleRemoveItineraryDay = (index: number) => {
+    setForm((prev) => {
+      const filtered = prev.itineraries.filter((_, i) => i !== index);
+      const renumbered = filtered.map((item, idx) => ({
+        ...item,
+        dayNumber: idx + 1,
+      }));
+      return { ...prev, itineraries: renumbered };
+    });
+  };
+
+  const handleUpdateItineraryDay = (index: number, field: string, value: any) => {
+    setForm((prev) => {
+      const updated = [...prev.itineraries];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, itineraries: updated };
+    });
+  };
+
+  const handleToggleMeal = (dayIdx: number, mealName: string) => {
+    setForm((prev) => {
+      const updated = [...prev.itineraries];
+      const currentMeals = updated[dayIdx].meals
+        ? updated[dayIdx].meals.split(",").map((m) => m.trim()).filter(Boolean)
+        : [];
+      const hasMeal = currentMeals.includes(mealName);
+      const newMeals = hasMeal
+        ? currentMeals.filter((m) => m !== mealName)
+        : [...currentMeals, mealName];
+      updated[dayIdx] = {
+        ...updated[dayIdx],
+        meals: newMeals.join(", "),
+      };
+      return { ...prev, itineraries: updated };
+    });
+  };
+
+  const handleGenerateItineraryTemplate = () => {
+    const template = getStandardUmrahItinerary(Number(form.durationDays) || 15);
+    setForm((prev) => ({
+      ...prev,
+      itineraries: template.map((it) => ({
+        dayNumber: it.dayNumber,
+        title: it.title,
+        location: it.location,
+        activities: it.activities,
+        meals: it.meals,
+        transport: it.transport,
+        hotel: "",
+        notes: "",
+      })),
+    }));
+  };
+
+  const handleClearItinerary = () => {
+    if (confirm("Are you sure you want to clear all itinerary days?")) {
+      setForm((prev) => ({ ...prev, itineraries: [] }));
+    }
+  };
+
   const stepsList = [
     { num: 1, title: "Basic Info & Dates", icon: Calendar },
     { num: 2, title: "Visual Photos & Gallery", icon: ImageIcon },
     { num: 3, title: "Hotels & Flights", icon: Building },
     { num: 4, title: "Room Pricing", icon: DollarSign },
-    { num: 5, title: "Inclusions & Ziyarat", icon: CheckCircle2 },
+    { num: 5, title: "Inclusions, Itinerary & Ziyarat", icon: CheckCircle2 },
   ];
 
   return (
@@ -1615,6 +1744,38 @@ export default function PackageWizardBuilder({
                 })}
               </div>
 
+              {/* Active Custom Inclusions Tags */}
+              {form.inclusionsList.filter((item) => !PRESET_INCLUSIONS.includes(item)).length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[11px] font-semibold text-emerald-400">Custom Inclusions:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {form.inclusionsList
+                      .filter((item) => !PRESET_INCLUSIONS.includes(item))
+                      .map((inc) => (
+                        <span
+                          key={inc}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-500/40"
+                        >
+                          <span>{inc}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setForm((prev) => ({
+                                ...prev,
+                                inclusionsList: prev.inclusionsList.filter((i) => i !== inc),
+                              }));
+                            }}
+                            className="p-0.5 hover:text-white rounded-full hover:bg-emerald-900/50"
+                            title="Remove inclusion"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
+
               {/* Custom Inclusion Tag Input */}
               <div className="flex gap-2 pt-2">
                 <input
@@ -1626,14 +1787,14 @@ export default function PackageWizardBuilder({
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && form.customInclusionText.trim()) {
                       e.preventDefault();
-                      setForm((prev) => ({
-                        ...prev,
-                        inclusionsList: [
-                          ...prev.inclusionsList,
-                          prev.customInclusionText.trim(),
-                        ],
-                        customInclusionText: "",
-                      }));
+                      const val = form.customInclusionText.trim();
+                      if (!form.inclusionsList.includes(val)) {
+                        setForm((prev) => ({
+                          ...prev,
+                          inclusionsList: [...prev.inclusionsList, val],
+                          customInclusionText: "",
+                        }));
+                      }
                     }
                   }}
                   placeholder="Type custom inclusion and press Enter..."
@@ -1642,13 +1803,11 @@ export default function PackageWizardBuilder({
                 <button
                   type="button"
                   onClick={() => {
-                    if (form.customInclusionText.trim()) {
+                    const val = form.customInclusionText.trim();
+                    if (val && !form.inclusionsList.includes(val)) {
                       setForm((prev) => ({
                         ...prev,
-                        inclusionsList: [
-                          ...prev.inclusionsList,
-                          prev.customInclusionText.trim(),
-                        ],
+                        inclusionsList: [...prev.inclusionsList, val],
                         customInclusionText: "",
                       }));
                     }
@@ -1662,10 +1821,15 @@ export default function PackageWizardBuilder({
 
             {/* Clickable Exclusions Chips */}
             <div className="space-y-2.5 pt-2 border-t border-slate-800">
-              <span className="text-xs font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
-                <XCircle className="w-4 h-4" />
-                Standard Exclusions (Toggle ON / OFF)
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
+                  <XCircle className="w-4 h-4" />
+                  Standard Exclusions (Toggle ON / OFF)
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  {form.exclusionsList.length} items active
+                </span>
+              </div>
 
               <div className="flex flex-wrap gap-2">
                 {PRESET_EXCLUSIONS.map((exc) => {
@@ -1698,6 +1862,278 @@ export default function PackageWizardBuilder({
                   );
                 })}
               </div>
+
+              {/* Active Custom Exclusions Tags */}
+              {form.exclusionsList.filter((item) => !PRESET_EXCLUSIONS.includes(item)).length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[11px] font-semibold text-red-400">Custom Exclusions:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {form.exclusionsList
+                      .filter((item) => !PRESET_EXCLUSIONS.includes(item))
+                      .map((exc) => (
+                        <span
+                          key={exc}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-red-950/80 text-red-300 border border-red-500/40"
+                        >
+                          <span>{exc}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setForm((prev) => ({
+                                ...prev,
+                                exclusionsList: prev.exclusionsList.filter((e) => e !== exc),
+                              }));
+                            }}
+                            className="p-0.5 hover:text-white rounded-full hover:bg-red-900/50"
+                            title="Remove exclusion"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Dedicated Add Custom Exclusion Component */}
+              <div className="space-y-1.5 pt-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Add Custom Exclusion
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={form.customExclusionText}
+                    onChange={(e) =>
+                      setForm({ ...form, customExclusionText: e.target.value })
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && form.customExclusionText.trim()) {
+                        e.preventDefault();
+                        const val = form.customExclusionText.trim();
+                        if (!form.exclusionsList.includes(val)) {
+                          setForm((prev) => ({
+                            ...prev,
+                            exclusionsList: [...prev.exclusionsList, val],
+                            customExclusionText: "",
+                          }));
+                        }
+                      }
+                    }}
+                    placeholder="Type custom exclusion (e.g. Personal porter charges, Room service) and press Enter..."
+                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder-slate-500 focus:outline-none focus:border-red-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const val = form.customExclusionText.trim();
+                      if (val && !form.exclusionsList.includes(val)) {
+                        setForm((prev) => ({
+                          ...prev,
+                          exclusionsList: [...prev.exclusionsList, val],
+                          customExclusionText: "",
+                        }));
+                      }
+                    }}
+                    className="px-4 py-2 bg-red-950 hover:bg-red-900 border border-red-700/50 text-xs font-bold text-red-200 rounded-xl shrink-0 transition-colors flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Exclusion</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Day-by-Day Itinerary Planner */}
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4 pt-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800 pb-3">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold-400 flex items-center gap-1.5">
+                    <CalendarDays className="w-4 h-4 text-emerald-400" />
+                    Day-by-Day Itinerary Timeline Planner
+                  </span>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Configure the detailed daily pilgrimage schedule, hotel check-ins, ziyarats, and group worship milestones.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleGenerateItineraryTemplate}
+                    className="px-3 py-1.5 rounded-xl bg-gold-500/10 hover:bg-gold-500/20 border border-gold-500/30 text-xs font-semibold text-gold-400 flex items-center gap-1.5 transition-colors"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Generate Standard Template ({form.durationDays} Days)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddItineraryDay}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white flex items-center gap-1.5 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Day</span>
+                  </button>
+                  {form.itineraries.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearItinerary}
+                      className="px-2.5 py-1.5 rounded-xl bg-red-950/50 hover:bg-red-900/60 border border-red-800/40 text-[11px] font-semibold text-red-300 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Day List */}
+              {form.itineraries.length === 0 ? (
+                <div className="py-8 px-4 text-center border border-dashed border-slate-800 rounded-xl space-y-2">
+                  <p className="text-xs text-slate-400">
+                    No day-by-day itinerary schedule configured yet.
+                  </p>
+                  <div className="flex justify-center gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleGenerateItineraryTemplate}
+                      className="text-xs font-bold text-gold-400 hover:underline flex items-center gap-1"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Auto-generate {form.durationDays}-Day Umrah Template
+                    </button>
+                    <span className="text-slate-600">•</span>
+                    <button
+                      type="button"
+                      onClick={handleAddItineraryDay}
+                      className="text-xs font-bold text-slate-300 hover:underline flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Custom Day
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-[11px] text-slate-400 font-semibold flex items-center justify-between">
+                    <span>Timeline ({form.itineraries.length} Days Configured)</span>
+                    <span className="text-gold-400">Sequential chronological flow</span>
+                  </div>
+
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                    {form.itineraries.map((it, idx) => {
+                      const mealsArray = it.meals
+                        ? it.meals.split(",").map((m) => m.trim())
+                        : [];
+                      return (
+                        <div
+                          key={idx}
+                          className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2.5 hover:border-slate-700 transition-colors"
+                        >
+                          {/* Day Top Bar */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-1">
+                              <span className="px-2.5 py-1 rounded-lg bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-xs font-bold font-mono shrink-0">
+                                Day {String(it.dayNumber || idx + 1).padStart(2, "0")}
+                              </span>
+                              <input
+                                type="text"
+                                value={it.title}
+                                onChange={(e) =>
+                                  handleUpdateItineraryDay(idx, "title", e.target.value)
+                                }
+                                placeholder="Day Title (e.g. Arrival in Madinah & First Salam)"
+                                className="w-full text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-gold-500"
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <select
+                                value={it.location}
+                                onChange={(e) =>
+                                  handleUpdateItineraryDay(idx, "location", e.target.value)
+                                }
+                                className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 focus:outline-none"
+                              >
+                                <option value="Madinah">Madinah</option>
+                                <option value="Makkah">Makkah</option>
+                                <option value="Transit">Transit</option>
+                                <option value="Taif">Taif</option>
+                                <option value="Jeddah">Jeddah</option>
+                              </select>
+
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveItineraryDay(idx)}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-950/40 transition-colors"
+                                title="Remove Day"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Description / Activities */}
+                          <div>
+                            <textarea
+                              rows={2}
+                              value={it.activities}
+                              onChange={(e) =>
+                                handleUpdateItineraryDay(idx, "activities", e.target.value)
+                              }
+                              placeholder="Detailed schedule, activities, and scholarly guidance for this day..."
+                              className="w-full text-xs px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500 leading-relaxed"
+                            />
+                          </div>
+
+                          {/* Meals & Transport Row */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-800/60 text-xs">
+                            {/* Meals Checkboxes */}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                                <Utensils className="w-3 h-3 text-gold-400" />
+                                Meals:
+                              </span>
+                              {["Breakfast", "Lunch", "Dinner"].map((meal) => {
+                                const isChecked = mealsArray.includes(meal);
+                                return (
+                                  <button
+                                    key={meal}
+                                    type="button"
+                                    onClick={() => handleToggleMeal(idx, meal)}
+                                    className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
+                                      isChecked
+                                        ? "bg-emerald-950 text-emerald-300 border-emerald-500/40"
+                                        : "bg-slate-950 text-slate-500 border-slate-800 hover:text-slate-300"
+                                    }`}
+                                  >
+                                    {isChecked ? "✓ " : ""}{meal}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* Transport input */}
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                                <Bus className="w-3 h-3 text-emerald-400" />
+                                Transport:
+                              </span>
+                              <input
+                                type="text"
+                                value={it.transport || ""}
+                                onChange={(e) =>
+                                  handleUpdateItineraryDay(idx, "transport", e.target.value)
+                                }
+                                placeholder="e.g. Luxury AC Coach, Walking"
+                                className="text-[11px] px-2.5 py-1 rounded border border-slate-700 bg-slate-950 text-slate-200 focus:outline-none w-36 sm:w-48"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Ziyarat Holy Landmarks Checklist */}

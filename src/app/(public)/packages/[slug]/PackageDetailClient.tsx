@@ -26,7 +26,12 @@ import {
   Award,
   CreditCard,
   AlertTriangle,
+  CalendarDays,
+  Bus,
+  Layers,
+  List,
 } from "lucide-react";
+import { getStandardUmrahItinerary } from "@/lib/constants/default-itineraries";
 import LeadEnquiryForm from "@/components/home/LeadEnquiryForm";
 import PackageCard, { PackageCardData } from "@/components/packages/PackageCard";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
@@ -59,6 +64,8 @@ export default function PackageDetailClient({
   const [selectedRoom, setSelectedRoom] = useState<"QUAD" | "TRIPLE" | "DOUBLE">("QUAD");
   const [activeMakkahImg, setActiveMakkahImg] = useState<string | null>(null);
   const [activeMadinahImg, setActiveMadinahImg] = useState<string | null>(null);
+  const [activeItineraryDayIdx, setActiveItineraryDayIdx] = useState(0);
+  const [itineraryViewMode, setItineraryViewMode] = useState<"interactive" | "timeline">("interactive");
 
   useEffect(() => {
     if (pkg?.id) {
@@ -106,10 +113,16 @@ export default function PackageDetailClient({
 
   const ziyaratLandmarks = parseZiyaratLandmarks(pkg.highlights);
 
+  const packageItineraries =
+    pkg.itineraries && Array.isArray(pkg.itineraries) && pkg.itineraries.length > 0
+      ? pkg.itineraries
+      : getStandardUmrahItinerary(pkg.durationDays || 15);
+
   const rawInclusions = (pkg.inclusions || []).filter((i: any) => i.isIncluded);
   const rawExclusions = (pkg.inclusions || []).filter((i: any) => !i.isIncluded);
+  const hasRelationData = (pkg.inclusions || []).length > 0;
 
-  const inclusions = rawInclusions.length > 0
+  const inclusions = hasRelationData
     ? rawInclusions
     : (packageFeatures.length > 0
         ? packageFeatures.map((feat: string, idx: number) => ({ id: `feat-${idx}`, title: feat, description: null }))
@@ -122,7 +135,7 @@ export default function PackageDetailClient({
             { id: "inc-6", title: "Complimentary Zamzam (5 Litres)", description: "Sealed authentic 5L Zamzam bottle per pilgrim." },
           ]);
 
-  const exclusions = rawExclusions.length > 0
+  const exclusions = hasRelationData
     ? rawExclusions
     : [
         { id: "exc-1", title: "Room Service & Personal Laundry", description: "Personal laundry expenses unless specified as complimentary in package." },
@@ -1113,26 +1126,226 @@ export default function PackageDetailClient({
                     </div>
                   )}
                 </div>
+              </div>
+            )}
 
-                {/* Optional Collapsible for archived Day-by-Day Stages (Zero data loss) */}
-                {(pkg.itineraries || []).length > 0 && (
-                  <details className="group border border-neutral-200 rounded-2xl p-4 bg-neutral-50/50">
-                    <summary className="cursor-pointer text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center justify-between">
-                      <span>View Day-by-Day Stage Archive ({pkg.itineraries.length} Stages)</span>
-                      <span className="text-[10px] text-neutral-400 group-open:rotate-90 transition-transform">▸</span>
-                    </summary>
-                    <div className="mt-3 space-y-3 pt-3 border-t border-neutral-200/70">
-                      {pkg.itineraries.map((day: any) => (
-                        <div key={day.id} className="p-3 bg-white rounded-xl border border-neutral-200 text-xs space-y-1">
-                          <div className="flex justify-between font-bold text-forest-950">
-                            <span>Day {day.dayNumber}: {day.title}</span>
-                            <span className="text-neutral-500 font-normal">{day.location}</span>
-                          </div>
-                          <p className="text-neutral-600 text-[11px] leading-relaxed">{day.activities}</p>
-                        </div>
-                      ))}
+            {/* Day-by-Day Pilgrimage Itinerary */}
+            {packageItineraries.length > 0 && (
+              <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-neutral-100 pb-4">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest-950 flex items-center gap-2">
+                      <CalendarDays className="w-5 h-5 text-gold-600" />
+                      Day-by-Day Pilgrimage Itinerary
+                    </h2>
+                    <p className="text-xs text-neutral-500 mt-1">
+                      Comprehensive daily schedule with holy ziyarats, hotel check-ins, prayer milestones, and guided group movements.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+                      {packageItineraries.length} Days Schedule
+                    </span>
+                    <div className="flex items-center bg-neutral-100 p-0.5 rounded-xl text-xs font-semibold">
+                      <button
+                        type="button"
+                        onClick={() => setItineraryViewMode("interactive")}
+                        className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                          itineraryViewMode === "interactive"
+                            ? "bg-white text-forest-950 shadow-2xs font-bold"
+                            : "text-neutral-500 hover:text-neutral-900"
+                        }`}
+                      >
+                        <Layers className="w-3.5 h-3.5 text-gold-600" />
+                        <span>Day Viewer</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setItineraryViewMode("timeline")}
+                        className={`px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                          itineraryViewMode === "timeline"
+                            ? "bg-white text-forest-950 shadow-2xs font-bold"
+                            : "text-neutral-500 hover:text-neutral-900"
+                        }`}
+                      >
+                        <List className="w-3.5 h-3.5 text-gold-600" />
+                        <span>All Days</span>
+                      </button>
                     </div>
-                  </details>
+                  </div>
+                </div>
+
+                {/* VIEW MODE 1: Interactive Day-by-Day Stepper */}
+                {itineraryViewMode === "interactive" && (
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Left Days Stepper List */}
+                    <div className="lg:col-span-4 space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
+                      {packageItineraries.map((it: any, idx: number) => {
+                        const isSelected = activeItineraryDayIdx === idx;
+                        const dayNumStr = String(it.dayNumber || idx + 1).padStart(2, "0");
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setActiveItineraryDayIdx(idx)}
+                            className={`w-full text-left p-3 rounded-2xl transition-all border flex items-center gap-3 ${
+                              isSelected
+                                ? "bg-forest-950 text-white border-gold-500 shadow-sm"
+                                : "bg-neutral-50 text-neutral-700 border-neutral-200/80 hover:bg-neutral-100/80 hover:border-neutral-300"
+                            }`}
+                          >
+                            <span
+                              className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 font-mono transition-colors ${
+                                isSelected
+                                  ? "bg-gold-500 text-forest-950 font-black shadow-xs"
+                                  : "bg-white text-forest-950 border border-neutral-200"
+                              }`}
+                            >
+                              D{dayNumStr}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? "text-gold-400" : "text-neutral-400"}`}>
+                                  {it.location || "Pilgrimage"}
+                                </span>
+                              </div>
+                              <p className={`text-xs font-semibold truncate ${isSelected ? "text-white" : "text-neutral-900"}`}>
+                                {it.title}
+                              </p>
+                            </div>
+                            <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${isSelected ? "text-gold-400 translate-x-0.5" : "text-neutral-400 opacity-40"}`} />
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Right Active Day Detail Block */}
+                    {packageItineraries[activeItineraryDayIdx] && (
+                      <div className="lg:col-span-8 bg-gradient-to-br from-neutral-50/90 to-ivory-50/50 p-6 sm:p-7 rounded-3xl border border-neutral-200 space-y-5">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200/80 pb-4">
+                          <div className="flex items-center gap-3">
+                            <span className="px-3 py-1 rounded-xl bg-forest-950 text-gold-400 text-xs font-black font-mono shadow-xs">
+                              Day {String(packageItineraries[activeItineraryDayIdx].dayNumber || activeItineraryDayIdx + 1).padStart(2, "0")}
+                            </span>
+                            <span className="px-3 py-1 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                              {packageItineraries[activeItineraryDayIdx].location || "Makkah / Madinah"}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={activeItineraryDayIdx === 0}
+                              onClick={() => setActiveItineraryDayIdx((prev) => Math.max(0, prev - 1))}
+                              className="px-2.5 py-1.5 rounded-xl border border-neutral-300 bg-white text-neutral-700 hover:text-forest-950 hover:bg-neutral-50 text-xs font-semibold disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                            >
+                              ← Prev Day
+                            </button>
+                            <button
+                              type="button"
+                              disabled={activeItineraryDayIdx === packageItineraries.length - 1}
+                              onClick={() => setActiveItineraryDayIdx((prev) => Math.min(packageItineraries.length - 1, prev + 1))}
+                              className="px-2.5 py-1.5 rounded-xl border border-neutral-300 bg-white text-neutral-700 hover:text-forest-950 hover:bg-neutral-50 text-xs font-semibold disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                            >
+                              Next Day →
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Title & Detailed Activities */}
+                        <div className="space-y-3">
+                          <h3 className="text-lg sm:text-xl font-serif font-bold text-forest-950 leading-snug">
+                            {packageItineraries[activeItineraryDayIdx].title}
+                          </h3>
+                          <div className="text-neutral-700 text-xs sm:text-sm leading-relaxed whitespace-pre-line bg-white p-4 sm:p-5 rounded-2xl border border-neutral-200/80 shadow-2xs">
+                            {packageItineraries[activeItineraryDayIdx].activities ||
+                              packageItineraries[activeItineraryDayIdx].description ||
+                              "Guided pilgrimage schedule and religious activities under scholar supervision."}
+                          </div>
+                        </div>
+
+                        {/* Logistics Badges (Meals, Transport) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          {packageItineraries[activeItineraryDayIdx].meals && (
+                            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-neutral-200 text-xs">
+                              <span className="p-2 rounded-xl bg-gold-50 text-gold-700">
+                                <Utensils className="w-4 h-4" />
+                              </span>
+                              <div>
+                                <span className="block text-[10px] font-bold uppercase text-neutral-400">Included Meals</span>
+                                <span className="font-semibold text-neutral-900">{packageItineraries[activeItineraryDayIdx].meals}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {packageItineraries[activeItineraryDayIdx].transport && (
+                            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-neutral-200 text-xs">
+                              <span className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
+                                <Bus className="w-4 h-4" />
+                              </span>
+                              <div>
+                                <span className="block text-[10px] font-bold uppercase text-neutral-400">Transport &amp; Transfer</span>
+                                <span className="font-semibold text-neutral-900">{packageItineraries[activeItineraryDayIdx].transport}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* VIEW MODE 2: Full Vertical Chronological Timeline */}
+                {itineraryViewMode === "timeline" && (
+                  <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-gradient-to-b before:from-gold-400 before:via-emerald-400 before:to-forest-900">
+                    {packageItineraries.map((it: any, idx: number) => {
+                      const dayNumStr = String(it.dayNumber || idx + 1).padStart(2, "0");
+                      return (
+                        <div key={idx} className="relative group">
+                          {/* Timeline node */}
+                          <div className="absolute -left-6 sm:-left-8 top-1.5 w-6 h-6 rounded-full bg-forest-950 border-2 border-gold-400 flex items-center justify-center text-[10px] font-black text-gold-400 font-mono shadow-xs">
+                            {idx + 1}
+                          </div>
+
+                          <div className="p-5 rounded-2xl bg-neutral-50/80 border border-neutral-200 hover:border-neutral-300 transition-colors space-y-2.5">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="px-2.5 py-0.5 rounded-lg bg-forest-950 text-gold-400 text-xs font-mono font-bold">
+                                  Day {dayNumStr}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                                  {it.location || "Makkah / Madinah"}
+                                </span>
+                              </div>
+                              {it.meals && (
+                                <span className="text-[11px] text-neutral-500 font-medium flex items-center gap-1">
+                                  <Utensils className="w-3.5 h-3.5 text-gold-600" />
+                                  {it.meals}
+                                </span>
+                              )}
+                            </div>
+
+                            <h4 className="text-base font-serif font-bold text-forest-950">
+                              {it.title}
+                            </h4>
+
+                            <p className="text-xs text-neutral-600 leading-relaxed whitespace-pre-line">
+                              {it.activities || it.description || "Guided pilgrimage schedule and religious activities under scholar supervision."}
+                            </p>
+
+                            {it.transport && (
+                              <div className="text-[11px] text-neutral-500 font-medium flex items-center gap-1 pt-1 border-t border-neutral-200/60">
+                                <Bus className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>{it.transport}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             )}
