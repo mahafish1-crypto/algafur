@@ -205,6 +205,25 @@ async function handleUpdate(
       updateData.madinahDescription = mdAddr ? String(mdAddr).trim() : null;
     }
 
+    // Hotel images preservation & normalization
+    if (body.makkahImage !== undefined) {
+      updateData.makkahImage =
+        body.makkahImage && String(body.makkahImage).trim()
+          ? String(body.makkahImage).trim()
+          : (body.makkahImage === null ? null : existing.makkahImage);
+    } else {
+      updateData.makkahImage = existing.makkahImage;
+    }
+
+    if (body.madinahImage !== undefined) {
+      updateData.madinahImage =
+        body.madinahImage && String(body.madinahImage).trim()
+          ? String(body.madinahImage).trim()
+          : (body.madinahImage === null ? null : existing.madinahImage);
+    } else {
+      updateData.madinahImage = existing.madinahImage;
+    }
+
     // Ziyarat landmarks mapping - cleanly store inside highlights as serialized JSON
     let highlightsPayload: string | null = null;
     if (body.ziyaratLandmarks && typeof body.ziyaratLandmarks === "object") {

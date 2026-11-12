@@ -114,23 +114,46 @@ export default function PackageDetailClient({
 
   const ziyaratLandmarks = parseZiyaratLandmarks(pkg.highlights);
 
-  const assignedScholars: ScholarPreset[] = (() => {
-    if (pkg.assignedGuides) {
-      const parsed = parseAssignedGuides(pkg.assignedGuides);
-      if (parsed.length > 0) return parsed;
-    }
-    if (spiritualGuides && spiritualGuides.length > 0) {
-      return spiritualGuides.map((g) => ({
-        id: g.id,
-        name: g.name,
-        role: g.designation || "Spiritual Guide & Scholar",
-        bio: g.bio || "",
-        languages: Array.isArray(g.languages) ? g.languages.join(", ") : (g.languages || ""),
-        avatarUrl: g.photo || "",
-      }));
-    }
-    return DEFAULT_SCHOLARS;
-  })();
+  const rawGuides = Array.isArray(pkg.assignedGuides)
+    ? pkg.assignedGuides
+    : typeof pkg.assignedGuides === "string"
+    ? (() => {
+        try {
+          return JSON.parse(pkg.assignedGuides || "[]");
+        } catch {
+          return [];
+        }
+      })()
+    : [];
+
+  interface AssignedGuideItem {
+    id: string;
+    name: string;
+    role: string;
+    bio: string;
+    languages: string;
+    avatarUrl: string;
+  }
+
+  const uniqueGuides: AssignedGuideItem[] = Array.from(
+    new Map<string, AssignedGuideItem>(
+      rawGuides
+        .filter((g: any) => g && (g.name || g.id))
+        .map((g: any) => [
+          (g.id || g.name || "").toString().trim().toLowerCase(),
+          {
+            id: String(g.id || g.name || ""),
+            name: String(g.name || ""),
+            role: String(g.role || g.designation || "Spiritual Guide & Scholar"),
+            bio: String(g.bio || ""),
+            languages: Array.isArray(g.languages)
+              ? g.languages.join(", ")
+              : String(g.languages || ""),
+            avatarUrl: String(g.avatarUrl || g.photo || ""),
+          },
+        ])
+    ).values()
+  );
 
   const showItinerary = (pkg as any).showItinerary !== false;
   const packageItineraries = showItinerary
@@ -304,8 +327,18 @@ export default function PackageDetailClient({
   const resolvedBookingTerms = settings?.global_booking_terms?.trim() || pkg.termsAndConditions || defaultBookingTerms;
   const resolvedCancellationPolicy = settings?.global_cancellation_policy?.trim() || pkg.cancellationPolicy || defaultCancellationPolicy;
 
-  const displayedMakkahImg = activeMakkahImg || pkg.makkahImage || makkahMedia.mainImage;
-  const displayedMadinahImg = activeMadinahImg || pkg.madinahImage || madinahMedia.mainImage;
+  const makkahHotelPhoto =
+    pkg.makkahImage && pkg.makkahImage.trim() !== ""
+      ? pkg.makkahImage
+      : (pkg as any).makkahHotel?.image || "/images/placeholders/makkah-hotel-default.jpg";
+
+  const madinahHotelPhoto =
+    pkg.madinahImage && pkg.madinahImage.trim() !== ""
+      ? pkg.madinahImage
+      : (pkg as any).madinahHotel?.image || "/images/placeholders/madinah-hotel-default.jpg";
+
+  const displayedMakkahImg = activeMakkahImg || makkahHotelPhoto;
+  const displayedMadinahImg = activeMadinahImg || madinahHotelPhoto;
 
   return (
     <div className="bg-ivory-100/50 min-h-screen pb-24">
@@ -441,12 +474,6 @@ export default function PackageDetailClient({
                       Hotel Accommodations in Makkah &amp; Madinah
                     </h2>
                   </div>
-                  <Link
-                    className="text-sm text-[#081d12] hover:text-[#d4af37] font-medium flex items-center gap-1 shrink-0 self-start sm:self-auto"
-                    href="/hotels"
-                  >
-                    Explore All Hotels &rarr;
-                  </Link>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -454,10 +481,10 @@ export default function PackageDetailClient({
                   {makkahName && (
                     <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/70 flex flex-col justify-between space-y-4 overflow-hidden shadow-xs">
                       <div className="space-y-3">
-                        <div className="relative w-full aspect-[4/3] max-h-60 rounded-xl overflow-hidden bg-forest-950">
+                        <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-forest-950">
                           <SafeImage
                             src={displayedMakkahImg}
-                            fallbackSrc={makkahMedia.mainImage || "/brand/poster.jpg"}
+                            fallbackSrc="/images/placeholders/makkah-hotel-default.jpg"
                             alt={makkahName}
                             fill
                             sizes="(max-width: 768px) 100vw, 400px"
@@ -488,7 +515,7 @@ export default function PackageDetailClient({
                               >
                                 <SafeImage
                                   src={imgUrl}
-                                  fallbackSrc="/brand/poster.jpg"
+                                  fallbackSrc="/images/placeholders/makkah-hotel-default.jpg"
                                   alt={`${makkahName} view ${idx + 1}`}
                                   fill
                                   sizes="60px"
@@ -588,10 +615,10 @@ export default function PackageDetailClient({
                   {madinahName && (
                     <div className="border border-neutral-200 rounded-2xl p-5 bg-ivory-50/70 flex flex-col justify-between space-y-4 overflow-hidden shadow-xs">
                       <div className="space-y-3">
-                        <div className="relative w-full aspect-[4/3] max-h-60 rounded-xl overflow-hidden bg-forest-950">
+                        <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-forest-950">
                           <SafeImage
                             src={displayedMadinahImg}
-                            fallbackSrc={madinahMedia.mainImage || "/brand/poster.jpg"}
+                            fallbackSrc="/images/placeholders/madinah-hotel-default.jpg"
                             alt={madinahName}
                             fill
                             sizes="(max-width: 768px) 100vw, 400px"
@@ -622,7 +649,7 @@ export default function PackageDetailClient({
                               >
                                 <SafeImage
                                   src={imgUrl}
-                                  fallbackSrc="/brand/poster.jpg"
+                                  fallbackSrc="/images/placeholders/madinah-hotel-default.jpg"
                                   alt={`${madinahName} view ${idx + 1}`}
                                   fill
                                   sizes="60px"
@@ -721,7 +748,7 @@ export default function PackageDetailClient({
               </div>
             )}
 
-            {/* Overview & Spiritual Guides */}
+            {/* Overview */}
             <div className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6">
               <div className="space-y-3">
                 <h2 className="text-xl font-serif font-bold text-forest-950 flex items-center gap-2">
@@ -734,75 +761,6 @@ export default function PackageDetailClient({
                     "Experience a blessed pilgrimage with AL GAFUR INTERNATIONAL TOURS AND TRAVELS."}
                 </p>
               </div>
-
-              {/* Linked Spiritual Guides from Database */}
-              {spiritualGuides.length > 0 && (
-                <div className="space-y-3 pt-2 border-t border-neutral-100">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-serif font-bold text-forest-950 flex items-center gap-2">
-                      <Award className="w-4 h-4 text-gold-600" />
-                      Spiritual Guides &amp; Group Leadership
-                    </h3>
-                    <Link
-                      href="/about#spiritual-guides"
-                      className="text-xs font-bold text-emerald-700 hover:underline"
-                    >
-                      Meet Our Team &rarr;
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {spiritualGuides.map((guide) => {
-                      const initials = guide.name
-                        .split(" ")
-                        .map((w) => w[0])
-                        .slice(0, 2)
-                        .join("")
-                        .toUpperCase();
-                      return (
-                        <div
-                          key={guide.id}
-                          className="bg-ivory-100/80 p-4 rounded-2xl border border-gold-500/30 flex items-start gap-3.5"
-                        >
-                          {guide.photo ? (
-                            <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-gold-500/40 shrink-0 bg-forest-900">
-                              <SafeImage
-                                src={guide.photo}
-                                fallbackSrc="/brand/poster.jpg"
-                                alt={guide.name}
-                                fill
-                                sizes="56px"
-                                className="object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-14 h-14 rounded-full bg-forest-900 text-gold-300 flex items-center justify-center font-bold text-sm shrink-0 border border-gold-500/30">
-                              {initials}
-                            </div>
-                          )}
-                          <div className="space-y-1 min-w-0">
-                            <h4 className="text-sm font-bold text-forest-950">
-                              {guide.name}
-                            </h4>
-                            <p className="text-[11px] font-semibold text-gold-700">
-                              {guide.designation}
-                            </p>
-                            {guide.bio && (
-                              <p className="text-[11px] text-neutral-600 leading-relaxed">
-                                {guide.bio}
-                              </p>
-                            )}
-                            {guide.languages && (
-                              <p className="text-[10px] text-neutral-500">
-                                <strong>Languages:</strong> {guide.languages}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Inclusions & Exclusions */}
@@ -1157,7 +1115,7 @@ export default function PackageDetailClient({
             )}
 
             {/* SPIRITUAL GUIDES & GROUP LEADERSHIP SECTION */}
-            {assignedScholars.length > 0 && (
+            {uniqueGuides.length > 0 && (
               <div
                 id="spiritual-guides"
                 className="bg-white p-7 sm:p-9 rounded-3xl border border-neutral-200 shadow-sm space-y-6"
@@ -1174,19 +1132,19 @@ export default function PackageDetailClient({
                     </h2>
                   </div>
                   <span className="text-xs text-neutral-500 font-medium">
-                    {assignedScholars.length} Designated {assignedScholars.length === 1 ? "Guide" : "Guides"}
+                    {uniqueGuides.length} Designated {uniqueGuides.length === 1 ? "Guide" : "Guides"}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {assignedScholars.map((guide, idx) => {
+                  {uniqueGuides.map((guide, idx) => {
                     const initials =
                       guide.name
                         .replace(/[^a-zA-Z\s]/g, "")
                         .split(/\s+/)
                         .filter(Boolean)
                         .slice(0, 2)
-                        .map((w) => w[0].toUpperCase())
+                        .map((w: string) => w[0].toUpperCase())
                         .join("") || "IS";
 
                     return (

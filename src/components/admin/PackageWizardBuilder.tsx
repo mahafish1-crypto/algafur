@@ -1255,8 +1255,8 @@ export default function PackageWizardBuilder({
                   <div className="flex items-center gap-3">
                     <div className="relative w-24 aspect-[4/3] rounded-xl overflow-hidden border border-slate-700 shrink-0 bg-slate-900">
                       <SafeImage
-                        src={form.makkahImage || "/brand/poster.jpg"}
-                        fallbackSrc="/brand/poster.jpg"
+                        src={form.makkahImage || "/images/placeholders/makkah-hotel-default.jpg"}
+                        fallbackSrc="/images/placeholders/makkah-hotel-default.jpg"
                         alt="Makkah Hotel"
                         fill
                         className="object-cover object-center"
@@ -1295,8 +1295,8 @@ export default function PackageWizardBuilder({
                   <div className="flex items-center gap-3">
                     <div className="relative w-24 aspect-[4/3] rounded-xl overflow-hidden border border-slate-700 shrink-0 bg-slate-900">
                       <SafeImage
-                        src={form.madinahImage || "/brand/poster.jpg"}
-                        fallbackSrc="/brand/poster.jpg"
+                        src={form.madinahImage || "/images/placeholders/madinah-hotel-default.jpg"}
+                        fallbackSrc="/images/placeholders/madinah-hotel-default.jpg"
                         alt="Madinah Hotel"
                         fill
                         className="object-cover object-center"
