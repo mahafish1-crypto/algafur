@@ -205,21 +205,23 @@ async function handleUpdate(
       updateData.madinahDescription = mdAddr ? String(mdAddr).trim() : null;
     }
 
-    // Hotel images preservation & normalization
-    if (body.makkahImage !== undefined) {
+    // Hotel images preservation & normalization (supporting makkahImage and makkahHotelImage)
+    const makkahInput = body.makkahImage !== undefined ? body.makkahImage : body.makkahHotelImage;
+    if (makkahInput !== undefined) {
       updateData.makkahImage =
-        body.makkahImage && String(body.makkahImage).trim()
-          ? String(body.makkahImage).trim()
-          : (body.makkahImage === null ? null : existing.makkahImage);
+        makkahInput && String(makkahInput).trim()
+          ? String(makkahInput).trim()
+          : (makkahInput === null ? null : existing.makkahImage);
     } else {
       updateData.makkahImage = existing.makkahImage;
     }
 
-    if (body.madinahImage !== undefined) {
+    const madinahInput = body.madinahImage !== undefined ? body.madinahImage : body.madinahHotelImage;
+    if (madinahInput !== undefined) {
       updateData.madinahImage =
-        body.madinahImage && String(body.madinahImage).trim()
-          ? String(body.madinahImage).trim()
-          : (body.madinahImage === null ? null : existing.madinahImage);
+        madinahInput && String(madinahInput).trim()
+          ? String(madinahInput).trim()
+          : (madinahInput === null ? null : existing.madinahImage);
     } else {
       updateData.madinahImage = existing.madinahImage;
     }

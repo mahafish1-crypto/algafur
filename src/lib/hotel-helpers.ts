@@ -12,9 +12,9 @@ export function parseHotelImages(
   fallbackUrl?: string | null
 ): ParsedHotelMedia {
   const defaultMakkah =
-    "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=800&auto=format&fit=crop";
+    "/images/placeholders/makkah-hotel-default.jpg";
   const defaultMadinah =
-    "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop";
+    "/images/placeholders/madinah-hotel-default.jpg";
   const cityDefault =
     String(city || "").toUpperCase() === "MADINAH" ? defaultMadinah : defaultMakkah;
 

@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
@@ -199,12 +200,12 @@ export default function Hero({
   const makkahName = pkg.makkahHotelName || pkg.makkahHotel?.name || "Diyafa Jamal";
   const makkahDist = pkg.makkahDistance || pkg.makkahHotel?.distanceFromHaram || "500m";
   const makkahStars = pkg.makkahHotelRating || pkg.makkahHotel?.starRating || 4;
-  const makkahThumb = pkg.makkahImage || extractMainHotelImage(pkg.makkahHotel?.images) || "/brand/poster.jpg";
+  const makkahThumb = pkg.makkahImage || extractMainHotelImage(pkg.makkahHotel?.images) || "/images/placeholders/makkah-hotel-default.jpg";
 
   const madinahName = pkg.madinahHotelName || pkg.madinahHotel?.name || "Ilaf Kuba";
   const madinahDist = pkg.madinahDistance || pkg.madinahHotel?.distanceFromHaram || "400m";
   const madinahStars = pkg.madinahHotelRating || pkg.madinahHotel?.starRating || 4;
-  const madinahThumb = pkg.madinahImage || extractMainHotelImage(pkg.madinahHotel?.images) || "/brand/poster.jpg";
+  const madinahThumb = pkg.madinahImage || extractMainHotelImage(pkg.madinahHotel?.images) || "/images/placeholders/madinah-hotel-default.jpg";
 
   const parsedAssigned = (pkg as any)?.assignedGuides
     ? parseAssignedGuides((pkg as any).assignedGuides)
@@ -356,16 +357,14 @@ export default function Hero({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Makkah Hotel Highlight Card */}
                     <div className="bg-forest-950/90 border border-gold-500/25 rounded-2xl p-3 flex items-center gap-3">
-                      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-forest-900 border border-white/10 flex-shrink-0 flex items-center justify-center">
-                        {makkahThumb ? (
-                          <img
-                            src={makkahThumb}
-                            alt={makkahName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Building className="w-6 h-6 text-gold-400/70" />
-                        )}
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-forest-900 border border-white/10 flex-shrink-0">
+                        <SafeImage
+                          src={makkahThumb}
+                          fallbackSrc="/images/placeholders/makkah-hotel-default.jpg"
+                          alt={makkahName}
+                          fill
+                          className="object-cover object-center"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-1">
@@ -393,16 +392,14 @@ export default function Hero({
 
                     {/* Madinah Hotel Highlight Card */}
                     <div className="bg-forest-950/90 border border-gold-500/25 rounded-2xl p-3 flex items-center gap-3">
-                      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-forest-900 border border-white/10 flex-shrink-0 flex items-center justify-center">
-                        {madinahThumb ? (
-                          <img
-                            src={madinahThumb}
-                            alt={madinahName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Building className="w-6 h-6 text-gold-400/70" />
-                        )}
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-forest-900 border border-white/10 flex-shrink-0">
+                        <SafeImage
+                          src={madinahThumb}
+                          fallbackSrc="/images/placeholders/madinah-hotel-default.jpg"
+                          alt={madinahName}
+                          fill
+                          className="object-cover object-center"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-1">

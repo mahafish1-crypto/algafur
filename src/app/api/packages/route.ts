@@ -405,7 +405,7 @@ export async function POST(req: NextRequest) {
           ? String(body.makkahAddress).trim()
           : null,
         makkahAmenities,
-        makkahImage,
+        makkahImage: makkahImage || body.makkahHotelImage || null,
         madinahHotelName: madinahHotelName || "Ilaf Kuba or similar",
         madinahDistance: madinahDistance || "400m walking",
         madinahHotelRating: Number(madinahHotelRating) || 4,
@@ -417,7 +417,7 @@ export async function POST(req: NextRequest) {
           ? String(body.madinahAddress).trim()
           : null,
         madinahAmenities,
-        madinahImage,
+        madinahImage: madinahImage || body.madinahHotelImage || null,
         airline,
         flightNumber,
         pnr,

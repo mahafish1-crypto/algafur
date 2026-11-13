@@ -270,7 +270,7 @@ export default function PackageWizardBuilder({
         const parsed = parseAssignedGuides(initialPackage.assignedGuides);
         if (parsed.length > 0) return parsed;
       }
-      return isEditing ? [] : [...DEFAULT_SCHOLARS];
+      return [...DEFAULT_SCHOLARS];
     })() as ScholarPreset[],
   });
 
@@ -479,6 +479,7 @@ export default function PackageWizardBuilder({
         makkahAddress: form.makkahAddress ? form.makkahAddress.trim() : "",
         makkahDescription: form.makkahAddress ? form.makkahAddress.trim() : "",
         makkahImage: form.makkahImage || null,
+        makkahHotelImage: form.makkahImage || null,
         makkahMealPlan: form.makkahMealPlan,
 
         madinahHotelName: form.madinahHotelName,
@@ -487,6 +488,7 @@ export default function PackageWizardBuilder({
         madinahAddress: form.madinahAddress ? form.madinahAddress.trim() : "",
         madinahDescription: form.madinahAddress ? form.madinahAddress.trim() : "",
         madinahImage: form.madinahImage || null,
+        madinahHotelImage: form.madinahImage || null,
         madinahMealPlan: form.madinahMealPlan,
 
         airline: form.airline,
@@ -1415,6 +1417,46 @@ export default function PackageWizardBuilder({
                   className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 focus:outline-none"
                 />
               </div>
+
+              {/* Makkah Hotel Photo Preview & Upload Slot */}
+              <div className="pt-3 border-t border-slate-800 space-y-2">
+                <span className="text-xs font-bold text-emerald-400 block">
+                  Makkah Hotel Building Photo
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-24 aspect-[4/3] rounded-xl overflow-hidden border border-slate-700 shrink-0 bg-slate-900">
+                    <SafeImage
+                      src={form.makkahImage || "/images/placeholders/makkah-hotel-default.jpg"}
+                      fallbackSrc="/images/placeholders/makkah-hotel-default.jpg"
+                      alt="Makkah Hotel Building"
+                      fill
+                      className="object-cover object-center"
+                    />
+                  </div>
+                  <label className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-center text-slate-200 cursor-pointer transition-colors">
+                    {isUploadingMakkah ? "Uploading..." : "Upload Makkah Hotel Photo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await uploadImageFile(file, setIsUploadingMakkah);
+                          if (url) setForm((prev) => ({ ...prev, makkahImage: url }));
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Or enter direct Makkah Hotel Image URL..."
+                  value={form.makkahImage}
+                  onChange={(e) => setForm((prev) => ({ ...prev, makkahImage: e.target.value }))}
+                  className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500 mt-1"
+                />
+              </div>
             </div>
 
             {/* Madinah Hotel Card */}
@@ -1486,6 +1528,46 @@ export default function PackageWizardBuilder({
                   onChange={(e) => setForm({ ...form, madinahAddress: e.target.value })}
                   placeholder="Central Northern Area, Near Masjid An-Nabawi"
                   className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 focus:outline-none"
+                />
+              </div>
+
+              {/* Madinah Hotel Photo Preview & Upload Slot */}
+              <div className="pt-3 border-t border-slate-800 space-y-2">
+                <span className="text-xs font-bold text-gold-400 block">
+                  Madinah Hotel Building Photo
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-24 aspect-[4/3] rounded-xl overflow-hidden border border-slate-700 shrink-0 bg-slate-900">
+                    <SafeImage
+                      src={form.madinahImage || "/images/placeholders/madinah-hotel-default.jpg"}
+                      fallbackSrc="/images/placeholders/madinah-hotel-default.jpg"
+                      alt="Madinah Hotel Building"
+                      fill
+                      className="object-cover object-center"
+                    />
+                  </div>
+                  <label className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-center text-slate-200 cursor-pointer transition-colors">
+                    {isUploadingMadinah ? "Uploading..." : "Upload Madinah Hotel Photo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await uploadImageFile(file, setIsUploadingMadinah);
+                          if (url) setForm((prev) => ({ ...prev, madinahImage: url }));
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Or enter direct Madinah Hotel Image URL..."
+                  value={form.madinahImage}
+                  onChange={(e) => setForm((prev) => ({ ...prev, madinahImage: e.target.value }))}
+                  className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:border-gold-500 mt-1"
                 />
               </div>
             </div>

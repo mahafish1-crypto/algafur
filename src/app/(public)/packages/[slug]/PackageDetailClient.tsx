@@ -114,17 +114,22 @@ export default function PackageDetailClient({
 
   const ziyaratLandmarks = parseZiyaratLandmarks(pkg.highlights);
 
-  const rawGuides = Array.isArray(pkg.assignedGuides)
-    ? pkg.assignedGuides
-    : typeof pkg.assignedGuides === "string"
-    ? (() => {
-        try {
-          return JSON.parse(pkg.assignedGuides || "[]");
-        } catch {
-          return [];
-        }
-      })()
-    : [];
+  const rawGuides = [
+    ...(Array.isArray(pkg.assignedGuides) ? pkg.assignedGuides : []),
+    ...(typeof pkg.assignedGuides === "string"
+      ? (() => {
+          try {
+            return JSON.parse(pkg.assignedGuides || "[]");
+          } catch {
+            return [];
+          }
+        })()
+      : []),
+    ...(Array.isArray((pkg as any).guides) ? (pkg as any).guides : []),
+    ...(Array.isArray((pkg as any).packageGuides)
+      ? (pkg as any).packageGuides.map((pg: any) => pg.guide || pg)
+      : []),
+  ];
 
   interface AssignedGuideItem {
     id: string;
@@ -135,25 +140,37 @@ export default function PackageDetailClient({
     avatarUrl: string;
   }
 
-  const uniqueGuides: AssignedGuideItem[] = Array.from(
+  const parsedUniqueGuides: AssignedGuideItem[] = Array.from(
     new Map<string, AssignedGuideItem>(
       rawGuides
         .filter((g: any) => g && (g.name || g.id))
         .map((g: any) => [
           (g.id || g.name || "").toString().trim().toLowerCase(),
           {
-            id: String(g.id || g.name || ""),
-            name: String(g.name || ""),
-            role: String(g.role || g.designation || "Spiritual Guide & Scholar"),
-            bio: String(g.bio || ""),
+            id: g.id || g.name,
+            name: g.name,
+            role: g.role || g.designation || "Spiritual Guide & Scholar",
+            bio: g.bio || "",
             languages: Array.isArray(g.languages)
               ? g.languages.join(", ")
-              : String(g.languages || ""),
-            avatarUrl: String(g.avatarUrl || g.photo || ""),
+              : (g.languages || ""),
+            avatarUrl: g.avatarUrl || g.photo || "",
           },
         ])
     ).values()
   );
+
+  const uniqueGuides: AssignedGuideItem[] =
+    parsedUniqueGuides.length > 0
+      ? parsedUniqueGuides
+      : DEFAULT_SCHOLARS.map((s) => ({
+          id: s.id,
+          name: s.name,
+          role: s.role || "Spiritual Guide & Scholar",
+          bio: s.bio || "",
+          languages: s.languages || "Urdu, Hindi, Arabic",
+          avatarUrl: s.avatarUrl || "",
+        }));
 
   const showItinerary = (pkg as any).showItinerary !== false;
   const packageItineraries = showItinerary
@@ -330,12 +347,12 @@ export default function PackageDetailClient({
   const makkahHotelPhoto =
     pkg.makkahImage && pkg.makkahImage.trim() !== ""
       ? pkg.makkahImage
-      : (pkg as any).makkahHotel?.image || "/images/placeholders/makkah-hotel-default.jpg";
+      : makkahMedia.mainImage || "/images/placeholders/makkah-hotel-default.jpg";
 
   const madinahHotelPhoto =
     pkg.madinahImage && pkg.madinahImage.trim() !== ""
       ? pkg.madinahImage
-      : (pkg as any).madinahHotel?.image || "/images/placeholders/madinah-hotel-default.jpg";
+      : madinahMedia.mainImage || "/images/placeholders/madinah-hotel-default.jpg";
 
   const displayedMakkahImg = activeMakkahImg || makkahHotelPhoto;
   const displayedMadinahImg = activeMadinahImg || madinahHotelPhoto;
@@ -1144,7 +1161,7 @@ export default function PackageDetailClient({
                         .split(/\s+/)
                         .filter(Boolean)
                         .slice(0, 2)
-                        .map((w: string) => w[0].toUpperCase())
+                        .map((w) => w[0].toUpperCase())
                         .join("") || "IS";
 
                     return (
