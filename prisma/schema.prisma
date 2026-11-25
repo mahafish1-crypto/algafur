@@ -532,25 +532,51 @@ model Payment {
 }
 
 model Quotation {
-  id              String    @id @default(uuid())
-  quotationNumber String    @unique // ALQ-2026-00001
-  customerId      String?
-  leadId          String?
-  packageId       String
-  travellersCount Int       @default(1)
-  roomType        String    @default("QUAD")
-  subtotal        Float
-  discount        Float     @default(0)
-  tax             Float     @default(0)
-  total           Float
-  advanceRequired Float     @default(0)
-  balanceAmount   Float     @default(0)
-  terms           String?
-  validUntil      DateTime?
-  status          String    @default("DRAFT") // DRAFT, SENT, ACCEPTED, EXPIRED, REJECTED
-  createdById     String
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                    String    @id @default(uuid())
+  quotationNumber       String    @unique // ALQ-2026-00001
+  customerId            String?
+  leadId                String?
+  packageId             String
+  customerName          String?
+  customerPhone         String?
+  customerWhatsapp      String?
+  customerEmail         String?
+  customerCity          String?
+  travellersCount       Int       @default(1)
+  roomType              String    @default("QUAD") // QUAD | TRIPLE | DOUBLE | SINGLE
+  adultCount            Int       @default(1)
+  adultUnitPrice        Float     @default(0)
+  childWithBedCount     Int       @default(0)
+  childWithBedPrice     Float     @default(0)
+  childNoBedCount       Int       @default(0)
+  childNoBedPrice       Float     @default(0)
+  infantCount           Int       @default(0)
+  infantPrice           Float     @default(0)
+  subtotal              Float
+  discount              Float     @default(0)
+  discountType          String    @default("FLAT") // FLAT | PERCENT
+  discountValue         Float     @default(0)
+  discountAmount        Float     @default(0)
+  discountReason        String?
+  tax                   Float     @default(0)
+  taxPercent            Float     @default(0)
+  gstAmount             Float     @default(0)
+  additionalCharges     Float     @default(0)
+  additionalChargesNote String?
+  total                 Float
+  advanceRequired       Float     @default(0)
+  balanceAmount         Float     @default(0)
+  balanceDueDate        DateTime?
+  departureDate         String?
+  departureCity         String?
+  specialNotes          String?
+  terms                 String?
+  validUntil            DateTime?
+  lineItemsJson         Json?
+  status                String    @default("DRAFT") // DRAFT, SENT, ACCEPTED, EXPIRED, REJECTED
+  createdById           String
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   customer        Customer? @relation(fields: [customerId], references: [id])
   lead            Lead?     @relation(fields: [leadId], references: [id])

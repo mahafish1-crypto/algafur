@@ -14,14 +14,15 @@ export const dynamic = "force-dynamic";
 export default async function AdminQuotationsPage() {
   const { allowed, session } = await verifyModuleAccess("quotations");
   if (!allowed) return <AccessDeniedView moduleKey="quotations" session={session} />;
-  const [quotations, packages, customers, siteSettings] = await Promise.all([
+
+  const [quotations, siteSettings] = await Promise.all([
     prisma.quotation.findMany({
       include: {
         customer: {
-          select: { id: true, name: true, phone: true, email: true },
+          select: { id: true, name: true, phone: true, whatsapp: true, email: true, city: true },
         },
         lead: {
-          select: { id: true, name: true, mobile: true, email: true },
+          select: { id: true, name: true, mobile: true, email: true, city: true },
         },
         package: {
           select: {
@@ -34,7 +35,6 @@ export default async function AdminQuotationsPage() {
             makkahDistance: true,
             madinahDistance: true,
             departureDate: true,
-            inclusions: true,
           },
         },
         createdBy: {
@@ -43,43 +43,12 @@ export default async function AdminQuotationsPage() {
       },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.package.findMany({
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        durationDays: true,
-        basePrice: true,
-        priceQuad: true,
-        priceTriple: true,
-        priceDouble: true,
-        priceSingle: true,
-        makkahHotelName: true,
-        madinahHotelName: true,
-        makkahDistance: true,
-        madinahDistance: true,
-        departureDate: true,
-      },
-      where: { status: "PUBLISHED" },
-      orderBy: { name: "asc" },
-    }),
-    prisma.customer.findMany({
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-      },
-      orderBy: { name: "asc" },
-      take: 100,
-    }),
     getSiteSettings(),
   ]);
 
   return (
     <AdminQuotationsClient
       initialQuotations={JSON.parse(JSON.stringify(quotations))}
-      packages={JSON.parse(JSON.stringify(packages))}
-      customers={JSON.parse(JSON.stringify(customers))}
       siteSettings={siteSettings}
     />
   );

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import prisma from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { requireAuth } from "@/lib/api-auth";
+import { computeQuotationTotals } from "@/lib/quotation-math";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,11 +18,13 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     if (search) {
       where.OR = [
-        { quotationNumber: { contains: search } },
-        { customer: { name: { contains: search } } },
-        { customer: { phone: { contains: search } } },
-        { lead: { name: { contains: search } } },
-        { package: { name: { contains: search } } },
+        { quotationNumber: { contains: search, mode: "insensitive" } },
+        { customerName: { contains: search, mode: "insensitive" } },
+        { customerPhone: { contains: search, mode: "insensitive" } },
+        { customer: { name: { contains: search, mode: "insensitive" } } },
+        { customer: { phone: { contains: search, mode: "insensitive" } } },
+        { lead: { name: { contains: search, mode: "insensitive" } } },
+        { package: { name: { contains: search, mode: "insensitive" } } },
       ];
     }
 
@@ -26,10 +32,10 @@ export async function GET(req: NextRequest) {
       where,
       include: {
         customer: {
-          select: { id: true, name: true, phone: true, email: true },
+          select: { id: true, name: true, phone: true, whatsapp: true, email: true, city: true },
         },
         lead: {
-          select: { id: true, name: true, mobile: true, email: true },
+          select: { id: true, name: true, mobile: true, email: true, city: true },
         },
         package: {
           select: {
@@ -37,11 +43,18 @@ export async function GET(req: NextRequest) {
             name: true,
             type: true,
             durationDays: true,
+            makkahNights: true,
+            madinahNights: true,
             makkahHotelName: true,
             madinahHotelName: true,
             makkahDistance: true,
             madinahDistance: true,
+            makkahMealPlan: true,
+            madinahMealPlan: true,
+            airline: true,
+            flightType: true,
             departureDate: true,
+            departureCity: true,
             inclusions: true,
           },
         },
@@ -71,27 +84,82 @@ export async function POST(req: NextRequest) {
       customerId,
       leadId,
       packageId,
-      travellersCount = 1,
+      customerName,
+      customerPhone,
+      customerWhatsapp,
+      customerEmail,
+      customerCity,
       roomType = "QUAD",
-      subtotal,
+      adultCount,
+      adultUnitPrice,
+      travellersCount,
+      childWithBedCount = 0,
+      childWithBedPrice = 0,
+      childNoBedCount = 0,
+      childNoBedPrice = 0,
+      infantCount = 0,
+      infantPrice = 0,
+      discountType = "FLAT",
+      discountValue,
       discount = 0,
-      tax = 0,
-      total,
+      discountReason = null,
+      taxPercent = 0,
+      additionalCharges = 0,
+      additionalChargesNote = null,
       advanceRequired = 0,
-      balanceAmount = 0,
+      balanceDueDate = null,
+      departureDate = null,
+      departureCity = null,
+      specialNotes = null,
       terms,
       validUntil,
+      status = "SENT",
     } = body;
 
-    if (!packageId || !subtotal || !total) {
-      return NextResponse.json(
-        { error: "Package, subtotal, and total are required" },
-        { status: 400 }
-      );
+    if (!packageId) {
+      return NextResponse.json({ error: "Package is required" }, { status: 400 });
     }
 
+    // Resolve adult count & unit price if legacy client payload is used
+    const effectiveAdultCount =
+      adultCount !== undefined ? Number(adultCount) : Number(travellersCount || 1);
+    const effectiveAdultUnitPrice =
+      adultUnitPrice !== undefined
+        ? Number(adultUnitPrice)
+        : body.subtotal && effectiveAdultCount > 0
+        ? Number(body.subtotal) / effectiveAdultCount
+        : 0;
+    const effectiveDiscountValue =
+      discountValue !== undefined ? Number(discountValue) : Number(discount || 0);
+
+    const calc = computeQuotationTotals({
+      roomType,
+      adultCount: effectiveAdultCount,
+      adultUnitPrice: effectiveAdultUnitPrice,
+      childWithBedCount: Number(childWithBedCount),
+      childWithBedPrice: Number(childWithBedPrice),
+      childNoBedCount: Number(childNoBedCount),
+      childNoBedPrice: Number(childNoBedPrice),
+      infantCount: Number(infantCount),
+      infantPrice: Number(infantPrice),
+      discountType,
+      discountValue: effectiveDiscountValue,
+      discountReason,
+      taxPercent: Number(taxPercent),
+      additionalCharges: Number(additionalCharges),
+      additionalChargesNote,
+      advanceRequired: Number(advanceRequired),
+    });
+
     const count = await prisma.quotation.count();
-    const quotationNumber = `ALQ-2026-${String(count + 101).padStart(5, "0")}`;
+    let quotationNumber = `QT-2026-${String(count + 101).padStart(4, "0")}`;
+    const existingNum = await prisma.quotation.findUnique({
+      where: { quotationNumber },
+      select: { id: true },
+    });
+    if (existingNum) {
+      quotationNumber = `QT-2026-${String(count + 101).padStart(4, "0")}-${Date.now().toString().slice(-4)}`;
+    }
 
     const quotation = await prisma.quotation.create({
       data: {
@@ -99,17 +167,43 @@ export async function POST(req: NextRequest) {
         customerId: customerId || null,
         leadId: leadId || null,
         packageId,
-        travellersCount: Number(travellersCount),
-        roomType,
-        subtotal: parseFloat(subtotal),
-        discount: parseFloat(discount),
-        tax: parseFloat(tax),
-        total: parseFloat(total),
-        advanceRequired: parseFloat(advanceRequired),
-        balanceAmount: parseFloat(balanceAmount),
+        customerName: customerName ? String(customerName).trim() : null,
+        customerPhone: customerPhone ? String(customerPhone).trim() : null,
+        customerWhatsapp: customerWhatsapp ? String(customerWhatsapp).trim() : null,
+        customerEmail: customerEmail ? String(customerEmail).trim() : null,
+        customerCity: customerCity ? String(customerCity).trim() : null,
+        travellersCount: calc.travellersCount,
+        roomType: calc.roomType,
+        adultCount: calc.adultCount,
+        adultUnitPrice: calc.adultUnitPrice,
+        childWithBedCount: calc.childWithBedCount,
+        childWithBedPrice: calc.childWithBedPrice,
+        childNoBedCount: calc.childNoBedCount,
+        childNoBedPrice: calc.childNoBedPrice,
+        infantCount: calc.infantCount,
+        infantPrice: calc.infantPrice,
+        subtotal: calc.subtotal,
+        discount: calc.discountAmount,
+        discountType: calc.discountType,
+        discountValue: calc.discountValue,
+        discountAmount: calc.discountAmount,
+        discountReason: discountReason ? String(discountReason).trim() : null,
+        tax: calc.gstAmount,
+        taxPercent: calc.taxPercent,
+        gstAmount: calc.gstAmount,
+        additionalCharges: calc.additionalCharges,
+        additionalChargesNote: additionalChargesNote ? String(additionalChargesNote).trim() : null,
+        total: calc.total,
+        advanceRequired: calc.advanceRequired,
+        balanceAmount: calc.balanceAmount,
+        balanceDueDate: balanceDueDate ? new Date(balanceDueDate) : null,
+        departureDate: departureDate ? String(departureDate).trim() : null,
+        departureCity: departureCity ? String(departureCity).trim() : null,
+        specialNotes: specialNotes ? String(specialNotes).trim() : null,
         terms: terms || "Prices subject to flight fare and visa slot availability.",
         validUntil: validUntil ? new Date(validUntil) : new Date(Date.now() + 7 * 86400000),
-        status: "SENT",
+        lineItemsJson: calc.lineItemsJson as any,
+        status: status || "SENT",
         createdById: session.id,
       },
       include: {
@@ -124,11 +218,21 @@ export async function POST(req: NextRequest) {
       action: "CREATE_QUOTATION",
       entity: "Quotation",
       entityId: quotation.id,
-      details: { quotationNumber, total, travellersCount },
+      details: {
+        quotationNumber,
+        total: calc.total,
+        discountAmount: calc.discountAmount,
+        travellersCount: calc.travellersCount,
+      },
     });
+
+    try {
+      revalidatePath("/admin/quotations");
+    } catch {}
 
     return NextResponse.json({ success: true, quotation });
   } catch (error: unknown) {
+    console.error("Error creating quotation:", error);
     const errorMsg = error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
