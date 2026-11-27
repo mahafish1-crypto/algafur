@@ -200,6 +200,9 @@ export async function POST(req: NextRequest) {
       revalidatePath("/about");
       revalidatePath("/contact");
       revalidatePath("/packages");
+      revalidatePath("/admin/settings");
+      revalidatePath("/admin/quotations");
+      revalidatePath("/admin/invoices");
     } catch (e) {
       console.warn("revalidatePath warning:", e);
     }

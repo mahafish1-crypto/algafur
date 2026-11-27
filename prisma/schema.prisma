@@ -587,27 +587,46 @@ model Quotation {
 }
 
 model Invoice {
-  id            String    @id @default(uuid())
-  invoiceNumber String    @unique // ALI-2026-00001
-  bookingId     String
-  customerId    String
-  subtotal      Float
-  discount      Float     @default(0)
-  tax           Float     @default(0)
-  total         Float
-  paidAmount    Float     @default(0)
-  balanceDue    Float     @default(0)
-  dueDate       DateTime?
-  status        String    @default("ISSUED") // DRAFT, ISSUED, PAID, OVERDUE, CANCELLED
-  notes         String?
-  terms         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id               String    @id @default(uuid())
+  invoiceNumber    String    @unique // ALI-2026-00001
+  bookingId        String?
+  customerId       String?
+  quotationId      String?
+  packageName      String?
+  customerName     String?
+  customerPhone    String?
+  customerCity     String?
+  bookingDate      String?
+  airlines         String?
+  departure        String?
+  arrival          String?
+  days             Int?
+  roomType         String?
+  paymentMode      String?   // BANK_TRANSFER | CASH | MIXED
+  pilgrimsJson     Json?     // Array of { srNo, name, passportNo, contactNo, amount }
+  subtotal         Float
+  discount         Float     @default(0)
+  discountAmount   Float     @default(0)
+  discountReason   String?
+  tax              Float     @default(0)
+  total            Float
+  totalBillAmount  Float     @default(0)
+  advanceAmount    Float     @default(0)
+  paidAmount       Float     @default(0)
+  balanceDue       Float     @default(0)
+  remainingAmount  Float     @default(0)
+  dueDate          DateTime?
+  status           String    @default("ISSUED") // DRAFT, ISSUED, PAID, OVERDUE, CANCELLED
+  notes            String?
+  terms            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  booking       Booking   @relation(fields: [bookingId], references: [id])
-  customer      Customer  @relation(fields: [customerId], references: [id])
+  booking          Booking?  @relation(fields: [bookingId], references: [id])
+  customer         Customer? @relation(fields: [customerId], references: [id])
 
   @@index([invoiceNumber])
+  @@index([quotationId])
 }
 
 model Document {

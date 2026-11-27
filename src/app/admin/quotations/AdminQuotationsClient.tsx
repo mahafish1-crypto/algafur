@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FileText,
   Search,
@@ -10,6 +11,8 @@ import {
   MessageCircle,
   Eye,
   Trash2,
+  Receipt,
+  Loader2,
 } from "lucide-react";
 import { buildQuotationWhatsAppMessage } from "@/lib/quotation-math";
 
@@ -66,9 +69,29 @@ interface Props {
 export default function AdminQuotationsClient({
   initialQuotations,
 }: Props) {
+  const router = useRouter();
   const [quotations, setQuotations] = useState<QuotationItem[]>(initialQuotations);
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [convertingInvId, setConvertingInvId] = useState<string | null>(null);
+
+  const handleGenerateInvoice = async (id: string) => {
+    setConvertingInvId(id);
+    try {
+      const res = await fetch(`/api/admin/quotations/${id}/convert-to-invoice`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to generate invoice.");
+      }
+      router.push(`/admin/invoices/${data.invoice.id}`);
+    } catch (err: any) {
+      alert(err.message || "Error generating invoice.");
+    } finally {
+      setConvertingInvId(null);
+    }
+  };
 
   const filteredQuotes = quotations.filter((q) => {
     const term = search.toLowerCase();
@@ -273,6 +296,20 @@ export default function AdminQuotationsClient({
                             <Eye className="w-3.5 h-3.5" />
                             View / PDF
                           </Link>
+                          <button
+                            type="button"
+                            disabled={convertingInvId === q.id}
+                            onClick={() => handleGenerateInvoice(q.id)}
+                            title="Generate Invoice / Booking Receipt"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#0A2240] text-[#F3D57F] hover:bg-[#10305a] font-semibold text-xs transition-colors disabled:opacity-50"
+                          >
+                            {convertingInvId === q.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Receipt className="w-3.5 h-3.5" />
+                            )}
+                            Generate Invoice
+                          </button>
                           <Link
                             href={`/admin/quotations/${q.id}/edit`}
                             title="Edit Quotation"

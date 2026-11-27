@@ -180,6 +180,7 @@ export default function AdminSettingsClient({
     bank_account_number:
       initialSettings.bank_account_number || "50200088991234",
     bank_ifsc: initialSettings.bank_ifsc || "HDFC0000123",
+    bank_branch: initialSettings.bank_branch || "Parner Branch, Ahilyanagar",
     bank_upi: initialSettings.bank_upi || "algafurtours@hdfcbank",
 
     whatsapp_api_token: initialSettings.whatsapp_api_token || "",
@@ -1883,6 +1884,17 @@ export default function AdminSettingsClient({
                         value={settings.bank_ifsc}
                         onChange={(e) => handleChange("bank_ifsc", e.target.value)}
                         className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 font-mono bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">
+                        Branch Name
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.bank_branch}
+                        onChange={(e) => handleChange("bank_branch", e.target.value)}
+                        className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
                       />
                     </div>
                     <div>

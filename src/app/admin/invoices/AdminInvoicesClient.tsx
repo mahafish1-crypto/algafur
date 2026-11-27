@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   Receipt,
   Search,
@@ -20,8 +21,12 @@ import BrandLogo from "@/components/brand/BrandLogo";
 interface InvoiceItem {
   id: string;
   invoiceNumber: string;
-  bookingId: string;
-  customerId: string;
+  bookingId?: string | null;
+  customerId?: string | null;
+  quotationId?: string | null;
+  packageName?: string | null;
+  customerName?: string | null;
+  customerPhone?: string | null;
   subtotal: number;
   discount: number;
   tax: number;
@@ -33,7 +38,7 @@ interface InvoiceItem {
   notes?: string | null;
   terms?: string | null;
   createdAt: string;
-  customer: {
+  customer?: {
     id: string;
     name: string;
     phone: string;
@@ -42,8 +47,8 @@ interface InvoiceItem {
     city?: string | null;
     state?: string | null;
     pincode?: string | null;
-  };
-  booking: {
+  } | null;
+  booking?: {
     id: string;
     bookingNumber: string;
     totalAmount: number;
@@ -58,7 +63,7 @@ interface InvoiceItem {
       durationDays: number;
       departureDate?: string | null;
     } | null;
-  };
+  } | null;
 }
 
 interface BookingOption {
@@ -276,15 +281,19 @@ export default function AdminInvoicesClient({
                       })}
                     </td>
                     <td className="px-5 py-4">
-                      <div className="font-semibold text-slate-900">{inv.customer?.name}</div>
-                      <div className="text-xs text-slate-500">{inv.customer?.phone}</div>
+                      <div className="font-semibold text-slate-900">
+                        {inv.customer?.name || inv.customerName || "Pilgrim"}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {inv.customer?.phone || inv.customerPhone || ""}
+                      </div>
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-800 bg-slate-100 px-2 py-0.5 rounded">
-                        {inv.booking?.bookingNumber}
+                        {inv.booking?.bookingNumber || (inv.quotationId ? "From Quotation" : "Direct Receipt")}
                       </span>
                       <div className="text-xs text-slate-500 mt-0.5 max-w-[180px] truncate">
-                        {inv.booking?.package?.name}
+                        {inv.booking?.package?.name || inv.packageName || ""}
                       </div>
                     </td>
                     <td className="px-5 py-4 font-bold text-slate-900">
@@ -311,13 +320,13 @@ export default function AdminInvoicesClient({
                       </span>
                     </td>
                     <td className="px-5 py-4 text-right">
-                      <button
-                        onClick={() => setSelectedInvoice(inv)}
+                      <Link
+                        href={`/admin/invoices/${inv.id}`}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-medium text-xs border border-emerald-200 transition-colors"
                       >
                         <Printer className="w-3.5 h-3.5" />
-                        View Invoice
-                      </button>
+                        View / Edit Receipt
+                      </Link>
                     </td>
                   </tr>
                 ))
